@@ -1,0 +1,92 @@
+import { DefaultTheme, configureFonts } from "react-native-paper";
+
+const fontConfig = {
+  default: {
+    fontFamily: "Roboto-Regular",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  medium: {
+    fontFamily: "Roboto-Medium",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  light: {
+    fontFamily: "Roboto-Light",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  thin: {
+    fontFamily: "Roboto-Thin",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  bold: {
+    fontFamily: "Roboto-Bold",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  italic: {
+    fontFamily: "Roboto-Italic",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  mediumItalic: {
+    fontFamily: "Roboto-MediumItalic",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  lightItalic: {
+    fontFamily: "Roboto-LightItalic",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  thinItalic: {
+    fontFamily: "Roboto-ThinItalic",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  boldItalic: {
+    fontFamily: "Roboto-BoldItalic",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 22,
+    fontSize: 16,
+  },
+  title: {
+    fontFamily: "Roboto-Medium",
+    fontWeight: "normal" as const,
+    letterSpacing: 0.5,
+    lineHeight: 28, 
+    fontSize: 20,
+  },
+};
+
+export const theme = {
+  ...DefaultTheme,
+  fonts: configureFonts({ config: fontConfig, isV3: true }),
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#02302e",
+    accent: "#edefef",
+    secondaryContainer: "#F0F0F0",
+  },
+};
