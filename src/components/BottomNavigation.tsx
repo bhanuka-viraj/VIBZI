@@ -1,38 +1,35 @@
 // components/BottomNavigation.tsx
 import React, { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
-import HomeScreen from '../screens/HomeScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import { useNavigation } from '@react-navigation/native';
 import { theme } from '../constants/theme';
-import MyTripsScreen from '../screens/MyTripsScreen';
-
-
 
 export default function BottomNav() {
   const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: 'home', focusedIcon: 'home', unfocusedIcon: 'home' },
-    { key: 'myTrips', focusedIcon: 'map', unfocusedIcon: 'map' },
-    { key: 'profile', focusedIcon: 'account', unfocusedIcon: 'account' },
+  const navigation = useNavigation();
 
-  ]);
+  const routes = [
+    { key: 'Home',  focusedIcon: 'magnify', unfocusedIcon: 'magnify' },
+    { key: 'MyTrips',  focusedIcon: 'map', unfocusedIcon: 'map-outline' },
+    { key: 'Profile',  focusedIcon: 'account', unfocusedIcon: 'account-outline' },
+  ];
 
-  const renderScene = BottomNavigation.SceneMap({
-    home: HomeScreen,
-    myTrips: MyTripsScreen,
-    profile: ProfileScreen
-  });
+  const handleIndexChange = (newIndex: number) => {
+    setIndex(newIndex);
+    const route = routes[newIndex];
+    navigation.navigate(route.key as never);
+  };
 
   return (
     <BottomNavigation
       navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
+      onIndexChange={handleIndexChange}
+      renderScene={() => null}
       theme={theme}
       barStyle={{
         backgroundColor: '#ffff',
         paddingBottom: 0,
-        height: 60,
+        height: 80,
       }}
       activeColor={theme.colors.primary}
       inactiveColor={theme.colors.secondary}

@@ -6,50 +6,23 @@ import RecentSuggestions from '../components/RecentSuggestions';
 import { theme } from '../constants/theme';
 
 
-const HomeScreen :React.FC = () => {
+const HomeScreen: React.FC = () => {
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Image
-                    source={require('../assets/images/icon.png')}
-                    resizeMode="contain"
-                    style={styles.logo}
-                />
-                <Image
-                    source={require('../assets/images/avatar.png')}
-                    style={styles.avatar}
-                />
-            </View>
-
+        <View style={styles.container}>
             <Search />
 
             <Text style={[styles.title, theme.fonts.title]}>
                 Recent suggestions for you
             </Text>
             <RecentSuggestions />
-        </SafeAreaView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: 20,
-    },
-    logo: {
-        height: 40,
-        width: 120,
-    },
-    avatar: {
-        height: 35,
-        width: 35,
-        borderRadius: 16,
+        backgroundColor: 'white',
     },
     title: {
         marginTop: 16,

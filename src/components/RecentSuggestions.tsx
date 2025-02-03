@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, FlatList } from 'react-native'
 import React from 'react'
-import DestinationCard from './DestinationCard'
+import DestinationCard from './cards/DestinationCard'
 import { cards } from '../constants/data'
 
 const RecentSuggestions = () => {

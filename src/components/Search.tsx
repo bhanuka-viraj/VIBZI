@@ -1,17 +1,22 @@
 // components/Search.tsx
 import React from 'react';
 import { Searchbar } from 'react-native-paper';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 
-const Search = () => {
+interface SearchProps {
+    style?: StyleProp<ViewStyle>;
+    placeholder?: string;
+}
+
+const Search = ({ style, placeholder }: SearchProps) => {
     const [searchQuery, setSearchQuery] = React.useState('');
 
     return (
         <Searchbar
-            placeholder="Enter your destination"
+            placeholder={placeholder || 'Enter your destination'}
             onChangeText={setSearchQuery}
             value={searchQuery}
-            style={styles.searchBar}
+            style={[styles.searchBar, style]}
             inputStyle={{
                 fontSize: 16,
                 alignItems: 'center'
@@ -39,3 +44,5 @@ const styles = StyleSheet.create({
 });
 
 export default Search;
+
+

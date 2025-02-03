@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Icon, Text } from 'react-native-paper';
 import { Dimensions, Image, ImageSourcePropType, Platform, StyleSheet, View } from 'react-native';
-import { theme } from '../constants/theme';
+import { theme } from '../../constants/theme';
 
 interface DestinationCardProps {
   title: string;
@@ -27,13 +27,13 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
         style={styles.image}
       />
       <Card.Content style={styles.cardContent}>
-        <Text style={[theme.fonts.bodyMedium,{fontWeight: 'bold'}]}>
-          <Icon source="star" theme={theme} size={17} />
-          {rating} 
+        <Text style={[theme.fonts.bodyMedium, { fontWeight: 'bold', color: 'black' }]}>
+          <Icon source="star" theme={theme} size={17} color={theme.colors.primary} />
+          {rating}
           <Text style={[theme.fonts.bodyMedium]}> ({reviewCount}) </Text>
-          </Text>
+        </Text>
 
-        <Text style={[theme.fonts.titleMedium]}>{title}</Text>
+        <Text style={[theme.fonts.titleMedium, { color: 'black' }]}>{title}</Text>
         <Text style={[theme.fonts.bodyMedium]}>
           From {fromPricePerPerson}/Person
         </Text>
@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     overflow: 'hidden',
     shadowColor: 'transparent',
-    width: deviceWidth * 0.55, 
+    width: deviceWidth * 0.55,
   },
   image: {
     width: '100%',
-    height: Platform.OS === 'ios' ? 270 : 300, 
+    height: Platform.OS === 'ios' ? 270 : 300,
     borderRadius: 10,
   },
   cardContent: {
