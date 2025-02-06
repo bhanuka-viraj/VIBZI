@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingTop: 20,
+        backgroundColor:'#fff'
     },
     logo: {
         height: 40,

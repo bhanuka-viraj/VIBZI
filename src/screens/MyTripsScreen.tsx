@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -13,18 +13,22 @@ import { tripCards } from "../constants/data";
 import TripCard, { TripCardType } from "../components/cards/TripCard";
 import LinearGradient from "react-native-linear-gradient";
 import Search from "../components/Search";
-import CreateTripModal from "../screens/Modals/CreateNewTripModal";
+import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
+import CreateTripActionSheet from "../components/actionsheets/CreateTripActionSheet";
+import Header from "../components/Header";
 
 const { height } = Dimensions.get("window");
 
 const MyTripsScreen: React.FC = () => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const actionSheetRef = useRef<ActionSheetRef>(null);
 
   return (
+    <>
+      <Header/>
     <View style={styles.container}>
       <Search style={{ marginHorizontal: 12 }} placeholder={"Search your trip"} />
       <View style={styles.btnContainer}>
-        <TouchableOpacity style={styles.btn} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity style={styles.btn} onPress={() => actionSheetRef.current?.show()}>
           <Icon source={"plus-circle"} size={23} color={theme.colors.primary} />
           <Text style={[theme.fonts.bodyLarge, styles.btnText]}>Create a new trip</Text>
         </TouchableOpacity>
@@ -47,23 +51,21 @@ const MyTripsScreen: React.FC = () => {
         <FlatList
           data={tripCards}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item, index }) => {
-            return (
-              <View style={[styles.cardContainer, index === 0 && styles.firstCard]}>
-                <TripCard trip={item as TripCardType} />
-              </View>
-            );
-          }}
+          renderItem={({ item, index }) => (
+            <View style={[styles.cardContainer, index === 0 && styles.firstCard]}>
+              <TripCard trip={item as TripCardType} />
+            </View>
+          )}
         />
       </View>
-
-      {/* Modal */}
-      <CreateTripModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      <CreateTripActionSheet actionSheetRef={actionSheetRef} />
     </View>
+    </>
   );
 };
 
 export default MyTripsScreen;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -100,13 +102,13 @@ const styles = StyleSheet.create({
     top: 235,
     left: 0,
     right: 0,
-    height: 30,
+    height: 10,
     zIndex: 1,
   },
   cardContainer: {
     marginBottom: 10,
   },
   firstCard: {
-    marginTop: 50,
+    marginTop: 10,
   },
 });

@@ -4,22 +4,18 @@ import { View, StyleSheet } from 'react-native';
 import BottomNav from '../BottomNavigation';
 import Header from '../Header';
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+const MainLayout = ({ children }: { children: React.ReactNode; }) => {
     return (
         <View style={styles.container}>
-            <View>
-                <Header/>
-            </View>
-            {/* Content Area (Will Slide) */}
             <View style={styles.content}>{children}</View>
 
-            {/* Bottom Navigation (Static) */}
             <View style={styles.bottomNav}>
                 <BottomNav />
             </View>
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
