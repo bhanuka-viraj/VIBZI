@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import ChecklistsScreen from '../screens/tripdetailsScreens/CheckListScreen'; 
-import ItineraryScreen from '../screens/tripdetailsScreens/ItineraryScreen'; 
+import ChecklistsScreen from '../screens/tripdetailsScreens/CheckListScreen';
+import ItineraryScreen from '../screens/tripdetailsScreens/ItineraryScreen';
 import AttachmentsScreen from '../screens/tripdetailsScreens/AttachmentsScreen';
 import { theme } from '../constants/theme';
 
@@ -33,7 +33,12 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({ scree
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: '#999',
         tabBarLabelStyle: { fontWeight: 'bold' },
-        tabBarStyle: { backgroundColor: '#fff' },
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarIndicatorStyle: { backgroundColor: theme.colors.primary },
       }}
     >
       <Tab.Screen name="Checklists" component={ChecklistsScreen} />

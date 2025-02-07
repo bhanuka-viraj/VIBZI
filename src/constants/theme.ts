@@ -50,6 +50,7 @@ const fontConfig = {
       fontSize: 22,
       letterSpacing: 0,
       lineHeight: 28,
+      color: '#000000',
     },
     titleMedium: {
       fontFamily: 'Roboto-Medium',

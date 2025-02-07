@@ -24,14 +24,14 @@ const TripCard: React.FC<TripCardProps> = ({ trip }) => {
 
       <View style={styles.textContainer}>
         <Text style={[theme.fonts.titleMedium]}
-          numberOfLines={2} // Limit to 2 lines
-          ellipsizeMode="tail" // Add ellipsis at the end
+          numberOfLines={2} 
+          ellipsizeMode="tail" 
         >
           {trip.title}</Text>
         <Text
           style={[theme.fonts.bodyMedium, styles.description]}
-          numberOfLines={2} // Limit to 2 lines
-          ellipsizeMode="tail" // Add ellipsis at the end
+          numberOfLines={2} 
+          ellipsizeMode="tail" 
         >
           {trip.description}
         </Text>

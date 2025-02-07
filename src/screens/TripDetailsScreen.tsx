@@ -18,7 +18,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import TripDetailsTabNavigator from "../navigation/TripDetailsTabNavigator";
 import { useNavigation } from "@react-navigation/native";
 
-const HEADER_IMAGE_HEIGHT = 350;
+const HEADER_IMAGE_HEIGHT = 300;
 
 interface TripDetailsScreenProps {
   route: {
@@ -90,7 +90,7 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle={statusBarStyle} translucent backgroundColor="transparent" />
       <View
         style={styles.container}
@@ -118,7 +118,7 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
         />
       </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
