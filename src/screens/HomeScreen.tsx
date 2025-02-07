@@ -10,7 +10,7 @@ import Header from '../components/Header';
 
 const HomeScreen: React.FC = () => {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Header/>
             <Search />
 
@@ -18,7 +18,7 @@ const HomeScreen: React.FC = () => {
                 Recent suggestions for you
             </Text>
             <RecentSuggestions />
-        </View>
+        </SafeAreaView>
     );
 };
 

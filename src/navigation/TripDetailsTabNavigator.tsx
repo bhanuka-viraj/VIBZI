@@ -6,6 +6,7 @@ import AttachmentsScreen from '../screens/tripdetailsScreens/AttachmentsScreen';
 import { theme } from '../constants/theme';
 
 type Activity = {
+  date?: string;
   time?: string;
   title?: string;
   location?: string;

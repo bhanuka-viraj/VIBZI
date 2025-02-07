@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
     borderColor: '#757575',
     borderRadius: 20,
     marginBottom: 10,
-    padding: 10,
+    padding: 8,
     height: 150,
   },
   image: {
     width: '40%', 
     height: '100%', 
-    borderRadius: 20,
+    borderRadius: 10,
   },
   textContainer: {
     width: '55%', 

@@ -25,17 +25,15 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [tripName, setTripName] = useState("");
   const [destination, setDestination] = useState("");
-  const [fromDate, setFromDate] = useState<Date | null>(null); // Use Date type
-  const [toDate, setToDate] = useState<Date | null>(null); // Use Date type
-  const [showFromDate, setShowFromDate] = useState(false); // State to show fromDate picker
-  const [showToDate, setShowToDate] = useState(false); // State to show toDate picker
-
+  const [fromDate, setFromDate] = useState<Date | null>(null); 
+  const [toDate, setToDate] = useState<Date | null>(null); 
+  const [showFromDate, setShowFromDate] = useState(false); 
+  const [showToDate, setShowToDate] = useState(false); 
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
       <View style={styles.modalContainer}>
         <Text style={styles.title}>Create a Trip</Text>
 
-        {/* Trip Name Input */}
         <Text style={styles.label}>Trip Name</Text>
         <TextInput
           style={styles.input}
@@ -45,7 +43,6 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           onChangeText={setTripName}
         />
 
-        {/* Destination Input */}
         <Text style={styles.label}>Destination</Text>
         <View style={styles.searchContainer}>
           <Icon source="magnify" size={20} color="gray" />
@@ -57,7 +54,6 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           />
         </View>
 
-        {/* Date Range Selection */}
         <Text style={styles.label}>Select Date Range</Text>
         <TouchableOpacity
           style={styles.datePickerButton}
@@ -66,7 +62,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              { color: fromDate || toDate ? "black" : "gray" }, // Dynamic color logic here
+              { color: fromDate || toDate ? "black" : "gray" }, 
             ]}
           >
             From: {fromDate ? fromDate.toDateString() : "Select Start Date"}
@@ -79,14 +75,14 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              { color: fromDate || toDate ? "black" : "gray" }, // Dynamic color logic here
+              { color: fromDate || toDate ? "black" : "gray" }, 
             ]}
           >
             To: {toDate ? toDate.toDateString() : "Select End Date"}
           </Text>
         </TouchableOpacity>
 
-        {/* Date Pickers */}
+
         <DatePicker
           modal
           open={showFromDate}
@@ -110,7 +106,6 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           onCancel={() => setShowToDate(false)}
         />
 
-        {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => actionSheetRef.current?.hide()}

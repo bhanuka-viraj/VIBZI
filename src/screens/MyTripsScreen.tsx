@@ -16,6 +16,7 @@ import Search from "../components/Search";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import CreateTripActionSheet from "../components/actionsheets/CreateTripActionSheet";
 import Header from "../components/Header";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { height } = Dimensions.get("window");
 
@@ -24,42 +25,45 @@ const MyTripsScreen: React.FC = () => {
 
   return (
     <>
-      <Header/>
-    <View style={styles.container}>
-      <Search style={{ marginHorizontal: 12 }} placeholder={"Search your trip"} />
-      <View style={styles.btnContainer}>
-        <TouchableOpacity style={styles.btn} onPress={() => actionSheetRef.current?.show()}>
-          <Icon source={"plus-circle"} size={23} color={theme.colors.primary} />
-          <Text style={[theme.fonts.bodyLarge, styles.btnText]}>Create a new trip</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView>
+        <Header />
+      </SafeAreaView>
 
-      <LinearGradient
-        colors={[
-          "rgba(255, 255, 255, 1)",
-          "rgba(255, 255, 255, 0.9)",
-          "rgba(255, 255, 255, 0.7)",
-          "rgba(255, 255, 255, 0.5)",
-          "rgba(255, 255, 255, 0.3)",
-          "rgba(255, 255, 255, 0)",
-        ]}
-        locations={[0, 0.1, 0.3, 0.5, 0.8, 1]}
-        style={styles.gradientOverlay}
-      />
+      <View style={styles.container}>
+        <Search style={{ marginHorizontal: 12 }} placeholder={"Search your trip"} />
+        <View style={styles.btnContainer}>
+          <TouchableOpacity style={styles.btn} onPress={() => actionSheetRef.current?.show()}>
+            <Icon source={"plus-circle"} size={23} color={theme.colors.primary} />
+            <Text style={[theme.fonts.bodyLarge, styles.btnText]}>Create a new trip</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={{ flex: 1, marginTop: 120 }}>
-        <FlatList
-          data={tripCards}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item, index }) => (
-            <View style={[styles.cardContainer, index === 0 && styles.firstCard]}>
-              <TripCard trip={item as TripCardType} />
-            </View>
-          )}
+        <LinearGradient
+          colors={[
+            "rgba(255, 255, 255, 1)",
+            "rgba(255, 255, 255, 0.9)",
+            "rgba(255, 255, 255, 0.7)",
+            "rgba(255, 255, 255, 0.5)",
+            "rgba(255, 255, 255, 0.3)",
+            "rgba(255, 255, 255, 0)",
+          ]}
+          locations={[0, 0.1, 0.3, 0.5, 0.8, 1]}
+          style={styles.gradientOverlay}
         />
+
+        <View style={{ flex: 1, marginTop: 100 }}>
+          <FlatList
+            data={tripCards}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item, index }) => (
+              <View style={[styles.cardContainer, index === 0 && styles.firstCard]}>
+                <TripCard trip={item as TripCardType} />
+              </View>
+            )}
+          />
+        </View>
+        <CreateTripActionSheet actionSheetRef={actionSheetRef} />
       </View>
-      <CreateTripActionSheet actionSheetRef={actionSheetRef} />
-    </View>
     </>
   );
 };
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    padding: 25,
+    padding: 10,
     alignItems: "center",
   },
   btnContainer: {
@@ -79,7 +83,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     zIndex: 2,
-    top: 130,
+    top: 110,
     paddingHorizontal: 8,
   },
   btn: {
@@ -99,7 +103,7 @@ const styles = StyleSheet.create({
   },
   gradientOverlay: {
     position: "absolute",
-    top: 235,
+    top: 200,
     left: 0,
     right: 0,
     height: 10,

@@ -18,7 +18,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import TripDetailsTabNavigator from "../navigation/TripDetailsTabNavigator";
 import { useNavigation } from "@react-navigation/native";
 
-const HEADER_IMAGE_HEIGHT = 300;
+const HEADER_IMAGE_HEIGHT = 250;
 
 interface TripDetailsScreenProps {
   route: {
@@ -56,10 +56,11 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
     if (!start || !end) return [];
     const dates = [];
     let currentDate = dayjs(start);
-    while (currentDate.isBefore(dayjs(end)) || currentDate.isSame(dayjs(end))) {
+    while (currentDate.isBefore(dayjs(end))) {
       dates.push(currentDate.format("MMM D"));
       currentDate = currentDate.add(1, "day");
     }
+    dates.push(dayjs(end).format("MMM D")); 
     return dates;
   };
 
@@ -71,17 +72,20 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
       title: "Beach Visit",
       location: "Maya Bay, Thailand",
       image: "https://picsum.photos/705",
+      date: "Feb 7",
     },
     {
       time: "12:30 PM",
       title: "Lunch at Seaview",
       location: "Phi Phi Islands, Thailand",
+      date: "Feb 7",
     },
     {
       time: "7:00 PM",
       title: "Dinner by the Bay",
       location: "Patong Beach, Thailand",
       duration: "June 13 - June 15",
+      date: "June 12",
     },
   ];
 
@@ -94,12 +98,12 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
       <StatusBar barStyle={statusBarStyle} translucent backgroundColor="transparent" />
       <View
         style={styles.container}
-        // onScroll={handleScroll}
-        // scrollEventThrottle={16}
+      // onScroll={handleScroll}
+      // scrollEventThrottle={16}
       >
         <ImageBackground source={{ uri: "https://picsum.photos/700" }} style={styles.imageBackground}>
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <Ionicons name="chevron-back-outline" size={25} color= {theme.colors.onSurfaceVariant} />
+            <Ionicons name="chevron-back-outline" size={25} color={theme.colors.onSurfaceVariant} />
           </TouchableOpacity>
           <LinearGradient colors={["transparent", "rgba(0,0,0,0.8)"]} style={styles.gradientOverlay}>
             <Text variant="headlineMedium" style={styles.tripTitle}>{tripName}</Text>
@@ -110,13 +114,13 @@ const TripDetailsScreen = ({ route }: TripDetailsScreenProps) => {
         </ImageBackground>
 
         <View style={{ flex: 1 }}>
-        <TripDetailsTabNavigator
-          screenProps={{
-            dateRange,
-            activities,
-          }}
-        />
-      </View>
+          <TripDetailsTabNavigator
+            screenProps={{
+              dateRange,
+              activities,
+            }}
+          />
+        </View>
       </View>
     </View>
   );
