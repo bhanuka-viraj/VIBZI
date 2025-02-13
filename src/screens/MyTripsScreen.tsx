@@ -14,7 +14,7 @@ import TripCard, { TripCardType } from "../components/cards/TripCard";
 import LinearGradient from "react-native-linear-gradient";
 import Search from "../components/Search";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
-import CreateTripActionSheet from "../components/actionsheets/CreateTripActionSheet";
+import CreateTripActionSheet from "../components/actionsheets/trip/CreateTripActionSheet";
 import Header from "../components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
 

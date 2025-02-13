@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import ChecklistsScreen from '../screens/tripdetailsScreens/CheckListScreen';
-import ItineraryScreen from '../screens/tripdetailsScreens/ItineraryScreen';
-import AttachmentsScreen from '../screens/tripdetailsScreens/AttachmentsScreen';
+import ChecklistsScreen from '../screens/tripdetails/CheckListScreen';
+import ItineraryScreen from '../screens/tripdetails/ItineraryScreen';
+import AttachmentsScreen from '../screens/tripdetails/AttachmentsScreen';
 import { theme } from '../constants/theme';
 
 type Activity = {

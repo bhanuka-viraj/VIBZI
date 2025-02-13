@@ -2,14 +2,23 @@ import { StyleSheet, View, FlatList, TouchableOpacity, ScrollView } from 'react-
 import React, { useRef, useState } from 'react';
 import { Card, Text, useTheme, FAB } from 'react-native-paper';
 import { Activity, ItineraryScreenProps } from '../../navigation/TripDetailsTabNavigator';
-import AddThingsToDoActionSheet from '../../components/actionsheets/AddThingsToDoActionSheet';
 import { ActionSheetRef } from 'react-native-actions-sheet';
+import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
+import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
+import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
+import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
+import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
 
 const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities }) => {
   const theme = useTheme();
   const [selectedDate, setSelectedDate] = useState<string>(dateRange[0]);
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
-  const actionSheetRef = useRef<ActionSheetRef>(null);
+
+  const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
+  const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
+  const foodAndDrinkactionSheetRef = useRef<ActionSheetRef>(null);
+  const transportationactionSheetRef = useRef<ActionSheetRef>(null);
+  const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
   const filteredActivities = activities.filter((activity) => activity.date === selectedDate);
 
@@ -82,8 +91,12 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities
         </View>
       </ScrollView>
 
-      <AddThingsToDoActionSheet actionSheetRef={actionSheetRef} />
-      
+      <AddThingToDoActionSheet actionSheetRef={thingsToDoactionSheetRef} />
+      <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
+      <AddFoodAndDrinkActionSheet actionSheetRef={foodAndDrinkactionSheetRef} />
+      <AddTransportationActionSheet actionSheetRef={transportationactionSheetRef} />
+      <NoteActionSheet actionSheetRef={noteactionSheetRef} />
+
       <FAB.Group
         visible={true}
         open={isFabOpen}
@@ -92,39 +105,39 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities
         fabStyle={{
           backgroundColor: theme.colors.primary,
           bottom: 20,
-          elevation: 0, 
-          shadowColor: 'transparent', 
+          elevation: 0,
+          shadowColor: 'transparent',
         }}
         actions={[
           {
             icon: 'format-list-bulleted',
             label: 'Add Things To Do',
-            onPress: () => actionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent',backgroundColor:theme.colors.surface },
+            onPress: () => thingsToDoactionSheetRef.current?.show(),
+            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
           },
           {
             icon: 'home',
             label: 'Add a Place to Stay',
-            onPress: () => console.log('Add a Place to Stay'),
-            style: { elevation: 0, shadowColor: 'transparent',backgroundColor:theme.colors.surface },
+            onPress: () => placeToStayactionSheetRef.current?.show(),
+            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
           },
           {
             icon: 'silverware-fork-knife',
             label: 'Add Food & Drink',
-            onPress: () => console.log('Add Food & Drink'),
-            style: { elevation: 0, shadowColor: 'transparent',backgroundColor:theme.colors.surface },
+            onPress: () => foodAndDrinkactionSheetRef.current?.show(),
+            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
           },
           {
             icon: 'car',
             label: 'Add Transportation',
-            onPress: () => console.log('Add Transportation'),
-            style: { elevation: 0, shadowColor: 'transparent',backgroundColor:theme.colors.surface },
+            onPress: () => transportationactionSheetRef.current?.show(),
+            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
           },
           {
             icon: 'note-plus',
             label: 'Add a Note',
-            onPress: () => console.log('Add a Note'),
-            style: { elevation: 0, shadowColor: 'transparent',backgroundColor:theme.colors.surface },
+            onPress: () => noteactionSheetRef.current?.show(),
+            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
           },
         ]}
         onStateChange={({ open }) => setIsFabOpen(open)}

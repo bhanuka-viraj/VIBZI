@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import DatePicker from "react-native-date-picker";
-import { theme } from "../../constants/theme";
+import { theme } from "../../../constants/theme";
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -37,7 +37,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
-      <ScrollView contentContainerStyle={styles.modalContainer}>
+      <ScrollView contentContainerStyle={styles.modalContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Add a things to do</Text>
         <Text style={styles.description}>Add a description here</Text>
 
@@ -91,7 +91,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
               <Text style={styles.timeText}>{formatTime(startTime)}</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.timeColumn}>
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   toggleButton: {
     flex: 1,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 25,
     alignItems: "center",
     backgroundColor: "#f5f5f5",
   },
@@ -250,18 +250,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
   clearText: {
-    color: "#666",
+    color: "#757575",
     fontWeight: "500",
   },
   addButton: {
     flex: 1,
     alignItems: "center",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 25,
     backgroundColor: theme.colors.primary,
   },
   addText: {

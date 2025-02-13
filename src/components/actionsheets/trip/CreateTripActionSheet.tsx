@@ -9,10 +9,10 @@ import {
 import { Icon } from "react-native-paper";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import DatePicker from "react-native-date-picker"; // Import date picker
-import { theme } from "../../constants/theme";
+import { theme } from "../../../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../navigation/AppNavigator";
+import { RootStackParamList } from "../../../navigation/AppNavigator";
 
 interface CreateTripActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -25,10 +25,10 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [tripName, setTripName] = useState("");
   const [destination, setDestination] = useState("");
-  const [fromDate, setFromDate] = useState<Date | null>(null); 
-  const [toDate, setToDate] = useState<Date | null>(null); 
-  const [showFromDate, setShowFromDate] = useState(false); 
-  const [showToDate, setShowToDate] = useState(false); 
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [showFromDate, setShowFromDate] = useState(false);
+  const [showToDate, setShowToDate] = useState(false);
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
       <View style={styles.modalContainer}>
@@ -62,7 +62,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              { color: fromDate || toDate ? "black" : "gray" }, 
+              { color: fromDate || toDate ? "black" : "gray" },
             ]}
           >
             From: {fromDate ? fromDate.toDateString() : "Select Start Date"}
@@ -75,7 +75,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              { color: fromDate || toDate ? "black" : "gray" }, 
+              { color: fromDate || toDate ? "black" : "gray" },
             ]}
           >
             To: {toDate ? toDate.toDateString() : "Select End Date"}
