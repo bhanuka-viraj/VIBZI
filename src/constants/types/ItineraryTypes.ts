@@ -1,0 +1,5 @@
+export const FOODANDDRINK = "FOODANDDRINK";
+export const THINGSTODO = "THINGSTODO";
+export const TRANSPORTATION = "TRANSPORTATION";
+export const PLACESTOSTAY = "PLACESTOSTAY";
+export const NOTE = "NOTE";

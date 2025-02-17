@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import { theme } from "../../../constants/theme";
+import { useDispatch } from "react-redux";
+import { addFoodAndDrink } from "../../../redux/slices/foodAndDrinkSlice";
+
+
+import { v4 as uuidv4 } from "uuid";
 
 interface FoodAndDrinkActionSheetProps {
     actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -11,14 +16,29 @@ interface FoodAndDrinkActionSheetProps {
 const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
     actionSheetRef,
 }) => {
+    const dispatch = useDispatch();
     const [name, setName] = useState("");
     const [isBooked, setIsBooked] = useState<boolean | null>(null);
     const [link, setLink] = useState("");
     const [reservationNumber, setReservationNumber] = useState("");
     const [note, setNote] = useState("");
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const handleAdd = () => {
+        if (!name.trim()) return;
+
+        dispatch(
+            addFoodAndDrink({
+                id: uuidv4(),
+                name,
+                isBooked,
+                link,
+                reservationNumber,
+                note,
+            })
+        );
+
+        actionSheetRef.current?.hide();
+        handleClear();
     };
 
     const handleClear = () => {
@@ -110,7 +130,7 @@ const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.addButton}
-                        onPress={() => actionSheetRef.current?.hide()}
+                        onPress={handleAdd}
                     >
                         <Text style={styles.addText}>Add to trip</Text>
                     </TouchableOpacity>

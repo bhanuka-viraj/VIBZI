@@ -5,21 +5,10 @@ import ItineraryScreen from '../screens/tripdetails/ItineraryScreen';
 import AttachmentsScreen from '../screens/tripdetails/AttachmentsScreen';
 import { theme } from '../constants/theme';
 
-type Activity = {
-  date?: string;
-  time?: string;
-  title?: string;
-  location?: string;
-  image?: string;
-  duration?: string;
-};
-export type { Activity };
 
-type ItineraryScreenProps = {
+export type ItineraryScreenProps = {
   dateRange: string[];
-  activities: Activity[];
 };
-export type { ItineraryScreenProps };
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -33,20 +22,40 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({ scree
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: '#999',
-        tabBarLabelStyle: { fontWeight: 'bold' },
+        tabBarLabelStyle: { 
+          fontWeight: 'bold', 
+          textTransform: 'none',
+          fontSize: 14
+        },
         tabBarStyle: {
           backgroundColor: '#fff',
           elevation: 0,
           shadowOpacity: 0,
         },
-        tabBarIndicatorStyle: { backgroundColor: theme.colors.primary },
+        tabBarIndicatorStyle: { 
+          backgroundColor: theme.colors.primary,
+          height: 3
+        },
+        tabBarPressColor: 'transparent',
+        swipeEnabled: true,
+        lazy: true
       }}
     >
-      <Tab.Screen name="Checklists" component={ChecklistsScreen} />
-      <Tab.Screen name="Itinerary">
-        {() => <ItineraryScreen dateRange={screenProps.dateRange} activities={screenProps.activities} />}
-      </Tab.Screen>
-      <Tab.Screen name="Attachments" component={AttachmentsScreen} />
+      <Tab.Screen
+        name="Checklists"
+        children={() => <ChecklistsScreen />}
+        options={{ tabBarLabel: 'Checklists' }}
+      />
+      <Tab.Screen
+        name="Itinerary"
+        children={() => <ItineraryScreen dateRange={screenProps.dateRange} />}
+        options={{ tabBarLabel: 'Itinerary' }}
+      />
+      <Tab.Screen
+        name="Attachments"
+        children={() => <AttachmentsScreen />}
+        options={{ tabBarLabel: 'Attachments' }}
+      />
     </Tab.Navigator>
   );
 };

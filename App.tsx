@@ -1,19 +1,20 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native'
+import 'react-native-get-random-values';
 import React, { StrictMode } from 'react'
 import { PaperProvider } from 'react-native-paper'
 import { theme } from './src/constants/theme'
 import AppNavigator from './src/navigation/AppNavigator'
+import { Provider } from "react-redux";
+import { store } from './src/redux/store'
 
 const App = () => {
 
   return (
-    <StrictMode>
       <PaperProvider theme={theme}>
-        <AppNavigator />
+        <Provider store={store}>
+          <AppNavigator />
+        </Provider>
       </PaperProvider>
-    </StrictMode>
-
-
   )
 }
 

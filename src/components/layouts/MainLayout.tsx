@@ -1,21 +1,27 @@
 // components/MainLayout.tsx
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import BottomNav from '../BottomNavigation';
 import Header from '../Header';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const MainLayout = ({ children }: { children: React.ReactNode; }) => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+  showHeader?: boolean;
+}
+
+const MainLayout = ({ children, showHeader = true }: MainLayoutProps) => {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
+            <StatusBar barStyle={'dark-content'} backgroundColor={'white'}/>
+            {showHeader && <Header />}
             <View style={styles.content}>{children}</View>
-
             <View style={styles.bottomNav}>
                 <BottomNav />
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -30,7 +36,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        height: 30,
     },
 });
 

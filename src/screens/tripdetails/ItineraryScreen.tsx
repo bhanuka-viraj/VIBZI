@@ -1,15 +1,19 @@
 import { StyleSheet, View, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useRef, useState } from 'react';
-import { Card, Text, useTheme, FAB } from 'react-native-paper';
-import { Activity, ItineraryScreenProps } from '../../navigation/TripDetailsTabNavigator';
+import { Text, useTheme, FAB } from 'react-native-paper';
+import { ItineraryScreenProps } from '../../navigation/TripDetailsTabNavigator';
 import { ActionSheetRef } from 'react-native-actions-sheet';
 import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
 import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
 import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
 import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
 import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
+import { RootState } from '../../redux/store';
+import { useSelector } from 'react-redux';
+import ItineraryCard from '../../components/cards/ItineraryCard';
+import { FOODANDDRINK } from '../../constants/types/ItineraryTypes';
 
-const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities }) => {
+const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange }) => {
   const theme = useTheme();
   const [selectedDate, setSelectedDate] = useState<string>(dateRange[0]);
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
@@ -20,7 +24,11 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities
   const transportationactionSheetRef = useRef<ActionSheetRef>(null);
   const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
-  const filteredActivities = activities.filter((activity) => activity.date === selectedDate);
+  const foodAndDrinks = useSelector((state: RootState) => state.foodAndDrink.items);
+
+  const itineraryItems = [
+    ...foodAndDrinks.map(item => ({ ...item, type: FOODANDDRINK })),
+  ];
 
   return (
     <View style={styles.container}>
@@ -51,45 +59,32 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange, activities
           contentContainerStyle={styles.datesContainer}
         />
       </View>
+      
+      <View style={{ paddingHorizontal: 10}}>
+      <Text variant="titleLarge" style={styles.sectionTitle}>
+          Itinerary
+      </Text>
 
+      <Text variant="titleMedium" style={styles.dayHeader}>
+            {selectedDate} Activities
+          </Text>
+      </View>
+
+      
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          Itinerary
-        </Text>
 
         <View style={styles.itineraryContainer}>
-          <Text variant="titleMedium" style={styles.dayHeader}>
-            {selectedDate} Activities
-          </Text>
-
-          {filteredActivities.length > 0 ? (
-            filteredActivities.map((activity, index) => (
-              <Card key={index} style={styles.activityCard}>
-                <Card.Content>
-                  <Text variant="titleMedium">{activity.time}</Text>
-                  <Text variant="titleLarge">{activity.title}</Text>
-                  <Text variant="bodyMedium" style={{ color: theme.colors.secondary }}>
-                    {activity.location}
-                  </Text>
-                  {activity.duration && (
-                    <Text variant="bodySmall" style={{ color: theme.colors.primary }}>
-                      {activity.duration}
-                    </Text>
-                  )}
-                </Card.Content>
-              </Card>
-            ))
-          ) : (
-            <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 20 }}>
-              No activities for this date.
-            </Text>
-          )}
+          {itineraryItems && itineraryItems.map((item, index) => (
+          <ItineraryCard key={index} item={item} />
+          ))}
+          
         </View>
       </ScrollView>
+
 
       <AddThingToDoActionSheet actionSheetRef={thingsToDoactionSheetRef} />
       <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
@@ -182,25 +177,16 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     fontWeight: 'bold',
   },
-  itineraryContainer: {
-    marginBottom: 24,
-  },
   dayHeader: {
     marginBottom: 12,
     fontWeight: 'bold',
     fontSize: 16,
     color: '#333',
   },
-  activityCard: {
-    marginBottom: 12,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+  itineraryContainer:{
+    marginBottom: 28
+  }
+
 });
 
 export default ItineraryScreen;

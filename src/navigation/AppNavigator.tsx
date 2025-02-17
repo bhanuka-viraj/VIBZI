@@ -16,22 +16,26 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const withMainLayout = (Component: React.ComponentType<any>, showHeader: boolean = true) => (props: any) => (
+  <MainLayout showHeader={showHeader}>
+    <Component {...props} />
+  </MainLayout>
+);
+
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <MainLayout>  
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-          }}
-        >
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="MyTrips" component={MyTripsScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-        </Stack.Navigator>
-      </MainLayout>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+        }}
+      >
+        <Stack.Screen name="Home" component={withMainLayout(HomeScreen)} />
+        <Stack.Screen name="MyTrips" component={withMainLayout(MyTripsScreen)} />
+        <Stack.Screen name="Profile" component={withMainLayout(ProfileScreen, false)} />
+        <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

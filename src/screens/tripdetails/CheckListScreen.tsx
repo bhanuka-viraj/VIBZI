@@ -1,14 +1,305 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from 'react-native';
+import { Checkbox, Dialog, Portal } from 'react-native-paper';
+import { useSelector } from 'react-redux';
+import { theme } from '../../constants/theme';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { 
+  useGetTripPlanChecklistByTripIdQuery,
+  useUpdateTripPlanChecklistMutation 
+} from '../../redux/slices/checklistSlice';
 
-const CheckListScreen = () => {
-  return (
-    <View>
-      <Text>CheckListScreen</Text>
-    </View>
-  )
+interface ChecklistItem {
+  id: string;
+  description: string;
+  isChecked: boolean;
 }
 
-export default CheckListScreen
+const CheckListScreen = () => {
+  const tripId = useSelector((state: any) => state.meta.trip.tripId);
+  const [checklistId, setChecklistId] = useState("");
+  const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [newItem, setNewItem] = useState("");
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-const styles = StyleSheet.create({})
+  const { data, isLoading, refetch } = useGetTripPlanChecklistByTripIdQuery(tripId);
+  const [updateTripPlanChecklist] = useUpdateTripPlanChecklistMutation();
+
+  useEffect(() => {
+    if (data?.id) {
+      setChecklistId(data.id);
+    }
+    if (data?.checklist) {
+      setItems(data.checklist.map((item: any) => ({
+        id: item.id || Date.now().toString(),
+        description: item.description,
+        isChecked: item.isChecked || false,
+      })));
+    }
+  }, [data]);
+
+  const handleAddItem = async () => {
+    if (!newItem.trim()) return;
+
+    const newChecklistItem = {
+      id: new Date().toISOString(),
+      description: newItem.trim(),
+      isChecked: false,
+    };
+
+    try {
+      await updateTripPlanChecklist({
+        id: checklistId,
+        data: {
+          tripId,
+          checklist: [...items, newChecklistItem],
+        },
+      });
+      setNewItem("");
+      refetch();
+    } catch (error) {
+      console.error('Failed to add item:', error);
+    }
+  };
+
+  const handleToggleItem = async (id: string) => {
+    const updatedItems = items.map(item =>
+      item.id === id ? { ...item, isChecked: !item.isChecked } : item
+    );
+
+    try {
+      await updateTripPlanChecklist({
+        id: checklistId,
+        data: {
+          tripId,
+          checklist: updatedItems,
+        },
+      });
+      refetch();
+    } catch (error) {
+      console.error('Failed to toggle item:', error);
+    }
+  };
+
+  const handleDeletePress = (id: string) => {
+    setItemToDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const filteredItems = items.filter(item => item.id !== itemToDelete);
+      await updateTripPlanChecklist({
+        id: checklistId,
+        data: {
+          tripId,
+          checklist: filteredItems,
+        },
+      });
+      setItemToDelete(null);
+      refetch();
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {items.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No checklist items to show</Text>
+            <Text style={styles.emptySubText}>Add items to your checklist</Text>
+          </View>
+        ) : (
+          items.map((item) => (
+            <View key={item.id} style={styles.itemContainer}>
+              <TouchableOpacity 
+                style={styles.itemContent}
+                onPress={() => handleToggleItem(item.id)}
+              >
+                <Checkbox
+                  status={item.isChecked ? 'checked' : 'unchecked'}
+                  onPress={() => handleToggleItem(item.id)}
+                  color={theme.colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.itemText,
+                    item.isChecked && styles.completedItemText,
+                  ]}
+                >
+                  {item.description}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDeletePress(item.id)}
+                style={styles.deleteButton}
+              >
+                <MaterialIcons name="delete-outline" size={22} color="#FF4444" />
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+        
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Add new item"
+            value={newItem}
+            onChangeText={setNewItem}
+            onSubmitEditing={handleAddItem}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            onPress={handleAddItem}
+            disabled={!newItem.trim()}
+            style={[
+              styles.addButton,
+              !newItem.trim() && styles.addButtonDisabled
+            ]}
+          >
+            <MaterialIcons name="add" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      <Portal>
+        <Dialog visible={!!itemToDelete} onDismiss={() => setItemToDelete(null)}>
+          <Dialog.Title>Delete Item</Dialog.Title>
+          <Dialog.Content>
+            <Text>Are you sure you want to delete this item?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <TouchableOpacity 
+              onPress={() => setItemToDelete(null)}
+              style={styles.dialogButton}
+            >
+              <Text style={styles.dialogButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={handleConfirmDelete}
+              style={[styles.dialogButton, styles.deleteDialogButton]}
+            >
+              <Text style={[styles.dialogButtonText, styles.deleteDialogButtonText]}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#666',
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    justifyContent: 'space-between',
+  },
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  itemText: {
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  completedItemText: {
+    textDecorationLine: 'line-through',
+    color: '#999',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    backgroundColor: 'white',
+  },
+  addButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonDisabled: {
+    opacity: 0.5,
+  },
+  deleteButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  dialogButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginLeft: 8,
+  },
+  dialogButtonText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  deleteDialogButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 4,
+  },
+  deleteDialogButtonText: {
+    color: 'white',
+  },
+});
+
+export default CheckListScreen;
