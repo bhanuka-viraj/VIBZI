@@ -1,12 +1,45 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
+import { useAppDispatch } from '../redux/hooks';
+import { signOut } from '../redux/slices/authSlice';
+import { useNavigation } from '@react-navigation/native';
 
-const ProfileScreen: React.FC = () => {
+const ProfileScreen = () => {
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(signOut());
+      navigation.navigate('Login' as never);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
-    <View>
-      <Text>profile</Text>
+    <View style={styles.container}>
+      <Button 
+        mode="contained" 
+        onPress={handleLogout}
+        style={styles.logoutButton}
+      >
+        Logout
+      </Button>
     </View>
-  )
-}
+  );
+};
 
-export default ProfileScreen
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  logoutButton: {
+    marginTop: 20,
+    backgroundColor: '#ff4444'
+  }
+});
+
+export default ProfileScreen;

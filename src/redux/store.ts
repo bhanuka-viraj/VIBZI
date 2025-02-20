@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { apiSlice, apiSlice1 } from './slices/apiSlice';
-import metaReducer from './slices/metaSlice';
+import authReducer from './slices/authSlice';
 
 // Custom middleware to log API calls
 const rtkQueryErrorLogger = () => (next: any) => (action: any) => {
@@ -18,7 +18,7 @@ export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     [apiSlice1.reducerPath]: apiSlice1.reducer,
-    meta: metaReducer,
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()

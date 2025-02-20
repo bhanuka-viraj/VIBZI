@@ -15,7 +15,7 @@ interface TripPlan {
 interface TripPlanSearchParams {
   title?: string;
   destinationName?: string;
-  userId?: string;
+  userId?: string | null;
   page?: number;
   size?: number;
 }
@@ -31,20 +31,23 @@ export const tripPlanSlice = apiSlice1.injectEndpoints({
       invalidatesTags: ["trips"],
     }),
 
-    getTripPlanById: builder.query<TripPlan, string>({
-      query: (id) => ({
-        url: `/common-service/trip-plan/${id}`,
+    getTripPlanById: builder.query<TripPlan[], string>({
+      query: (userId) => ({
+        url: `/common-service/trip-plan/${userId}`,
         method: "GET",
       }),
       providesTags: ["trips-id"],
     }),
 
     searchTripPlans: builder.query<TripPlan[], TripPlanSearchParams>({
-      query: (data) => ({
-        url: `/common-service/trip-plan/search`,
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        console.log( 'data - ',data);
+        return {
+          url: `/common-service/trip-plan/search`,
+          method: "POST",
+          body: data,
+        };
+      },
       providesTags: ["trips"],
     }),
 

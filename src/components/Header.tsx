@@ -1,19 +1,26 @@
 import { View, Text, StyleSheet, Image } from 'react-native'
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../redux/store'
 
 const Header = () => {
+    const { user } = useSelector((state: RootState) => state.auth)
   return (
     <View style={styles.header}>
-    <Image
+      <Image
         source={require('../assets/images/icon.png')}
         resizeMode="contain"
         style={styles.logo}
-    />
-    <Image
-        source={require('../assets/images/avatar.png')}
-        style={styles.avatar}
-    />
-</View>
+      />
+      
+      <View style={styles.avatarContainer}>
+        <Text style={styles.username}>{user?.firstName || 'Guest'}</Text>
+        <Image
+          source={require('../assets/images/avatar.png')}
+          style={styles.avatar}
+        />
+      </View>
+    </View>
   )
 }
 
@@ -37,4 +44,13 @@ const styles = StyleSheet.create({
         width: 35,
         borderRadius: 16,
     },
+    avatarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    username: {
+        fontSize: 16,
+        color: '#333',
+    }
 })
