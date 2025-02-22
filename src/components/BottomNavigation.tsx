@@ -31,9 +31,8 @@ export default function BottomNav() {
       renderScene={() => null}
       theme={theme}
       barStyle={{
-        backgroundColor: '#ffff',
+        backgroundColor: '#fff',
         height: 60,
-        paddingBottom: 8,
       }}
       activeColor={theme.colors.primary}
       inactiveColor={theme.colors.secondary}

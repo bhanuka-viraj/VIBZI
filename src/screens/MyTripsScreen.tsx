@@ -15,13 +15,20 @@ import {ActionSheetRef} from 'react-native-actions-sheet';
 import CreateTripActionSheet from '../components/actionsheets/trip/CreateTripActionSheet';
 import {useSearchTripPlansQuery} from '../redux/slices/tripPlanSlice';
 import {Text} from 'react-native-paper';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../redux/store';
+import {parseTrips} from '../utils/tripUtils/tripDataUtil';
+import {setTrip_Id, setTripId} from '../redux/slices/metaSlice';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/AppNavigator';
 
 const MyTripsScreen: React.FC = () => {
   const actionSheetRef = useRef<ActionSheetRef>(null);
   const {user} = useSelector((state: RootState) => state.auth);
-  console.log('User ID:', user?.userId);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
 
   const {
     data: trips,
@@ -38,10 +45,30 @@ const MyTripsScreen: React.FC = () => {
         }
       : {},
   );
-  console.log('Trips:', trips);
 
-  const handleCreateTrip = () => {
-    actionSheetRef.current?.show();
+  console.log('Trips:', JSON.stringify(trips, null, 2));
+
+  const tripData = parseTrips(trips);
+
+  console.log('trips data : ', tripData);
+
+  useEffect(() => {
+    if (tripData && tripData.length > 0) {
+      console.log('Setting trip IDs:', tripData[0].id, tripData[0].tripId);
+      dispatch(setTripId(tripData[0].id));
+      dispatch(setTrip_Id(tripData[0].tripId));
+    }
+  }, [tripData, dispatch]);
+
+  const handleOnPress = (id: string, trip_id: string) => {
+    console.log('Handling press with IDs:', id, trip_id);
+    dispatch(setTripId(id));
+    dispatch(setTrip_Id(trip_id));
+
+    navigation.push('TripDetails', {
+      tripId: id,
+      trip_id: trip_id,
+    });
   };
 
   if (isLoading) {
@@ -107,17 +134,20 @@ const MyTripsScreen: React.FC = () => {
 
         <View style={{flex: 1, marginTop: 100}}>
           <FlatList
-            data={trips}
+            data={tripData}
             showsVerticalScrollIndicator={false}
             renderItem={({item, index}) => (
               <View
                 style={[styles.cardContainer, index === 0 && styles.firstCard]}>
                 <TripCard
                   trip={{
+                    id: item.id,
+                    tripId: item.tripId,
                     title: item.title,
                     description: item.description,
-                    image: 'https://picsum.photos/700', // You might want to add image handling
+                    image: item.image,
                   }}
+                  onPress={(id, tripId) => handleOnPress(id, tripId)}
                 />
               </View>
             )}
@@ -136,7 +166,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    padding: 10,
+    paddingTop: 10,
     alignItems: 'center',
   },
   btnContainer: {

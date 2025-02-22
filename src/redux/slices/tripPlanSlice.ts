@@ -1,7 +1,6 @@
 import { apiSlice1 } from "./apiSlice";
 
 interface TripPlan {
-  id: string;
   title: string;
   startDate: string;
   endDate: string;
@@ -9,7 +8,6 @@ interface TripPlan {
   destinationName: string;
   description: string;
   userId: string;
-  tripId: string;
 }
 
 interface TripPlanSearchParams {
@@ -31,7 +29,7 @@ export const tripPlanSlice = apiSlice1.injectEndpoints({
       invalidatesTags: ["trips"],
     }),
 
-    getTripPlanById: builder.query<TripPlan[], string>({
+    getTripPlanById: builder.query<TripPlan, string>({
       query: (userId) => ({
         url: `/common-service/trip-plan/${userId}`,
         method: "GET",

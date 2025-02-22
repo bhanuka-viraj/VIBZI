@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from 'react-native';
-import { Checkbox, Dialog, Portal } from 'react-native-paper';
-import { useSelector } from 'react-redux';
-import { theme } from '../../constants/theme';
+import React, {useState, useEffect} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import {Checkbox, Dialog, Portal} from 'react-native-paper';
+import {theme} from '../../constants/theme';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { 
+import {
   useGetTripPlanChecklistByTripIdQuery,
-  useUpdateTripPlanChecklistMutation 
+  useUpdateTripPlanChecklistMutation,
 } from '../../redux/slices/checklistSlice';
 
 interface ChecklistItem {
@@ -15,26 +22,43 @@ interface ChecklistItem {
   isChecked: boolean;
 }
 
-const CheckListScreen = () => {
-  const tripId = useSelector((state: any) => state.meta.trip.tripId);
-  const [checklistId, setChecklistId] = useState("");
-  const [items, setItems] = useState<ChecklistItem[]>([]);
-  const [newItem, setNewItem] = useState("");
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+interface CheckListScreenProps {
+  tripId: string;
+  trip_id: string;
+}
 
-  const { data, isLoading, refetch } = useGetTripPlanChecklistByTripIdQuery(tripId);
+const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
+  if (!trip_id) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Missing trip ID</Text>
+      </View>
+    );
+  }
+
+  const {data, isLoading, refetch} =
+    useGetTripPlanChecklistByTripIdQuery(trip_id);
   const [updateTripPlanChecklist] = useUpdateTripPlanChecklistMutation();
 
+  const [checklistId, setChecklistId] = useState('');
+  const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [newItem, setNewItem] = useState('');
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
   useEffect(() => {
+    console.log(data);
+    
     if (data?.id) {
       setChecklistId(data.id);
     }
     if (data?.checklist) {
-      setItems(data.checklist.map((item: any) => ({
-        id: item.id || Date.now().toString(),
-        description: item.description,
-        isChecked: item.isChecked || false,
-      })));
+      setItems(
+        data.checklist.map((item: any) => ({
+          id: item.id || Date.now().toString(),
+          description: item.description,
+          isChecked: item.isChecked || false,
+        })),
+      );
     }
   }, [data]);
 
@@ -48,14 +72,16 @@ const CheckListScreen = () => {
     };
 
     try {
+      const updatedChecklist = [...items, newChecklistItem];
       await updateTripPlanChecklist({
         id: checklistId,
         data: {
-          tripId,
-          checklist: [...items, newChecklistItem],
+          tripId: tripId,
+          checklist: updatedChecklist,
         },
       });
-      setNewItem("");
+      setItems(updatedChecklist);
+      setNewItem('');
       refetch();
     } catch (error) {
       console.error('Failed to add item:', error);
@@ -64,17 +90,18 @@ const CheckListScreen = () => {
 
   const handleToggleItem = async (id: string) => {
     const updatedItems = items.map(item =>
-      item.id === id ? { ...item, isChecked: !item.isChecked } : item
+      item.id === id ? {...item, isChecked: !item.isChecked} : item,
     );
 
     try {
       await updateTripPlanChecklist({
         id: checklistId,
         data: {
-          tripId,
+          tripId: trip_id,
           checklist: updatedItems,
         },
       });
+      setItems(updatedItems);
       refetch();
     } catch (error) {
       console.error('Failed to toggle item:', error);
@@ -93,10 +120,11 @@ const CheckListScreen = () => {
       await updateTripPlanChecklist({
         id: checklistId,
         data: {
-          tripId,
+          tripId: trip_id,
           checklist: filteredItems,
         },
       });
+      setItems(filteredItems);
       setItemToDelete(null);
       refetch();
     } catch (error) {
@@ -114,19 +142,20 @@ const CheckListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}>
         {items.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No checklist items to show</Text>
             <Text style={styles.emptySubText}>Add items to your checklist</Text>
           </View>
         ) : (
-          items.map((item) => (
+          items.map(item => (
             <View key={item.id} style={styles.itemContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.itemContent}
-                onPress={() => handleToggleItem(item.id)}
-              >
+                onPress={() => handleToggleItem(item.id)}>
                 <Checkbox
                   status={item.isChecked ? 'checked' : 'unchecked'}
                   onPress={() => handleToggleItem(item.id)}
@@ -136,21 +165,23 @@ const CheckListScreen = () => {
                   style={[
                     styles.itemText,
                     item.isChecked && styles.completedItemText,
-                  ]}
-                >
+                  ]}>
                   {item.description}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleDeletePress(item.id)}
-                style={styles.deleteButton}
-              >
-                <MaterialIcons name="delete-outline" size={22} color="#FF4444" />
+                style={styles.deleteButton}>
+                <MaterialIcons
+                  name="delete-outline"
+                  size={22}
+                  color="#FF4444"
+                />
               </TouchableOpacity>
             </View>
           ))
         )}
-        
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -165,32 +196,35 @@ const CheckListScreen = () => {
             disabled={!newItem.trim()}
             style={[
               styles.addButton,
-              !newItem.trim() && styles.addButtonDisabled
-            ]}
-          >
+              !newItem.trim() && styles.addButtonDisabled,
+            ]}>
             <MaterialIcons name="add" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </ScrollView>
 
       <Portal>
-        <Dialog visible={!!itemToDelete} onDismiss={() => setItemToDelete(null)}>
+        <Dialog
+          visible={!!itemToDelete}
+          onDismiss={() => setItemToDelete(null)}>
           <Dialog.Title>Delete Item</Dialog.Title>
           <Dialog.Content>
             <Text>Are you sure you want to delete this item?</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setItemToDelete(null)}
-              style={styles.dialogButton}
-            >
+              style={styles.dialogButton}>
               <Text style={styles.dialogButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleConfirmDelete}
-              style={[styles.dialogButton, styles.deleteDialogButton]}
-            >
-              <Text style={[styles.dialogButtonText, styles.deleteDialogButtonText]}>
+              style={[styles.dialogButton, styles.deleteDialogButton]}>
+              <Text
+                style={[
+                  styles.dialogButtonText,
+                  styles.deleteDialogButtonText,
+                ]}>
                 Delete
               </Text>
             </TouchableOpacity>
