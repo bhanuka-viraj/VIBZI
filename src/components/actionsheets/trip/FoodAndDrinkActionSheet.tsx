@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import { theme } from "../../../constants/theme";
 import { useDispatch } from "react-redux";
-import { addFoodAndDrink } from "../../../redux/slices/foodAndDrinkSlice";
+import { addFoodAndDrink } from "../../../redux/slices/tripplan/itinerary/sheets/foodAndDrinkSlice";
 
 
 import { v4 as uuidv4 } from "uuid";

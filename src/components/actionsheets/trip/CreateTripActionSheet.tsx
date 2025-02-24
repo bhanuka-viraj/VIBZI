@@ -13,7 +13,7 @@ import {theme} from '../../../constants/theme';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/AppNavigator';
-import {useCreateTripPlanMutation} from '../../../redux/slices/tripPlanSlice';
+import {useCreateTripPlanMutation} from '../../../redux/slices/tripplan/tripPlanSlice';
 import dayjs from 'dayjs';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/store';
@@ -53,18 +53,15 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
 
       const response = await createTripPlan(tripData).unwrap();
 
-      console.log('created tripplan : ', response)
+      console.log('created tripplan : ', response);
 
       actionSheetRef.current?.hide();
+
       navigation.push('TripDetails', {
-        tripName,
-        destination,
-        fromDate,
-        toDate,
-        description
+        tripId: response.id,
+        trip_id: response.tripId,
       });
 
-      // Reset form
       setTripName('');
       setDestination('');
       setFromDate(null);

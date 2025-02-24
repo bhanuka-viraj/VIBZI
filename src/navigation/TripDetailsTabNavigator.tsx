@@ -5,27 +5,23 @@ import ItineraryScreen from '../screens/tripdetails/ItineraryScreen';
 import AttachmentsScreen from '../screens/tripdetails/AttachmentsScreen';
 import {theme} from '../constants/theme';
 
-export type ItineraryScreenProps = {
-  dateRange: string[];
-};
-
 const Tab = createMaterialTopTabNavigator();
 
-export type TripDetailsTabParams = {
-  Checklists: {
-    tripId: string;
-    trip_id: string;
-  };
-  Itinerary: {
-    tripId: string;
-    trip_id: string;
-    dateRange: string[];
-  };
-  Attachments: {
-    tripId: string;
-    trip_id: string;
-  };
-};
+// export type TripDetailsTabParams = {
+//   Checklists: {
+//     tripId: string;
+//     trip_id: string;
+//   };
+//   Itinerary: {
+//     tripId: string;
+//     trip_id: string;
+//     dateRange: string[];
+//   };
+//   Attachments: {
+//     tripId: string;
+//     trip_id: string;
+//   };
+// };
 
 type TripDetailsTabNavigatorProps = {
   screenProps: {
@@ -58,7 +54,7 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
           height: 3,
         },
         tabBarPressColor: 'transparent',
-        swipeEnabled: true,
+        swipeEnabled: false,
         lazy: true,
       }}>
       <Tab.Screen
@@ -73,7 +69,12 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
       />
       <Tab.Screen
         name="Itinerary"
-        children={() => <ItineraryScreen dateRange={screenProps.dateRange} />}
+        children={() => (
+          <ItineraryScreen
+            tripId={screenProps.tripId}
+            trip_id={screenProps.trip_id}
+          />
+        )}
         options={{tabBarLabel: 'Itinerary'}}
       />
       <Tab.Screen

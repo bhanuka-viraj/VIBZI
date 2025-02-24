@@ -1,4 +1,4 @@
-import { apiSlice1 } from "./apiSlice";
+import { apiSlice1 } from "../apiSlice";
 
 
 interface ChecklistItem {

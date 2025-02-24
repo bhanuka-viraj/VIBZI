@@ -1,22 +1,35 @@
-import { StyleSheet, View, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import React, { useRef, useState } from 'react';
-import { Text, useTheme, FAB } from 'react-native-paper';
-import { ItineraryScreenProps } from '../../navigation/TripDetailsTabNavigator';
-import { ActionSheetRef } from 'react-native-actions-sheet';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Text, useTheme, FAB, ActivityIndicator} from 'react-native-paper';
+import {ActionSheetRef} from 'react-native-actions-sheet';
 import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
 import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
 import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
 import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
 import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
-import { RootState } from '../../redux/store';
-import { useSelector } from 'react-redux';
 import ItineraryCard from '../../components/cards/ItineraryCard';
-import { FOODANDDRINK } from '../../constants/types/ItineraryTypes';
+import {useGetTripPlanItineraryByIdQuery} from '../../redux/slices/tripplan/itinerary/itinerarySlice';
+import {
+  parseTripDate,
+  parseItineraryData,
+  ItineraryItem,
+} from '../../utils/tripUtils/tripDataUtil';
 
-const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange }) => {
+export interface ItineraryScreenProps {
+  tripId: string;
+  trip_id: string;
+}
+
+const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   const theme = useTheme();
-  const [selectedDate, setSelectedDate] = useState<string>(dateRange[0]);
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
   const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
@@ -24,72 +37,92 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange }) => {
   const transportationactionSheetRef = useRef<ActionSheetRef>(null);
   const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
-  const foodAndDrinks = useSelector((state: RootState) => state.foodAndDrink.items);
+  const {data, isLoading} = useGetTripPlanItineraryByIdQuery(trip_id as any);
+  const {dates, itineraryByDate} = parseItineraryData(data);
 
-  const itineraryItems = [
-    ...foodAndDrinks.map(item => ({ ...item, type: FOODANDDRINK })),
-  ];
+
+  useEffect(() => {
+    if (dates.length > 0) {
+      setSelectedDate(dates[0]);
+    }
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  const selectedDateItineraries = itineraryByDate[selectedDate] || [];
+
+  // do not uncomment these
+  // console.log('data  : ', data);
+  // console.log('trip_id : ', trip_id);
+
+  // console.log('dates : ', dates);
+  // console.log('itineraryByDate : ', itineraryByDate);
+  // console.log('selectedDate : ', selectedDate);
+  // console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
     <View style={styles.container}>
       <View style={styles.datesWrapper}>
         <FlatList
           horizontal
-          data={dateRange}
-          keyExtractor={(item) => item}
+          data={dates}
+          keyExtractor={item => item}
           showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
+          renderItem={({item}) => (
             <TouchableOpacity
               style={[
                 styles.datePill,
-                item === selectedDate && { backgroundColor: theme.colors.primary },
+                item === selectedDate && {
+                  backgroundColor: theme.colors.primary,
+                },
               ]}
-              onPress={() => setSelectedDate(item)}
-            >
+              onPress={() => setSelectedDate(item)}>
               <Text
                 style={[
                   styles.dateText,
-                  item === selectedDate && { color: theme.colors.onPrimary },
-                ]}
-              >
-                {item}
+                  item === selectedDate && {color: theme.colors.onPrimary},
+                ]}>
+                {parseTripDate(item)}
               </Text>
             </TouchableOpacity>
           )}
           contentContainerStyle={styles.datesContainer}
         />
       </View>
-      
-      <View style={{ paddingHorizontal: 10}}>
-      <Text variant="titleLarge" style={styles.sectionTitle}>
-          Itinerary
-      </Text>
 
-      <Text variant="titleMedium" style={styles.dayHeader}>
-            {selectedDate} Activities
-          </Text>
+      <View style={{paddingHorizontal: 10}}>
+        <Text variant="titleLarge" style={styles.sectionTitle}>
+          Itinerary
+        </Text>
+
+        <Text variant="titleMedium" style={styles.dayHeader}>
+          {parseTripDate(selectedDate)} Activities
+        </Text>
       </View>
 
-      
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
-        showsVerticalScrollIndicator={false}
-      >
-
+        contentContainerStyle={{paddingBottom: 80, paddingHorizontal: 10}}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
-          {itineraryItems && itineraryItems.map((item, index) => (
-          <ItineraryCard key={index} item={item} />
+          {selectedDateItineraries.map((item: ItineraryItem, index: number) => (
+            <ItineraryCard key={index} item={item} />
           ))}
-          
         </View>
       </ScrollView>
-
 
       <AddThingToDoActionSheet actionSheetRef={thingsToDoactionSheetRef} />
       <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
       <AddFoodAndDrinkActionSheet actionSheetRef={foodAndDrinkactionSheetRef} />
-      <AddTransportationActionSheet actionSheetRef={transportationactionSheetRef} />
+      <AddTransportationActionSheet
+        actionSheetRef={transportationactionSheetRef}
+      />
       <NoteActionSheet actionSheetRef={noteactionSheetRef} />
 
       <FAB.Group
@@ -108,37 +141,55 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ dateRange }) => {
             icon: 'format-list-bulleted',
             label: 'Add Things To Do',
             onPress: () => thingsToDoactionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
+            style: {
+              elevation: 0,
+              shadowColor: 'transparent',
+              backgroundColor: theme.colors.surface,
+            },
           },
           {
             icon: 'home',
             label: 'Add a Place to Stay',
             onPress: () => placeToStayactionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
+            style: {
+              elevation: 0,
+              shadowColor: 'transparent',
+              backgroundColor: theme.colors.surface,
+            },
           },
           {
             icon: 'silverware-fork-knife',
             label: 'Add Food & Drink',
             onPress: () => foodAndDrinkactionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
+            style: {
+              elevation: 0,
+              shadowColor: 'transparent',
+              backgroundColor: theme.colors.surface,
+            },
           },
           {
             icon: 'car',
             label: 'Add Transportation',
             onPress: () => transportationactionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
+            style: {
+              elevation: 0,
+              shadowColor: 'transparent',
+              backgroundColor: theme.colors.surface,
+            },
           },
           {
             icon: 'note-plus',
             label: 'Add a Note',
             onPress: () => noteactionSheetRef.current?.show(),
-            style: { elevation: 0, shadowColor: 'transparent', backgroundColor: theme.colors.surface },
+            style: {
+              elevation: 0,
+              shadowColor: 'transparent',
+              backgroundColor: theme.colors.surface,
+            },
           },
         ]}
-        onStateChange={({ open }) => setIsFabOpen(open)}
+        onStateChange={({open}) => setIsFabOpen(open)}
       />
-
-
     </View>
   );
 };
@@ -183,10 +234,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  itineraryContainer:{
-    marginBottom: 28
-  }
-
+  itineraryContainer: {
+    marginBottom: 28,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
 });
 
 export default ItineraryScreen;

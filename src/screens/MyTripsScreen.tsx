@@ -13,7 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Search from '../components/Search';
 import {ActionSheetRef} from 'react-native-actions-sheet';
 import CreateTripActionSheet from '../components/actionsheets/trip/CreateTripActionSheet';
-import {useSearchTripPlansQuery} from '../redux/slices/tripPlanSlice';
+import {useSearchTripPlansQuery} from '../redux/slices/tripplan/tripPlanSlice';
 import {Text} from 'react-native-paper';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../redux/store';

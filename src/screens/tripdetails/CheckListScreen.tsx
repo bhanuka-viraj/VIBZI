@@ -14,7 +14,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   useGetTripPlanChecklistByTripIdQuery,
   useUpdateTripPlanChecklistMutation,
-} from '../../redux/slices/checklistSlice';
+} from '../../redux/slices/tripplan/checklistSlice';
 
 interface ChecklistItem {
   id: string;
@@ -47,7 +47,7 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
 
   useEffect(() => {
     console.log(data);
-    
+
     if (data?.id) {
       setChecklistId(data.id);
     }
@@ -76,7 +76,7 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
       await updateTripPlanChecklist({
         id: checklistId,
         data: {
-          tripId: tripId,
+          tripId: trip_id,
           checklist: updatedChecklist,
         },
       });
@@ -142,6 +142,25 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Add new item"
+          value={newItem}
+          onChangeText={setNewItem}
+          onSubmitEditing={handleAddItem}
+          returnKeyType="done"
+        />
+        <TouchableOpacity
+          onPress={handleAddItem}
+          disabled={!newItem.trim()}
+          style={[
+            styles.addButton,
+            !newItem.trim() && styles.addButtonDisabled,
+          ]}>
+          <MaterialIcons name="add" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
@@ -181,37 +200,21 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
             </View>
           ))
         )}
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Add new item"
-            value={newItem}
-            onChangeText={setNewItem}
-            onSubmitEditing={handleAddItem}
-            returnKeyType="done"
-          />
-          <TouchableOpacity
-            onPress={handleAddItem}
-            disabled={!newItem.trim()}
-            style={[
-              styles.addButton,
-              !newItem.trim() && styles.addButtonDisabled,
-            ]}>
-            <MaterialIcons name="add" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
       <Portal>
         <Dialog
           visible={!!itemToDelete}
-          onDismiss={() => setItemToDelete(null)}>
-          <Dialog.Title>Delete Item</Dialog.Title>
+          onDismiss={() => setItemToDelete(null)}
+          style={styles.dialog}
+          key={itemToDelete}>
+          <Dialog.Title style={styles.dialogTitle}>Delete Item</Dialog.Title>
           <Dialog.Content>
-            <Text>Are you sure you want to delete this item?</Text>
+            <Text style={styles.dialogContentText}>
+              Are you sure you want to delete this item?
+            </Text>
           </Dialog.Content>
-          <Dialog.Actions>
+          <Dialog.Actions style={styles.dialogActions}>
             <TouchableOpacity
               onPress={() => setItemToDelete(null)}
               style={styles.dialogButton}>
@@ -318,14 +321,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
   },
+  dialog: {
+    backgroundColor: 'white',
+    elevation: 24,
+    borderRadius: 8,
+  },
+  dialogTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+  },
+  dialogContentText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dialogActions: {
+    padding: 16,
+    justifyContent: 'flex-end',
+  },
   dialogButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginLeft: 8,
+    borderRadius: 4,
   },
   dialogButtonText: {
     fontSize: 14,
     color: '#666',
+    fontWeight: '500',
   },
   deleteDialogButton: {
     backgroundColor: theme.colors.primary,

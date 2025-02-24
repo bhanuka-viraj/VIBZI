@@ -6,14 +6,14 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import {Text, useTheme, Card} from 'react-native-paper';
+import {Text, useTheme} from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import dayjs from 'dayjs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
-import {useGetTripPlanByIdQuery} from '../redux/slices/tripPlanSlice';
 import {RootStackParamList} from '../navigation/AppNavigator';
+import { useGetTripPlanByIdQuery } from '../redux/slices/tripplan/tripPlanSlice';
 
 const HEADER_IMAGE_HEIGHT = 250;
 

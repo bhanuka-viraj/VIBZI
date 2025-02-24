@@ -1,5 +1,5 @@
-export const FOODANDDRINK = "FOODANDDRINK";
-export const THINGSTODO = "THINGSTODO";
-export const TRANSPORTATION = "TRANSPORTATION";
-export const PLACESTOSTAY = "PLACESTOSTAY";
-export const NOTE = "NOTE";
+export const FOODANDDRINK = "restaurant";
+export const THINGSTODO = "activity";
+export const TRANSPORTATION = "flight";
+export const PLACESTOSTAY = "hotel";
+export const NOTE = "note";

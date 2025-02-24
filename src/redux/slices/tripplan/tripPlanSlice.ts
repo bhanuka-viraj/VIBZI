@@ -1,6 +1,18 @@
-import { apiSlice1 } from "./apiSlice";
+import { apiSlice1 } from "../apiSlice";
 
 interface TripPlan {
+  title: string;
+  startDate: string;
+  endDate: string;
+  destinationId: number;
+  destinationName: string;
+  description: string;
+  userId: string;
+}
+
+interface TripPlanResponse {
+  id: string;
+  tripId: string;
   title: string;
   startDate: string;
   endDate: string;
@@ -20,7 +32,7 @@ interface TripPlanSearchParams {
 
 export const tripPlanSlice = apiSlice1.injectEndpoints({
   endpoints: (builder) => ({
-    createTripPlan: builder.mutation<TripPlan, TripPlan>({
+    createTripPlan: builder.mutation<TripPlanResponse, TripPlan>({
       query: (data) => ({
         url: `/common-service/trip-plan`,
         method: "POST",
