@@ -18,18 +18,43 @@ export interface ItineraryItem {
   };
 }
 
-export function parseTrips(response : any) {
-    if (!response || !response.items) {
-      return [];
-    }
-    return response.items.map((item : any) => ({
+export const getImageSource = (url: string) => {
+  switch(url) {
+    case '/1.jpg':
+      return require('../../assets/images/trip/1.jpg');
+    case '/2.jpg':
+      return require('../../assets/images/trip/2.jpg');
+    case '/3.jpg':
+      return require('../../assets/images/trip/3.jpg');
+    case '/4.jpg':
+      return require('../../assets/images/trip/4.jpg');
+    case '/5.jpg':
+      return require('../../assets/images/trip/5.jpg');
+    case '/6.jpg':
+      return require('../../assets/images/trip/6.jpg');
+    default:
+      return require('../../assets/images/trip/1.jpg'); // default image
+  }
+};
+
+export function parseTrips(response: any) {
+  if (!response || !response.items) {
+    return [];
+  }
+  console.log('Parsing trips, first imageUrl:', response.items[0]?.imageUrl);
+  const parsed = response.items.map((item: any) => {
+    const imageSource = getImageSource(item.imageUrl);
+    console.log('Image source for', item.imageUrl, ':', imageSource);
+    return {
       id: item.id,
-      tripId:item.tripId,
+      tripId: item.tripId,
       title: item.title,
       description: item.description,
-      image: 'https://picsum.photos/700',
-    }));
-  }
+      image: imageSource,
+    };
+  });
+  return parsed;
+}
 
 export function parseTripDate(dateString: string): string {
   return dayjs(dateString).format('MMM DD');

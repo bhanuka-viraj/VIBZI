@@ -1,8 +1,19 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
-import DatePicker from "react-native-date-picker";
-import { theme } from "../../../constants/theme";
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
+import DatePicker from 'react-native-date-picker';
+import {theme} from '../../../constants/theme';
+import {useSelector} from 'react-redux';
+import {RootState} from '../../../redux/store';
+import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
+import {THINGSTODO} from '../../../constants/types/ItineraryTypes';
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -11,33 +22,86 @@ interface AddThingToDoActionSheetProps {
 const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   actionSheetRef,
 }) => {
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
   const [startTime, setStartTime] = useState<Date>(new Date());
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [link, setLink] = useState("");
-  const [reservationNumber, setReservationNumber] = useState("");
-  const [note, setNote] = useState("");
+  const [link, setLink] = useState('');
+  const [reservationNumber, setReservationNumber] = useState('');
+  const [note, setNote] = useState('');
+
+  const tripData = useSelector((state: any) => state.meta.trip);
+  const itinerary = tripData?.itinerary || null;
+
+  const selectedDate = tripData?.select_date || '';
+  const it_id = itinerary?.id || '';
+
+  const [updateItinerary, {isLoading}] = useUpdateTripPlanItineraryMutation();
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
   };
 
   const handleClear = () => {
-    setName("");
+    setName('');
     setIsBooked(null);
     setStartTime(new Date());
     setEndTime(new Date());
-    setLink("");
-    setReservationNumber("");
-    setNote("");
+    setLink('');
+    setReservationNumber('');
+    setNote('');
+  };
+
+  const handleAdd = async () => {
+    if (!selectedDate || !itinerary) return;
+
+    const obj = {
+      position: itinerary.itinerary[selectedDate].length + 1,
+      date: selectedDate,
+      type: THINGSTODO,
+      details: {
+        title: name,
+        customFields: {
+          isBooked,
+          startTime,
+          endTime,
+          link,
+          reservationNumber,
+          note,
+        },
+      },
+    };
+
+    const updatedItinerary = {
+      ...itinerary,
+      itinerary: {
+        ...itinerary.itinerary,
+        [selectedDate]: [...itinerary.itinerary[selectedDate], obj],
+      },
+    };
+
+    try {
+      const res = await updateItinerary({id: it_id, data: updatedItinerary});
+
+      if (res) {
+        handleClear();
+        actionSheetRef.current?.hide();
+      }
+    } catch (error) {
+      console.log('error : ', error);
+    }
   };
 
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
-      <ScrollView contentContainerStyle={styles.modalContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.modalContainer,
+          {backgroundColor: 'white'},
+        ]}
+        showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Add a things to do</Text>
         <Text style={styles.description}>Add a description here</Text>
 
@@ -54,28 +118,28 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === true && { backgroundColor: theme.colors.primary },
+              isBooked === true && {backgroundColor: theme.colors.primary},
             ]}
-            onPress={() => setIsBooked(true)}
-          >
-            <Text style={[
-              styles.toggleText,
-              isBooked === true && { color: theme.colors.onPrimary }
-            ]}>
+            onPress={() => setIsBooked(true)}>
+            <Text
+              style={[
+                styles.toggleText,
+                isBooked === true && {color: theme.colors.onPrimary},
+              ]}>
               Yes
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === false && { backgroundColor: theme.colors.primary },
+              isBooked === false && {backgroundColor: theme.colors.primary},
             ]}
-            onPress={() => setIsBooked(false)}
-          >
-            <Text style={[
-              styles.toggleText,
-              isBooked === false && { color: theme.colors.onPrimary }
-            ]}>
+            onPress={() => setIsBooked(false)}>
+            <Text
+              style={[
+                styles.toggleText,
+                isBooked === false && {color: theme.colors.onPrimary},
+              ]}>
               No
             </Text>
           </TouchableOpacity>
@@ -86,8 +150,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
             <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity
               style={styles.timeInput}
-              onPress={() => setShowStartPicker(true)}
-            >
+              onPress={() => setShowStartPicker(true)}>
               <Text style={styles.timeText}>{formatTime(startTime)}</Text>
             </TouchableOpacity>
           </View>
@@ -96,8 +159,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
               style={styles.timeInput}
-              onPress={() => setShowEndPicker(true)}
-            >
+              onPress={() => setShowEndPicker(true)}>
               <Text style={styles.timeText}>{formatTime(endTime)}</Text>
             </TouchableOpacity>
           </View>
@@ -108,7 +170,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           open={showStartPicker}
           date={startTime}
           mode="time"
-          onConfirm={(date) => {
+          onConfirm={date => {
             setStartTime(date);
             setShowStartPicker(false);
           }}
@@ -120,7 +182,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           open={showEndPicker}
           date={endTime}
           mode="time"
-          onConfirm={(date) => {
+          onConfirm={date => {
             setEndTime(date);
             setShowEndPicker(false);
           }}
@@ -154,16 +216,12 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         />
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.clearButton}
-            onPress={handleClear}
-          >
+          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
             <Text style={styles.clearText}>Clear</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => actionSheetRef.current?.hide()}
-          >
+            onPress={() => handleAdd()}>
             <Text style={styles.addText}>Add to trip</Text>
           </TouchableOpacity>
         </View>
@@ -174,7 +232,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -182,30 +240,30 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   description: {
-    color: "#666",
+    color: '#666',
     marginBottom: 20,
     fontSize: 14,
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginTop: 12,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   toggleContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     marginBottom: 12,
   },
@@ -213,15 +271,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 25,
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   toggleText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   timeRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     marginBottom: 12,
   },
@@ -230,7 +288,7 @@ const styles = StyleSheet.create({
   },
   timeInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
   },
@@ -239,33 +297,33 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     height: 100,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
   buttonContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     marginTop: 20,
   },
   clearButton: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   clearText: {
-    color: "#757575",
-    fontWeight: "500",
+    color: '#757575',
+    fontWeight: '500',
   },
   addButton: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     padding: 16,
     borderRadius: 25,
     backgroundColor: theme.colors.primary,
   },
   addText: {
-    color: "white",
-    fontWeight: "500",
+    color: 'white',
+    fontWeight: '500',
   },
 });
 

@@ -6,7 +6,11 @@ interface MetaState {
     select_date: string;
     id: string;
     tripId: string;
-    itinerary: any;
+    itinerary: {
+      id?: string;
+      tripId?: string;
+      itinerary?: Record<string, any[]>;
+    } | null;
   };
 }
 
@@ -16,7 +20,7 @@ const initialState: MetaState = {
     select_date: "",
     id: "",
     tripId: "",
-    itinerary: {},
+    itinerary: null,
   },
 };
 
@@ -33,15 +37,11 @@ export const metaSlice = createSlice({
     setTrip_Id: (state, action: PayloadAction<string>) => {
       state.trip.tripId = action.payload;
     },
-    setitinerary:(state, action: PayloadAction<any>) => {
+    setitinerary: (state, action: PayloadAction<any>) => {
       state.trip.itinerary = action.payload;
     },
   },
 });
 
-export const { setTripDate } = metaSlice.actions;
-export const { setTripId } = metaSlice.actions;
-export const { setTrip_Id } = metaSlice.actions;
-export const { setitinerary } = metaSlice.actions;
-
+export const { setTripDate, setTripId, setTrip_Id, setitinerary } = metaSlice.actions;
 export default metaSlice.reducer;

@@ -20,6 +20,8 @@ import {
   parseItineraryData,
   ItineraryItem,
 } from '../../utils/tripUtils/tripDataUtil';
+import {setitinerary, setTripDate} from '../../redux/slices/metaSlice';
+import {useDispatch, useSelector} from 'react-redux';
 
 export interface ItineraryScreenProps {
   tripId: string;
@@ -29,7 +31,10 @@ export interface ItineraryScreenProps {
 const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   const theme = useTheme();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const dispatch = useDispatch();
+
+  // Get selected_date from meta state
+  const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
 
   const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
   const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
@@ -40,12 +45,14 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   const {data, isLoading} = useGetTripPlanItineraryByIdQuery(trip_id as any);
   const {dates, itineraryByDate} = parseItineraryData(data);
 
-
   useEffect(() => {
-    if (dates.length > 0) {
-      setSelectedDate(dates[0]);
+    if (dates.length > 0 && !selectedDate) {
+      dispatch(setTripDate(dates[0]));
     }
-  }, [data]);
+    if (data) {
+      dispatch(setitinerary(data));
+    }
+  }, [data, dates, selectedDate, dispatch]);
 
   if (isLoading) {
     return (
@@ -67,7 +74,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   // console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.datesWrapper}>
         <FlatList
           horizontal
@@ -82,7 +89,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
                   backgroundColor: theme.colors.primary,
                 },
               ]}
-              onPress={() => setSelectedDate(item)}>
+              onPress={() => dispatch(setTripDate(item))}>
               <Text
                 style={[
                   styles.dateText,
@@ -100,7 +107,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         <Text variant="titleLarge" style={styles.sectionTitle}>
           Itinerary
         </Text>
-
         <Text variant="titleMedium" style={styles.dayHeader}>
           {parseTripDate(selectedDate)} Activities
         </Text>
@@ -197,8 +203,8 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'white',
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
   },
   scrollContainer: {
     flex: 1,

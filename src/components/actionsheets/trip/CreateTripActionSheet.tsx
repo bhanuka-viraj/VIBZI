@@ -36,7 +36,12 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   const [showFromDate, setShowFromDate] = useState(false);
   const [showToDate, setShowToDate] = useState(false);
 
-  const {user} = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
+  
+  const imageUrl = () => {
+    return `/${Math.floor(Math.random() * 6) + 1}.jpg`;
+  };
+
 
   const handleCreateTrip = async () => {
     try {
@@ -46,7 +51,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
         startDate: fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : '',
         endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
         description: description,
-
+        imageUrl : imageUrl(),
         userId: user?.userId,
         destinationId: 124,
       };

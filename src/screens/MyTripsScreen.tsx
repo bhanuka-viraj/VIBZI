@@ -31,6 +31,7 @@ const MyTripsScreen: React.FC = () => {
   const dispatch = useDispatch();
 
   const {
+
     data: trips,
     isLoading,
     error,
@@ -45,7 +46,7 @@ const MyTripsScreen: React.FC = () => {
         }
       : {},
   );
-
+  
   console.log('Trips:', JSON.stringify(trips, null, 2));
 
   const tripData = parseTrips(trips);

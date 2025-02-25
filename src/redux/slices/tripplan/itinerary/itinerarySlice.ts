@@ -5,6 +5,16 @@ interface TripPlanItinerarySearchParams {
     title?: string;
     page?: number;
     size?: number;
+}
+
+interface TripPlanItinerary {
+    id?: string; 
+    tripPlanId: string;
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    location: string;   
   }
   
 interface TripPlanItineraryCreate { tripId: string; itinerary: any; }
@@ -18,9 +28,18 @@ export const itinerarySlice = apiSlice1.injectEndpoints({
             }),
             providesTags: ['itineraries']
         }),
+        updateTripPlanItinerary: builder.mutation<TripPlanItinerary, { id: string; data: Partial<TripPlanItinerary> }>({
+            query: ({ id, data }) => ({
+              url: `/common-service/trip-plan-itinerary/${id}`,
+              method: "PUT",
+              body: data,
+            }),
+            invalidatesTags: ['itineraries'], 
+          }),
     })
 });
 
 export const {
-    useGetTripPlanItineraryByIdQuery
+    useGetTripPlanItineraryByIdQuery,
+    useUpdateTripPlanItineraryMutation
   } = itinerarySlice;

@@ -8,6 +8,7 @@ interface TripPlan {
   destinationName: string;
   description: string;
   userId: string;
+  imageUrl: string;
 }
 
 interface TripPlanResponse {

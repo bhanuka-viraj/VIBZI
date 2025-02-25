@@ -13,7 +13,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/AppNavigator';
-import { useGetTripPlanByIdQuery } from '../redux/slices/tripplan/tripPlanSlice';
+import {useGetTripPlanByIdQuery} from '../redux/slices/tripplan/tripPlanSlice';
+import {getImageSource} from '../utils/tripUtils/tripDataUtil';
 
 const HEADER_IMAGE_HEIGHT = 250;
 
@@ -28,7 +29,7 @@ const TripDetailsScreen = () => {
 
   const [statusBarStyle, setStatusBarStyle] = useState<
     'light-content' | 'dark-content'
-  >('dark-content');
+  >('light-content');
 
   const parsedFromDate = tripPlan?.startDate
     ? new Date(tripPlan.startDate)
@@ -69,9 +70,9 @@ const TripDetailsScreen = () => {
         translucent
         backgroundColor="transparent"
       />
-      <View style={styles.container}>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
         <ImageBackground
-          source={{uri: 'https://picsum.photos/700'}}
+          source={getImageSource(tripPlan?.imageUrl as any)}
           style={styles.imageBackground}>
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
             <Ionicons

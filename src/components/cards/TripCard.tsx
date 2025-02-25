@@ -7,7 +7,7 @@ interface TripCardProps {
   trip: {
     title: string;
     description: string;
-    image: string;
+    image: number;
     id: string;
     tripId: string;
   };
@@ -19,11 +19,7 @@ const TripCard: React.FC<TripCardProps> = ({trip, onPress}) => {
     <TouchableOpacity
       style={styles.container}
       onPress={() => onPress(trip.id, trip.tripId)}>
-      <Image
-        source={{uri: trip.image}}
-        style={styles.image}
-        resizeMode="cover"
-      />
+      <Image source={trip.image} style={styles.image} resizeMode="cover" />
 
       <View style={styles.textContainer}>
         <Text

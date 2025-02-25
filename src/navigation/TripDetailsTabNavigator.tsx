@@ -48,6 +48,8 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
           backgroundColor: '#fff',
           elevation: 0,
           shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#eee',
         },
         tabBarIndicatorStyle: {
           backgroundColor: theme.colors.primary,
@@ -56,6 +58,7 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
         tabBarPressColor: 'transparent',
         swipeEnabled: false,
         lazy: true,
+        sceneContainerStyle: { backgroundColor: 'white' },
       }}>
       <Tab.Screen
         name="Checklists"
