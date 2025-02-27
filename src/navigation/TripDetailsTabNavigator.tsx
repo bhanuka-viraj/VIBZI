@@ -25,7 +25,6 @@ const Tab = createMaterialTopTabNavigator();
 
 type TripDetailsTabNavigatorProps = {
   screenProps: {
-    dateRange: string[];
     tripId: string;
     trip_id: string;
   };
@@ -58,7 +57,6 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
         tabBarPressColor: 'transparent',
         swipeEnabled: false,
         lazy: true,
-        sceneContainerStyle: { backgroundColor: 'white' },
       }}>
       <Tab.Screen
         name="Checklists"
@@ -78,7 +76,10 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
             trip_id={screenProps.trip_id}
           />
         )}
-        options={{tabBarLabel: 'Itinerary'}}
+        options={{
+          tabBarLabel: 'Itinerary',
+          lazy: true,
+        }}
       />
       <Tab.Screen
         name="Attachments"

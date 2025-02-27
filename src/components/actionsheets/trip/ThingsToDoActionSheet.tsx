@@ -24,8 +24,8 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
-  const [startTime, setStartTime] = useState<Date>(new Date());
-  const [endTime, setEndTime] = useState<Date>(new Date());
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [link, setLink] = useState('');
@@ -40,15 +40,16 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 
   const [updateItinerary, {isLoading}] = useUpdateTripPlanItineraryMutation();
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: Date | null) => {
+    if (!date) return '';
     return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
   };
 
   const handleClear = () => {
     setName('');
     setIsBooked(null);
-    setStartTime(new Date());
-    setEndTime(new Date());
+    setStartTime(null);
+    setEndTime(null);
     setLink('');
     setReservationNumber('');
     setNote('');
@@ -83,24 +84,30 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
     };
 
     try {
-      const res = await updateItinerary({id: it_id, data: updatedItinerary});
-
-      if (res) {
-        handleClear();
+      await updateItinerary({id: it_id, data: updatedItinerary}).unwrap();
+      handleClear();
+      // Hide action sheet after a small delay to ensure smooth transition
+      setTimeout(() => {
         actionSheetRef.current?.hide();
-      }
+      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
   };
 
   return (
-    <ActionSheet ref={actionSheetRef} gestureEnabled>
+    <ActionSheet
+      ref={actionSheetRef}
+      gestureEnabled
+      containerStyle={{
+        backgroundColor: 'white',
+      }}
+      indicatorStyle={{
+        backgroundColor: '#ccc',
+      }}
+      overlayColor="transparent">
       <ScrollView
-        contentContainerStyle={[
-          styles.modalContainer,
-          {backgroundColor: 'white'},
-        ]}
+        contentContainerStyle={styles.modalContainer}
         showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Add a things to do</Text>
         <Text style={styles.description}>Add a description here</Text>
@@ -149,18 +156,30 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity
-              style={styles.timeInput}
+              style={[styles.timeInput, !startTime && styles.timeInputEmpty]}
               onPress={() => setShowStartPicker(true)}>
-              <Text style={styles.timeText}>{formatTime(startTime)}</Text>
+              <Text
+                style={[
+                  styles.timeText,
+                  !startTime && styles.timeTextPlaceholder,
+                ]}>
+                {formatTime(startTime) || 'Select time'}
+              </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.timeColumn}>
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
-              style={styles.timeInput}
+              style={[styles.timeInput, !endTime && styles.timeInputEmpty]}
               onPress={() => setShowEndPicker(true)}>
-              <Text style={styles.timeText}>{formatTime(endTime)}</Text>
+              <Text
+                style={[
+                  styles.timeText,
+                  !endTime && styles.timeTextPlaceholder,
+                ]}>
+                {formatTime(endTime) || 'Select time'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -168,7 +187,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         <DatePicker
           modal
           open={showStartPicker}
-          date={startTime}
+          date={new Date()}
           mode="time"
           onConfirm={date => {
             setStartTime(date);
@@ -180,7 +199,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         <DatePicker
           modal
           open={showEndPicker}
-          date={endTime}
+          date={new Date()}
           mode="time"
           onConfirm={date => {
             setEndTime(date);
@@ -324,6 +343,12 @@ const styles = StyleSheet.create({
   addText: {
     color: 'white',
     fontWeight: '500',
+  },
+  timeInputEmpty: {
+    borderColor: '#ddd',
+  },
+  timeTextPlaceholder: {
+    color: '#999',
   },
 });
 

@@ -22,8 +22,9 @@ import {
 } from '../../utils/tripUtils/tripDataUtil';
 import {setitinerary, setTripDate} from '../../redux/slices/metaSlice';
 import {useDispatch, useSelector} from 'react-redux';
+import {theme} from '../../constants/theme';
 
-export interface ItineraryScreenProps {
+interface ItineraryScreenProps {
   tripId: string;
   trip_id: string;
 }
@@ -35,6 +36,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
 
   // Get selected_date from meta state
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
+  const tripData = useSelector((state: any) => state.meta.trip);
 
   const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
   const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
@@ -44,6 +46,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
 
   const {data, isLoading} = useGetTripPlanItineraryByIdQuery(trip_id as any);
   const {dates, itineraryByDate} = parseItineraryData(data);
+  const selectedDateItineraries = itineraryByDate[selectedDate] || [];
+
+  // Create a key that changes when itinerary data changes
+  const renderKey = JSON.stringify(selectedDateItineraries);
 
   useEffect(() => {
     if (dates.length > 0 && !selectedDate) {
@@ -62,8 +68,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
     );
   }
 
-  const selectedDateItineraries = itineraryByDate[selectedDate] || [];
-
   // do not uncomment these
   // console.log('data  : ', data);
   // console.log('trip_id : ', trip_id);
@@ -71,10 +75,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   // console.log('dates : ', dates);
   // console.log('itineraryByDate : ', itineraryByDate);
   // console.log('selectedDate : ', selectedDate);
-  // console.log('selectedDateItineraries : ', selectedDateItineraries);
+  console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container]} key={renderKey}>
       <View style={styles.datesWrapper}>
         <FlatList
           horizontal

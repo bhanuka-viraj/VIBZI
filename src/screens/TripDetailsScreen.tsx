@@ -15,6 +15,7 @@ import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {useGetTripPlanByIdQuery} from '../redux/slices/tripplan/tripPlanSlice';
 import {getImageSource} from '../utils/tripUtils/tripDataUtil';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const HEADER_IMAGE_HEIGHT = 250;
 
@@ -43,21 +44,6 @@ const TripDetailsScreen = () => {
     ? dayjs(parsedToDate).format('MMM D')
     : 'End Date';
 
-  const generateDateRange = (fromDate: Date | null, toDate: Date | null) => {
-    const dateRange = [];
-    if (fromDate && toDate) {
-      const start = dayjs(fromDate);
-      const end = dayjs(toDate);
-      let current = start;
-      while (current.isSame(end) || current.isBefore(end)) {
-        dateRange.push(current.format('MMM D'));
-        current = current.add(1, 'day');
-      }
-    }
-    return dateRange;
-  };
-
-  const dateRange = generateDateRange(parsedFromDate, parsedToDate);
 
   const goBack = () => {
     navigation.goBack();
@@ -70,7 +56,7 @@ const TripDetailsScreen = () => {
         translucent
         backgroundColor="transparent"
       />
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={{flex: 1, backgroundColor: 'white'}}>
         <ImageBackground
           source={getImageSource(tripPlan?.imageUrl as any)}
           style={styles.imageBackground}>
@@ -78,7 +64,7 @@ const TripDetailsScreen = () => {
             <Ionicons
               name="chevron-back-outline"
               size={25}
-              color={theme.colors.onSurfaceVariant}
+              color={theme.colors.surface}
             />
           </TouchableOpacity>
           <LinearGradient
@@ -89,7 +75,12 @@ const TripDetailsScreen = () => {
             </Text>
             <Text variant="bodyMedium" style={styles.tripDetails}>
               {formattedFromDate} - {formattedToDate} •{' '}
-              {tripPlan?.destinationName}
+              {tripPlan?.destinationName} {''}
+              <MaterialIcons
+                name="location-on"
+                size={13}
+                color={theme.colors.surface}
+              />
             </Text>
           </LinearGradient>
         </ImageBackground>
@@ -97,7 +88,6 @@ const TripDetailsScreen = () => {
         <View style={[styles.content, {overflow: 'hidden'}]}>
           <TripDetailsTabNavigator
             screenProps={{
-              dateRange,
               tripId,
               trip_id,
             }}
@@ -135,6 +125,8 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   tripDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
     color: '#ddd',
   },
 });

@@ -60,6 +60,10 @@ export function parseTripDate(dateString: string): string {
   return dayjs(dateString).format('MMM DD');
 }
 
+export function parseTime(timeString: string): string {
+  return dayjs(timeString).format('h:mm A');
+}
+
 export function parseItineraryData(data: any) {
   if (!data || !data.itinerary) {
     return {

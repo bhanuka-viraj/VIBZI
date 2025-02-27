@@ -9,7 +9,8 @@ import {
   NOTE,
   PLACESTOSTAY,
 } from '../../constants/types/ItineraryTypes';
-import { theme } from '../../constants/theme';
+import {theme} from '../../constants/theme';
+import {parseTime} from '../../utils/tripUtils/tripDataUtil';
 
 interface ItineraryCardProps {
   item: {
@@ -19,46 +20,116 @@ interface ItineraryCardProps {
     details: {
       title: string;
       customFields: {
-        activityName: string;
-        booked: string;
-        startTime: string;
-        endTime: string;
-        link: string;
-        reservationNumber: string;
-        note: string;
+        activityName?: string;
+        booked?: string;
+        startTime?: string;
+        endTime?: string;
+        link?: string;
+        reservationNumber?: string;
+        note?: string;
+        arrivalTime?: string;
+        departureTime?: string;
+        type?: string;
+        departureLocation?: string;
+        arrivalLocation?: string;
       };
     };
   };
 }
 
-const getIconByType = (type: string) => {
-  switch (type) {
+const getIconByType = (item: any) => {
+  switch (item.type) {
     case FOODANDDRINK:
-      return <MaterialIcons name="restaurant" size={24} color={theme.colors.primary} />;
+      return (
+        <MaterialIcons
+          name="restaurant"
+          size={24}
+          color={theme.colors.primary}
+        />
+      );
     case THINGSTODO:
-      return <MaterialIcons name="event" size={24} color={theme.colors.primary} />;
+      return (
+        <MaterialIcons name="event" size={24} color={theme.colors.primary} />
+      );
     case PLACESTOSTAY:
-      return <MaterialIcons name="hotel" size={24} color={theme.colors.primary} />;
-    case TRANSPORTATION:
-      return <MaterialIcons name="directions-car" color={theme.colors.primary} />;
+      return (
+        <MaterialIcons name="hotel" size={24} color={theme.colors.primary} />
+      );
+    case TRANSPORTATION: {
+      if (item.details.customFields.type === 'Flight') {
+        return (
+          <MaterialIcons name="flight" size={24} color={theme.colors.primary} />
+        );
+      } else if (item.details.customFields.type === 'Train') {
+        return (
+          <MaterialIcons name="train" size={24} color={theme.colors.primary} />
+        );
+      } else if (item.details.customFields.type === 'Car') {
+        return (
+          <MaterialIcons
+            name="directions-car"
+            size={24}
+            color={theme.colors.primary}
+          />
+        );
+      } else {
+        return (
+          <MaterialIcons
+            name="directions-bus"
+            size={24}
+            color={theme.colors.primary}
+          />
+        );
+      }
+    }
     case NOTE:
-      return <MaterialIcons name="note" size={24} color={theme.colors.primary} />;
+      return (
+        <MaterialIcons name="note" size={24} color={theme.colors.primary} />
+      );
     default:
       return null;
   }
 };
 
-
 const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
   return (
     <View style={styles.card}>
       <View style={styles.headerContainer}>
-        {getIconByType(item.type)}
+        {getIconByType(item)}
         <Text variant="titleMedium" style={styles.name}>
           {item.details.title}
         </Text>
       </View>
-      <Text>{item.details.customFields.activityName}</Text>
+      {item.type === TRANSPORTATION ? (
+        <>
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationText}>
+              {item.details.customFields.departureLocation}
+            </Text>
+            <MaterialIcons
+              name="arrow-right-alt"
+              size={16}
+              color={theme.colors.primary}
+              style={styles.arrow}
+            />
+            <Text style={styles.locationText}>
+              {item.details.customFields.arrivalLocation}
+            </Text>
+          </View>
+          <Text style={styles.timeText}>
+            {parseTime(item.details.customFields.departureTime || '')} -{' '}
+            {parseTime(item.details.customFields.arrivalTime || '')}
+          </Text>
+        </>
+      ) : item.type !== NOTE ? (
+        <Text style={styles.timeText}>
+          {parseTime(item.details.customFields.startTime || '')} -{' '}
+          {parseTime(item.details.customFields.endTime || '')}
+        </Text>
+      ) : null}
+      {item.details.customFields.activityName && (
+        <Text>{item.details.customFields.activityName}</Text>
+      )}
     </View>
   );
 };
@@ -81,6 +152,24 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#000',
     fontSize: 18,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  timeText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  arrow: {
+    marginTop: 1,
   },
 });
 
