@@ -16,14 +16,25 @@ import {RootStackParamList} from '../navigation/AppNavigator';
 import {useGetTripPlanByIdQuery} from '../redux/slices/tripplan/tripPlanSlice';
 import {getImageSource} from '../utils/tripUtils/tripDataUtil';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LoadingScreen from '../components/LoadingScreen';
+import {useDispatch} from 'react-redux';
+import {setTripId} from '../redux/slices/metaSlice';
 
 const HEADER_IMAGE_HEIGHT = 250;
 
-const TripDetailsScreen = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'TripDetails'>>();
-  const {tripId, trip_id} = route.params;
+type TripDetailsScreenRouteProp = RouteProp<RootStackParamList, 'TripDetails'>;
 
-  const {data: tripPlan} = useGetTripPlanByIdQuery(tripId);
+interface TripDetailsScreenProps {
+  route: TripDetailsScreenRouteProp;
+}
+
+const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({route}) => {
+  const {tripId, trip_id} = route.params;
+  const dispatch = useDispatch();
+
+  const {data: tripData, isLoading} = useGetTripPlanByIdQuery(tripId);
+
+  console.log('tripData - ', tripData);
 
   const theme = useTheme();
   const navigation = useNavigation();
@@ -32,10 +43,10 @@ const TripDetailsScreen = () => {
     'light-content' | 'dark-content'
   >('light-content');
 
-  const parsedFromDate = tripPlan?.startDate
-    ? new Date(tripPlan.startDate)
+  const parsedFromDate = tripData?.startDate
+    ? new Date(tripData.startDate)
     : null;
-  const parsedToDate = tripPlan?.endDate ? new Date(tripPlan.endDate) : null;
+  const parsedToDate = tripData?.endDate ? new Date(tripData.endDate) : null;
 
   const formattedFromDate = parsedFromDate
     ? dayjs(parsedFromDate).format('MMM D')
@@ -44,10 +55,19 @@ const TripDetailsScreen = () => {
     ? dayjs(parsedToDate).format('MMM D')
     : 'End Date';
 
+  React.useEffect(() => {
+    if (tripData) {
+      dispatch(setTripId(tripData?.tripId));
+    }
+  }, [tripData, dispatch]);
 
   const goBack = () => {
     navigation.goBack();
   };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>
@@ -58,7 +78,7 @@ const TripDetailsScreen = () => {
       />
       <View style={{flex: 1, backgroundColor: 'white'}}>
         <ImageBackground
-          source={getImageSource(tripPlan?.imageUrl as any)}
+          source={getImageSource(tripData?.imageUrl as any)}
           style={styles.imageBackground}>
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
             <Ionicons
@@ -71,11 +91,11 @@ const TripDetailsScreen = () => {
             colors={['transparent', 'rgba(0,0,0,0.8)']}
             style={styles.gradientOverlay}>
             <Text variant="headlineMedium" style={styles.tripTitle}>
-              {tripPlan?.title}
+              {tripData?.title}
             </Text>
             <Text variant="bodyMedium" style={styles.tripDetails}>
               {formattedFromDate} - {formattedToDate} •{' '}
-              {tripPlan?.destinationName} {''}
+              {tripData?.destinationName} {''}
               <MaterialIcons
                 name="location-on"
                 size={13}

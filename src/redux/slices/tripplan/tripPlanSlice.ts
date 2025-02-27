@@ -1,6 +1,8 @@
 import { apiSlice1 } from "../apiSlice";
 
 interface TripPlan {
+  id: string;
+  tripId: string;
   title: string;
   startDate: string;
   endDate: string;
