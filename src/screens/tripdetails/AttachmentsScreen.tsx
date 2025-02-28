@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,8 +8,9 @@ import {
   Platform,
   PermissionsAndroid,
   Linking,
+  ScrollView,
 } from 'react-native';
-import {Text, ActivityIndicator} from 'react-native-paper';
+import {Text, ActivityIndicator, FAB} from 'react-native-paper';
 import {
   useUploadAttachmentMutation,
   useGetAttachmentsByTripIdQuery,
@@ -23,6 +24,14 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {formatFileSize, getFileIcon} from '../../utils/fileUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import type {Permission} from 'react-native';
+import AttachmentList from './components/AttachmentList';
+import PendingAttachmentList from './components/PendingAttachmentList';
+import {
+  SUPPORTED_DOCUMENT_TYPES,
+  SUPPORTED_IMAGE_TYPES,
+  filterAttachmentsByType,
+  filterPendingFilesByType,
+} from '../../utils/tripUtils/attachmentUtils';
 
 type PermissionStatus = {
   [key in Permission]?: boolean;
@@ -30,7 +39,9 @@ type PermissionStatus = {
 
 const AttachmentsScreen = () => {
   const [uploading, setUploading] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<
+    DocumentPicker.DocumentPickerResponse[]
+  >([]);
   const trip = useSelector((state: RootState) => state.meta.trip);
   const tripId = trip?.id;
 
@@ -39,164 +50,78 @@ const AttachmentsScreen = () => {
   const [uploadAttachment] = useUploadAttachmentMutation();
   const [deleteAttachment] = useDeleteAttachmentMutation();
 
-  // const requestStoragePermission = async () => {
-  //   if (Platform.OS !== 'android') return true;
-  //   try {
-  //     console.log('Requesting permissions...');
-
-  //     if (Platform.Version >= 33) {
-  //       // For Android 13+, request media permissions first
-  //       const mediaPermissions = [
-  //         PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-  //         PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-  //         PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-  //       ];
-
-  //       const mediaGranted = await PermissionsAndroid.requestMultiple(
-  //         mediaPermissions,
-  //       );
-  //       console.log('Media permissions:', mediaGranted);
-
-  //       const hasStorageAccess = await PermissionsAndroid.check(
-  //         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-  //       );
-  //       console.log('Has storage access:', hasStorageAccess);
-
-  //       if (!hasStorageAccess) {
-  //         // Request storage permission
-  //         const storageGranted = await PermissionsAndroid.request(
-  //           PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-  //           {
-  //             title: 'Files Permission',
-  //             message:
-  //               'This app needs access to your files to upload documents.',
-  //             buttonNeutral: 'Ask Me Later',
-  //             buttonNegative: 'Cancel',
-  //             buttonPositive: 'OK',
-  //           },
-  //         );
-  //         console.log('Storage permission result:', storageGranted);
-
-  //         if (storageGranted !== PermissionsAndroid.RESULTS.GRANTED) {
-  //           Alert.alert(
-  //             'Storage Permission Required',
-  //             'Please enable storage permission in Settings to upload all types of files.',
-  //             [
-  //               {text: 'Cancel', style: 'cancel'},
-  //               {
-  //                 text: 'Open Settings',
-  //                 onPress: () => Linking.openSettings(),
-  //               },
-  //             ],
-  //           );
-  //           return false;
-  //         }
-  //       }
-
-  //       return true;
-  //     } else {
-  //       // for Android 12 and below
-  //       const granted = await PermissionsAndroid.request(
-  //         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-  //         {
-  //           title: 'Storage Permission',
-  //           message: 'This app needs access to your storage to upload files.',
-  //           buttonNeutral: 'Ask Me Later',
-  //           buttonNegative: 'Cancel',
-  //           buttonPositive: 'OK',
-  //         },
-  //       );
-  //       return granted === PermissionsAndroid.RESULTS.GRANTED;
-  //     }
-  //   } catch (err) {
-  //     console.warn('Permission error:', err);
-  //     return false;
-  //   }
-  // };
-
-const requestStoragePermission = async () => {
-  if (Platform.OS === 'android') {
-    if (Platform.Version >= 33) { 
-      // API 33+ (Android 13+)
-      const granted = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-      ]);
-      return Object.values(granted).every(res => res === PermissionsAndroid.RESULTS.GRANTED);
-    } else {
-      // API 32 and below
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      if (Platform.Version >= 33) {
+        // API 33+ (Android 13+)
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+        ]);
+        return Object.values(granted).every(
+          res => res === PermissionsAndroid.RESULTS.GRANTED,
+        );
+      } else {
+        // API 32 and below
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
     }
-  }
-  return true; // iOS doesn't need explicit storage permissions
-};
+    return true;
+  };
 
-
-  useEffect(() => {
-    const checkAndRequestPermissions = async () => {
-      const granted = await requestStoragePermission();
-      setHasPermission(granted);
-    };
-    checkAndRequestPermissions();
-  }, []);
-
-  const handleFilePick = async () => {
-    if (!hasPermission) {
-      Alert.alert(
-        'Permission Required',
-        'Please grant storage permissions to upload files.',
-        [
-          {text: 'Cancel', style: 'cancel'},
-          {
-            text: 'Retry',
-            onPress: async () => {
-              const granted = await requestStoragePermission();
-              setHasPermission(granted);
-              if (granted) handleFilePick();
-            },
-          },
-        ],
-      );
-      return;
-    }
-
+  const handleFilePick = async (type: 'image' | 'document') => {
     try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) return;
+
       const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.allFiles],
+        type:
+          type === 'image' ? SUPPORTED_IMAGE_TYPES : SUPPORTED_DOCUMENT_TYPES,
+        allowMultiSelection: true,
       });
-      const file = result[0];
-      handleUpload(file);
+
+      setPendingFiles(prev => [...prev, ...result]);
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
-        console.error('File pick error:', err);
+        console.error(err);
         Alert.alert('Error', 'Failed to pick file');
       }
     }
   };
 
-  const handleUpload = async (file: DocumentPicker.DocumentPickerResponse) => {
-    try {
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('file', {
-        uri: file.uri,
-        type: file.type || 'application/octet-stream',
-        name: file.name || 'unnamed_file',
-      });
-      formData.append('tripId', tripId as string);
+  const handleUploadAll = async () => {
+    if (pendingFiles.length === 0) return;
 
-      await uploadAttachment(formData).unwrap();
-      Alert.alert('Success', 'File uploaded successfully');
+    setUploading(true);
+    try {
+      for (const file of pendingFiles) {
+        const formData = new FormData();
+        formData.append('files', {
+          uri: file.uri,
+          type: file.type || 'application/octet-stream',
+          name: file.name || 'unnamed_file',
+        } as any);
+        formData.append('tripId', tripId as string);
+        formData.append('title', file.name || 'Untitled');
+
+        await uploadAttachment(formData).unwrap();
+      }
+      setPendingFiles([]);
+      Alert.alert('Success', 'All files uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      Alert.alert('Error', 'Failed to upload file');
+      Alert.alert('Error', 'Failed to upload some files');
     } finally {
       setUploading(false);
     }
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDelete = async (fileKey: string) => {
@@ -224,10 +149,8 @@ const requestStoragePermission = async () => {
   if (isLoading) {
     return (
       <SafeAreaView edges={['bottom']} style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-          </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -235,54 +158,103 @@ const requestStoragePermission = async () => {
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={handleFilePick}
-            disabled={uploading}>
-            <MaterialIcons name="upload-file" size={24} color="white" />
-            <Text style={styles.uploadButtonText}>
-              {uploading ? 'Uploading...' : 'Upload File'}
+          <View style={styles.pendingSection}>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              Add Files
             </Text>
-          </TouchableOpacity>
-
-          {!attachmentData?.attachments?.length ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No attachments yet</Text>
+            <View style={styles.addButtonsContainer}>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => handleFilePick('document')}
+                disabled={uploading}>
+                <MaterialIcons
+                  name="description"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.addButtonText}>Add Document</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => handleFilePick('image')}
+                disabled={uploading}>
+                <MaterialIcons
+                  name="image"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.addButtonText}>Add Image</Text>
+              </TouchableOpacity>
             </View>
-          ) : (
-            <FlatList
-              data={attachmentData.attachments}
-              renderItem={({item}) => (
-                <View style={styles.attachmentItem}>
-                  <View style={styles.fileInfo}>
-                    <MaterialIcons
-                      name={getFileIcon(item.originalFilename)}
-                      size={24}
-                      color={theme.colors.primary}
+
+            {pendingFiles.length > 0 && (
+              <View style={styles.pendingListsContainer}>
+                {filterPendingFilesByType(pendingFiles, 'document').length >
+                  0 && (
+                  <View style={styles.pendingSection}>
+                    <Text variant="titleSmall" style={styles.subsectionTitle}>
+                      Pending Documents
+                    </Text>
+                    <PendingAttachmentList
+                      files={filterPendingFilesByType(pendingFiles, 'document')}
+                      onRemove={removePendingFile}
                     />
-                    <View style={styles.fileDetails}>
-                      <Text style={styles.fileName} numberOfLines={1}>
-                        {item.originalFilename}
-                      </Text>
-                    </View>
                   </View>
-                  <TouchableOpacity onPress={() => handleDelete(item.key)}>
-                    <MaterialIcons
-                      name="delete"
-                      size={24}
-                      color={theme.colors.error}
+                )}
+
+                {filterPendingFilesByType(pendingFiles, 'image').length > 0 && (
+                  <View style={styles.pendingSection}>
+                    <Text variant="titleSmall" style={styles.subsectionTitle}>
+                      Pending Images
+                    </Text>
+                    <PendingAttachmentList
+                      files={filterPendingFilesByType(pendingFiles, 'image')}
+                      onRemove={removePendingFile}
                     />
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.uploadAllButton}
+                  onPress={handleUploadAll}
+                  disabled={uploading}>
+                  <Text style={styles.uploadAllText}>
+                    {uploading ? 'Uploading...' : 'Upload All'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {filterAttachmentsByType(attachmentData?.attachments || [], 'image')
+            .length > 0 && (
+            <AttachmentList
+              title="Images"
+              attachments={filterAttachmentsByType(
+                attachmentData?.attachments || [],
+                'image',
               )}
-              keyExtractor={item => item.key}
-              contentContainerStyle={styles.list}
+              onDelete={handleDelete}
+            />
+          )}
+
+          {filterAttachmentsByType(
+            attachmentData?.attachments || [],
+            'document',
+          ).length > 0 && (
+            <AttachmentList
+              title="Documents"
+              attachments={filterAttachmentsByType(
+                attachmentData?.attachments || [],
+                'document',
+              )}
+              onDelete={handleDelete}
             />
           )}
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -296,62 +268,57 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
-    padding: 16,
+    flexGrow: 1,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.primary,
+  pendingSection: {
     padding: 16,
-    borderRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  sectionTitle: {
+    marginBottom: 12,
+  },
+  addButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
     marginBottom: 16,
   },
-  uploadButtonText: {
-    color: 'white',
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  list: {
-    flexGrow: 1,
-  },
-  attachmentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
+  addButton: {
+    flex: 1,
+    height: 80,
     borderRadius: 8,
     backgroundColor: '#f5f5f5',
-    marginBottom: 8,
-  },
-  fileInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  fileDetails: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666',
+  addButtonText: {
+    marginTop: 4,
+    color: theme.colors.primary,
+    fontSize: 12,
+  },
+  pendingListsContainer: {
+    gap: 16,
+  },
+  subsectionTitle: {
+    marginBottom: 8,
+    color: theme.colors.secondary,
+  },
+  uploadAllButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginTop: 12,
+  },
+  uploadAllText: {
+    color: 'white',
+    fontWeight: '500',
   },
 });
 
