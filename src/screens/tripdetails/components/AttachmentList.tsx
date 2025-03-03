@@ -11,7 +11,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {theme} from '../../../constants/theme';
 import {getFileIcon} from '../../../utils/fileUtils';
 
-
 interface AttachmentListProps {
   title: string;
   attachments: Array<{
@@ -27,7 +26,6 @@ const AttachmentList = ({
   attachments,
   onDelete,
 }: AttachmentListProps) => {
-  
   const handlePress = (fileUrl: string) => {
     Linking.openURL(fileUrl);
   };

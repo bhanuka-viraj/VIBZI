@@ -20,7 +20,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import {useDispatch} from 'react-redux';
 import {setTripId} from '../redux/slices/metaSlice';
 
-const HEADER_IMAGE_HEIGHT = 250;
+const HEADER_IMAGE_HEIGHT = 200;
 
 type TripDetailsScreenRouteProp = RouteProp<RootStackParamList, 'TripDetails'>;
 

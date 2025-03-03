@@ -6,7 +6,6 @@ import {theme} from '../../../constants/theme';
 import {getFileIcon} from '../../../utils/fileUtils';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
 import FileViewer from 'react-native-file-viewer';
-import {isImageFile} from '../../../utils/tripUtils/attachmentUtils';
 
 interface PendingAttachmentListProps {
   files: DocumentPickerResponse[];

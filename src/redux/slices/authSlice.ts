@@ -66,6 +66,7 @@ export const checkAuthState = () => async (dispatch: any) => {
       firstName: attributes.given_name || 'User',
       isSignedIn: true
     };
+    console.log(userObject,'userObject');
     dispatch(setUser(userObject));
   } catch (error) {
     console.log(error,'no active session')
