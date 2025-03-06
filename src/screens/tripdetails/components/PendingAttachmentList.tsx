@@ -1,28 +1,38 @@
 import React from 'react';
-import {View, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Dimensions,
+} from 'react-native';
 import {Text} from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {theme} from '../../../constants/theme';
 import {getFileIcon} from '../../../utils/fileUtils';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
-import FileViewer from 'react-native-file-viewer';
+import {isImageFile} from '../../../utils/tripUtils/attachmentUtils';
+import DocumentViewer from './DocumentViewer';
 
 interface PendingAttachmentListProps {
   files: DocumentPickerResponse[];
   onRemove: (index: number) => void;
 }
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const IMAGE_WIDTH = SCREEN_WIDTH * 0.8;
+
 const PendingAttachmentList = ({
   files,
   onRemove,
 }: PendingAttachmentListProps) => {
   const handlePress = async (file: DocumentPickerResponse) => {
-    try {
-      await FileViewer.open(file.uri, {
-        showOpenWithDialog: true,
+    if (!isImageFile(file.name || '')) {
+      await DocumentViewer({
+        fileUrl: file.uri,
+        fileName: file.name || 'Unknown file',
       });
-    } catch (error) {
-      console.error('Error opening file:', error);
     }
   };
 
@@ -31,33 +41,48 @@ const PendingAttachmentList = ({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}>
-      {files.map((file, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.fileItem}
-          onPress={() => handlePress(file)}>
-          <View style={styles.fileInfo}>
-            <MaterialIcons
-              name={getFileIcon(file.name || '')}
-              size={24}
-              color={theme.colors.primary}
-            />
-            <View style={styles.fileDetails}>
-              <Text style={styles.fileName} numberOfLines={1}>
-                {file.name}
-              </Text>
-            </View>
-          </View>
+      {files.map((file, index) => {
+        const isImage = isImageFile(file.name || '');
+        return (
           <TouchableOpacity
-            style={styles.closeButton}
-            onPress={e => {
-              e.stopPropagation(); // Prevent triggering parent's onPress
-              onRemove(index);
-            }}>
-            <MaterialIcons name="close" size={24} color={theme.colors.error} />
+            key={index}
+            style={[styles.fileItem, isImage && styles.imageItem]}
+            onPress={() => handlePress(file)}>
+            {isImage ? (
+              <Image
+                source={{uri: file.uri}}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.fileInfo}>
+                <MaterialIcons
+                  name={getFileIcon(file.name || '')}
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <View style={styles.fileDetails}>
+                  <Text style={styles.fileName} numberOfLines={1}>
+                    {file.name}
+                  </Text>
+                </View>
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={e => {
+                e.stopPropagation();
+                onRemove(index);
+              }}>
+              <MaterialIcons
+                name="close"
+                size={24}
+                color={theme.colors.error}
+              />
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      ))}
+        );
+      })}
     </ScrollView>
   );
 };
@@ -68,10 +93,22 @@ const styles = StyleSheet.create({
   },
   fileItem: {
     width: 150,
+    height: 100,
     marginRight: 12,
     padding: 12,
     borderRadius: 8,
     backgroundColor: '#f5f5f5',
+  },
+  imageItem: {
+    width: IMAGE_WIDTH,
+    height: IMAGE_WIDTH * 0.75,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   fileInfo: {
     flexDirection: 'row',
@@ -87,7 +124,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   closeButton: {
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 4,
   },
 });
 
