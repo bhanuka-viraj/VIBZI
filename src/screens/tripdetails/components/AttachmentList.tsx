@@ -35,6 +35,10 @@ const AttachmentList = ({
   onDelete,
 }: AttachmentListProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
   const imageUrls = attachments
     .filter(item => isImageFile(item.originalFilename))
     .map(item => ({uri: item.fileUrl}));
@@ -46,10 +50,7 @@ const AttachmentList = ({
       );
       setSelectedImageIndex(index);
     } else {
-      console.log('fileUrl', fileUrl);
-      console.log('fileName', fileName);
-
-      await DocumentViewer({fileUrl, fileName});
+      setSelectedDocument({url: fileUrl, name: fileName});
     }
   };
 
@@ -118,6 +119,12 @@ const AttachmentList = ({
         onRequestClose={() => setSelectedImageIndex(-1)}
         swipeToCloseEnabled={true}
         doubleTapToZoomEnabled={true}
+      />
+      <DocumentViewer
+        visible={!!selectedDocument}
+        onClose={() => setSelectedDocument(null)}
+        fileUrl={selectedDocument?.url || ''}
+        fileName={selectedDocument?.name || ''}
       />
     </View>
   );
