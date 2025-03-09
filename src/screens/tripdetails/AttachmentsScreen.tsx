@@ -24,8 +24,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {formatFileSize, getFileIcon} from '../../utils/fileUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import type {Permission} from 'react-native';
-import AttachmentList from './components/AttachmentList';
-import PendingAttachmentList from './components/PendingAttachmentList';
+import AttachmentList from '../../components/AttachmentList';
+import PendingAttachmentList from '../../components/PendingAttachmentList';
 import {
   SUPPORTED_DOCUMENT_TYPES,
   SUPPORTED_IMAGE_TYPES,

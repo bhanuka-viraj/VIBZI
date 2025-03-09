@@ -60,6 +60,12 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
     }
   }, [data, dates, selectedDate, dispatch]);
 
+  useEffect(() => {
+    if (data) {
+      dispatch(setTripDate(dates[0]));
+    }
+  }, [data]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -108,11 +114,8 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
       </View>
 
       <View style={{paddingHorizontal: 10}}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          Itinerary
-        </Text>
         <Text variant="titleMedium" style={styles.dayHeader}>
-          {parseTripDate(selectedDate)} Activities
+          {parseTripDate(selectedDate)}
         </Text>
       </View>
 
@@ -122,7 +125,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
           {selectedDateItineraries.map((item: ItineraryItem, index: number) => (
-            <ItineraryCard key={index} item={item} />
+            <ItineraryCard
+              key={`${selectedDate}-${item.position}`}
+              item={item}
+            />
           ))}
         </View>
       </ScrollView>
@@ -234,10 +240,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  sectionTitle: {
-    marginVertical: 16,
-    fontWeight: 'bold',
-  },
+
   dayHeader: {
     marginBottom: 12,
     fontWeight: 'bold',

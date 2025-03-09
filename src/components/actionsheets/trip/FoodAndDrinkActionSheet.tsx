@@ -12,7 +12,7 @@ import DatePicker from 'react-native-date-picker';
 import {theme} from '../../../constants/theme';
 import {useSelector} from 'react-redux';
 import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {FOODANDDRINK} from '../../../constants/types/ItineraryTypes';
+import {FOODANDDRINK} from '../../../constants/ItineraryTypes';
 
 interface FoodAndDrinkActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;

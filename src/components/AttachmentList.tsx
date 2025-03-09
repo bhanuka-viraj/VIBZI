@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import {Text} from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {theme} from '../../../constants/theme';
-import {getFileIcon} from '../../../utils/fileUtils';
+import {theme} from '../constants/theme';
+import {getFileIcon} from '../utils/fileUtils';
 import FastImage from 'react-native-fast-image';
 import ImageView from 'react-native-image-viewing';
-import {isImageFile} from '../../../utils/tripUtils/attachmentUtils';
+import {isImageFile} from '../utils/tripUtils/attachmentUtils';
 import DocumentViewer from './DocumentViewer';
 
 interface AttachmentListProps {

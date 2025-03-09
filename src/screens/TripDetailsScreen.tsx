@@ -1,10 +1,13 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
   StatusBar,
+  StatusBarStyle,
+  Animated,
+  Easing,
 } from 'react-native';
 import {Text, useTheme} from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,6 +22,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LoadingScreen from '../components/LoadingScreen';
 import {useDispatch} from 'react-redux';
 import {setTripId} from '../redux/slices/metaSlice';
+import {StatusBarStyles, getStatusBarGradient} from '../utils/statusBarUtils';
 
 const HEADER_IMAGE_HEIGHT = 200;
 
@@ -31,17 +35,17 @@ interface TripDetailsScreenProps {
 const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({route}) => {
   const {tripId, trip_id} = route.params;
   const dispatch = useDispatch();
-
   const {data: tripData, isLoading} = useGetTripPlanByIdQuery(tripId);
-
-  console.log('tripData - ', tripData);
-
   const theme = useTheme();
   const navigation = useNavigation();
 
-  const [statusBarStyle, setStatusBarStyle] = useState<
-    'light-content' | 'dark-content'
-  >('light-content');
+  const [statusBarStyle, setStatusBarStyle] =
+    useState<StatusBarStyle>('light-content');
+
+  // Animation values
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
 
   const parsedFromDate = tripData?.startDate
     ? new Date(tripData.startDate)
@@ -55,11 +59,37 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({route}) => {
     ? dayjs(parsedToDate).format('MMM D')
     : 'End Date';
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (tripData) {
       dispatch(setTripId(tripData?.tripId));
     }
   }, [tripData, dispatch]);
+
+  // Start animations when component mounts
+  useEffect(() => {
+    Animated.parallel([
+      // Fade in header image
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      // Slide up content
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      // Scale up buttons
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.elastic(1),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const goBack = () => {
     navigation.goBack();
@@ -77,42 +107,56 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({route}) => {
         backgroundColor="transparent"
       />
       <View style={{flex: 1, backgroundColor: 'white'}}>
-        <ImageBackground
-          source={getImageSource(tripData?.imageUrl as any)}
-          style={styles.imageBackground}>
-          <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={25}
-              color={theme.colors.surface}
+        <Animated.View style={{opacity: fadeAnim}}>
+          <ImageBackground
+            source={getImageSource(tripData?.imageUrl as any)}
+            style={styles.imageBackground}>
+            {/* Add a top gradient for better status bar visibility */}
+            <LinearGradient
+              colors={getStatusBarGradient()}
+              style={styles.statusBarGradient}
+              pointerEvents="none"
             />
-          </TouchableOpacity>
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.8)']}
-            style={styles.gradientOverlay}>
-            <Text variant="headlineMedium" style={styles.tripTitle}>
-              {tripData?.title}
-            </Text>
-            <Text variant="bodyMedium" style={styles.tripDetails}>
-              {formattedFromDate} - {formattedToDate} •{' '}
-              {tripData?.destinationName} {''}
-              <MaterialIcons
-                name="location-on"
-                size={13}
+            <TouchableOpacity style={styles.backButton} onPress={goBack}>
+              <Ionicons
+                name="chevron-back-outline"
+                size={25}
                 color={theme.colors.surface}
               />
-            </Text>
-          </LinearGradient>
-        </ImageBackground>
+            </TouchableOpacity>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              style={styles.gradientOverlay}>
+              <Text variant="headlineMedium" style={styles.tripTitle}>
+                {tripData?.title}
+              </Text>
+              <Text variant="bodyMedium" style={styles.tripDetails}>
+                {formattedFromDate} - {formattedToDate} •{' '}
+                {tripData?.destinationName} {''}
+                <MaterialIcons
+                  name="location-on"
+                  size={13}
+                  color={theme.colors.surface}
+                />
+              </Text>
+            </LinearGradient>
+          </ImageBackground>
+        </Animated.View>
 
-        <View style={[styles.content, {overflow: 'hidden'}]}>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              transform: [{translateY: slideAnim}, {scale: scaleAnim}],
+            },
+          ]}>
           <TripDetailsTabNavigator
             screenProps={{
               tripId,
               trip_id,
             }}
           />
-        </View>
+        </Animated.View>
       </View>
     </>
   );
@@ -128,8 +172,16 @@ const styles = StyleSheet.create({
     height: HEADER_IMAGE_HEIGHT,
     justifyContent: 'flex-end',
   },
+  statusBarGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 60,
+  },
   content: {
     flex: 1,
+    overflow: 'hidden',
   },
   gradientOverlay: {
     padding: 16,

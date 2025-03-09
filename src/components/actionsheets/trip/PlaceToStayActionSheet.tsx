@@ -11,7 +11,7 @@ import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
 import {theme} from '../../../constants/theme';
 import {useSelector} from 'react-redux';
 import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {PLACESTOSTAY} from '../../../constants/types/ItineraryTypes';
+import {PLACESTOSTAY} from '../../../constants/ItineraryTypes';
 import DatePicker from 'react-native-date-picker';
 
 interface AddPlaceToStayActionSheetProps {

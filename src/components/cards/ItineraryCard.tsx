@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Animated} from 'react-native';
 import {Text} from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -8,7 +8,7 @@ import {
   TRANSPORTATION,
   NOTE,
   PLACESTOSTAY,
-} from '../../constants/types/ItineraryTypes';
+} from '../../constants/ItineraryTypes';
 import {theme} from '../../constants/theme';
 import {parseTime} from '../../utils/tripUtils/tripDataUtil';
 
@@ -92,8 +92,53 @@ const getIconByType = (item: any) => {
 };
 
 const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    // Reset animation value when component mounts or item changes
+    animatedValue.setValue(0);
+
+    Animated.sequence([
+      Animated.delay(item.position * 100),
+      Animated.spring(animatedValue, {
+        toValue: 1,
+        tension: 100,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    return () => {
+      // Cleanup animation when component unmounts
+      animatedValue.setValue(0);
+    };
+  }, [item.position]);
+
   return (
-    <View style={styles.card}>
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          opacity: animatedValue.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+          }),
+          transform: [
+            {
+              translateY: animatedValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            },
+            {
+              scale: animatedValue.interpolate({
+                inputRange: [0, 0.6, 0.85, 1],
+                outputRange: [0.3, 1.1, 0.95, 1],
+              }),
+            },
+          ],
+        },
+      ]}>
       <View style={styles.headerContainer}>
         {getIconByType(item)}
         <Text variant="titleMedium" style={styles.name}>
@@ -130,7 +175,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
       {item.details.customFields.activityName && (
         <Text>{item.details.customFields.activityName}</Text>
       )}
-    </View>
+    </Animated.View>
   );
 };
 

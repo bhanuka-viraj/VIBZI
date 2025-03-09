@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {IconButton, Text} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
-import {theme} from '../../../constants/theme';
+import {theme} from '../constants/theme';
 
 interface DocumentViewerProps {
   visible: boolean;

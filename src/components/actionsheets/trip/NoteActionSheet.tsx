@@ -11,7 +11,7 @@ import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
 import {theme} from '../../../constants/theme';
 import {useSelector} from 'react-redux';
 import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {NOTE} from '../../../constants/types/ItineraryTypes';
+import {NOTE} from '../../../constants/ItineraryTypes';
 
 interface NoteActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;

@@ -13,7 +13,7 @@ import {theme} from '../../../constants/theme';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/store';
 import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {THINGSTODO} from '../../../constants/types/ItineraryTypes';
+import {THINGSTODO} from '../../../constants/ItineraryTypes';
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;

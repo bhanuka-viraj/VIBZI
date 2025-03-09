@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import {Text} from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {theme} from '../../../constants/theme';
-import {getFileIcon} from '../../../utils/fileUtils';
+import {theme} from '../constants/theme';
+import {getFileIcon} from '../utils/fileUtils';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
-import {isImageFile} from '../../../utils/tripUtils/attachmentUtils';
+import {isImageFile} from '../utils/tripUtils/attachmentUtils';
 import DocumentViewer from './DocumentViewer';
 
 interface PendingAttachmentListProps {
