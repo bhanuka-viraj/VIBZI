@@ -11,14 +11,15 @@ import {
 } from 'react-native-paper';
 import {useAppDispatch} from '../redux/hooks';
 import {signOut} from '../redux/slices/authSlice';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {RootState} from '../redux/store';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {RootStackParamList} from '../navigation/AppNavigator';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const theme = useTheme();
   const {user} = useSelector((state: RootState) => state.auth);
 
@@ -35,8 +36,8 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     try {
-      await dispatch(signOut());
-      navigation.navigate('Login' as never);
+      await dispatch(signOut()).unwrap();
+      navigation.navigate('MainTabs');
     } catch (error) {
       console.error('Logout failed:', error);
     }

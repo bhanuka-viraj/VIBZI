@@ -2,12 +2,17 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {View, StyleSheet, Platform} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useSelector} from 'react-redux';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
 import HomeScreen from '../screens/HomeScreen';
 import MyTripsScreen from '../screens/MyTripsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import {theme} from '../constants/theme';
 import {useRoute} from '@react-navigation/native';
 import MainLayout from '../components/layouts/MainLayout';
+import {RootState} from '../redux/store';
+import {RootStackParamList} from './AppNavigator';
+import {withAuth} from '../utils/withAuth';
 
 const Tab = createBottomTabNavigator();
 
@@ -85,7 +90,7 @@ const BottomTabNavigator = () => {
         />
         <Tab.Screen
           name="MyTrips"
-          component={withMainLayout(MyTripsScreen)}
+          component={withMainLayout(withAuth(MyTripsScreen, 'MyTrips'))}
           options={{
             tabBarIcon: ({focused}) => (
               <MaterialCommunityIcons
@@ -97,7 +102,7 @@ const BottomTabNavigator = () => {
         />
         <Tab.Screen
           name="Profile"
-          component={withMainLayout(ProfileScreen, false)}
+          component={withMainLayout(withAuth(ProfileScreen, 'Profile'), false)}
           options={{
             tabBarIcon: ({focused}) => (
               <MaterialCommunityIcons

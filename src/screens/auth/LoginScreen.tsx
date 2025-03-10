@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, Alert} from 'react-native';
+import {View, StyleSheet, Alert, TouchableOpacity} from 'react-native';
 import {
   TextInput,
   Button,
@@ -15,21 +15,23 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../../redux/store';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const LoginScreen = () => {
+export default function LoginScreen({route, navigation}: any) {
+  const {redirectTo} = route.params || {};
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
   const {isAuthenticated, error, loading} = useSelector(
     (state: RootState) => state.auth,
   );
 
   useEffect(() => {
-    if (isAuthenticated) {
-      Alert.alert('Success', 'Login successful!');
-      navigation.navigate('Home' as never);
+    if (isAuthenticated && redirectTo) {
+      navigation.navigate(redirectTo);
+    } else if (isAuthenticated) {
+      navigation.navigate('MainTabs');
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, navigation, redirectTo]);
 
   useEffect(() => {
     if (error) {
@@ -44,54 +46,88 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        label="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-        disabled={loading}
-        mode="outlined"
-        outlineColor="#E0E0E0"
-        activeOutlineColor={theme.colors.primary}
-        theme={{colors: {background: 'white'}}}
-        left={<TextInput.Icon icon="account" />}
-      />
-      <TextInput
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-        disabled={loading}
-        mode="outlined"
-        outlineColor="#E0E0E0"
-        activeOutlineColor={theme.colors.primary}
-        theme={{colors: {background: 'white'}}}
-        left={<TextInput.Icon icon="lock" />}
-      />
-      {error && <HelperText type="error">{error}</HelperText>}
-      <Button
-        mode="contained"
-        onPress={handleLogin}
-        style={styles.button}
-        loading={loading}
-        disabled={loading}>
-        Login
-      </Button>
-      <TouchableRipple onPress={() => navigation.navigate('Signup' as never)}>
-        <Text style={styles.link}>Don't have an account? Sign up</Text>
-      </TouchableRipple>
+      <View style={styles.modalContent}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => navigation.navigate('MainTabs')}>
+          <MaterialCommunityIcons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Login</Text>
+        <TextInput
+          label="Username"
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+          disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="account" />}
+        />
+        <TextInput
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+          disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="lock" />}
+        />
+        {error && <HelperText type="error">{error}</HelperText>}
+        <Button
+          mode="contained"
+          onPress={handleLogin}
+          style={styles.button}
+          loading={loading}
+          disabled={loading}>
+          Login
+        </Button>
+        <TouchableRipple onPress={() => navigation.navigate('Signup' as never)}>
+          <Text style={styles.link}>Don't have an account? Sign up</Text>
+        </TouchableRipple>
+      </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.1)',
     justifyContent: 'center',
+    padding: 16,
+    margin: 0,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalContent: {
     backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxHeight: '80%',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    zIndex: 1,
   },
   title: {
     fontSize: 24,
@@ -113,5 +149,3 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
-export default LoginScreen;

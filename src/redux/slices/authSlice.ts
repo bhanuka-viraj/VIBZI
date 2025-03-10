@@ -5,7 +5,8 @@ import {
   getCurrentUser, 
   signUp as amplifySignUp,
   fetchUserAttributes,
-  fetchAuthSession
+  fetchAuthSession,
+  confirmSignUp as amplifyConfirmSignUp
 } from '@aws-amplify/auth';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
@@ -44,6 +45,14 @@ const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(signOut.fulfilled, (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+      state.loading = false;
+      state.error = null;
+    });
   },
 });
 
@@ -106,14 +115,14 @@ export const signIn = (username: string, password: string) => async (dispatch: a
   }
 };
 
-export const signOut = () => async (dispatch: any) => {
+export const signOut = createAsyncThunk('auth/signOut', async () => {
   try {
     await amplifySignOut();
-    dispatch(clearUser());
-  } catch (error: any) {
-    dispatch(setError(error.message));
+    return null;
+  } catch (error) {
+    throw error;
   }
-};
+});
 
 export const signUp = createAsyncThunk(
   'auth/signUp',

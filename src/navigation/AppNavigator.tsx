@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useSelector} from 'react-redux';
 import {useEffect} from 'react';
@@ -12,19 +12,31 @@ import {useAppDispatch} from '../redux/hooks';
 import ConfirmSignupScreen from '../screens/auth/ConfirmSignupScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import BottomTabNavigator from './BottomTabNavigator';
+import {StatusBar} from 'react-native';
+
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent',
+    card: 'transparent',
+    text: '#000000',
+    border: 'transparent',
+    primary: '#004D40',
+  },
+};
 
 export type RootStackParamList = {
-  Home: undefined;
-  MyTrips: undefined;
-  Profile: undefined;
+  MainTabs: undefined;
   TripDetails: {
     tripId: string;
     trip_id: string;
   };
-  Login: undefined;
+  Login: {
+    redirectTo?: string;
+  };
   Signup: undefined;
   ConfirmSignup: {username: string};
-  MainTabs: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,32 +51,37 @@ export default function AppNavigator() {
     dispatch(checkAuthState());
   }, [dispatch]);
 
-  if (loading || (isAuthenticated && !user)) {
+  if (loading) {
     return <LoadingScreen />;
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
           animation: 'none',
+          navigationBarColor: 'transparent',
+          contentStyle: {backgroundColor: '#FFFFFF'},
         }}>
-        {!isAuthenticated ? (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-            <Stack.Screen
-              name="ConfirmSignup"
-              component={ConfirmSignupScreen}
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-            <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-          </>
-        )}
+        <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+        <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
+        <Stack.Group
+          screenOptions={{
+            presentation: 'transparentModal',
+            animation: 'fade',
+            headerShown: false,
+            contentStyle: {backgroundColor: 'transparent'},
+          }}>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="ConfirmSignup" component={ConfirmSignupScreen} />
+        </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
   );
