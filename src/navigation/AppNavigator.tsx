@@ -4,17 +4,14 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useSelector} from 'react-redux';
 import {useEffect} from 'react';
 import {checkAuthState} from '../redux/slices/authSlice';
-import HomeScreen from '../screens/HomeScreen';
-import MyTripsScreen from '../screens/MyTripsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import TripDetailsScreen from '../screens/TripDetailsScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
-import MainLayout from '../components/layouts/MainLayout';
 import {RootState} from '../redux/store';
 import SignupScreen from '../screens/auth/SignupScreen';
 import {useAppDispatch} from '../redux/hooks';
 import ConfirmSignupScreen from '../screens/auth/ConfirmSignupScreen';
 import LoadingScreen from '../components/LoadingScreen';
+import BottomTabNavigator from './BottomTabNavigator';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -27,18 +24,10 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   ConfirmSignup: {username: string};
+  MainTabs: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const withMainLayout =
-  (Component: React.ComponentType<any>, showHeader: boolean = true) =>
-  (props: any) =>
-    (
-      <MainLayout showHeader={showHeader}>
-        <Component {...props} />
-      </MainLayout>
-    );
 
 export default function AppNavigator() {
   const dispatch = useAppDispatch();
@@ -72,15 +61,7 @@ export default function AppNavigator() {
           </>
         ) : (
           <>
-            <Stack.Screen name="Home" component={withMainLayout(HomeScreen)} />
-            <Stack.Screen
-              name="MyTrips"
-              component={withMainLayout(MyTripsScreen)}
-            />
-            <Stack.Screen
-              name="Profile"
-              component={withMainLayout(ProfileScreen, false)}
-            />
+            <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
             <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
           </>
         )}
