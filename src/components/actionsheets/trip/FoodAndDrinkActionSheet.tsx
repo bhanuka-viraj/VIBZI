@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
 import DatePicker from 'react-native-date-picker';
@@ -17,6 +20,10 @@ import {FOODANDDRINK} from '../../../constants/ItineraryTypes';
 interface FoodAndDrinkActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
 }
+//======================================
+//made some changes to the code, to fix the keyboard issue (it comes when the keyboard and scrollview are both present)
+// compare the code with another actionsheet - others are not changed
+//======================================
 
 const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
   actionSheetRef,
@@ -94,20 +101,23 @@ const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
     }
   };
 
+  console.log('actionSheetRef : ', actionSheetRef);
+
   return (
     <ActionSheet
       ref={actionSheetRef}
       gestureEnabled
       containerStyle={{
         backgroundColor: 'white',
+        height: Dimensions.get('window').height * 0.9,
       }}
       indicatorStyle={{
         backgroundColor: '#ccc',
-      }}
-      overlayColor="transparent">
+      }}>
       <ScrollView
         contentContainerStyle={styles.modalContainer}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Add Food & Drink</Text>
         <Text style={styles.description}>Add a description here</Text>
 
@@ -251,10 +261,8 @@ const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 40,
   },
   title: {
     fontSize: 20,

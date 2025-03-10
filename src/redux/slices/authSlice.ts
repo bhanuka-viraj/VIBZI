@@ -64,6 +64,12 @@ export const checkAuthState = () => async (dispatch: any) => {
       username: attributes.email || user.username,
       userId: user.userId,
       firstName: attributes.given_name || 'User',
+      lastName: attributes.family_name || '',
+      email: attributes.email || '',
+      phone: attributes.phone_number || '',
+      gender: attributes.gender || '',
+      birthdate: attributes.birthdate || '',
+      picture: attributes.picture || '',
       isSignedIn: true
     };
     console.log(userObject,'userObject');
@@ -86,6 +92,12 @@ export const signIn = (username: string, password: string) => async (dispatch: a
       username: attributes.email || username,
       userId: userInfo.userId,
       firstName: attributes.given_name || 'User',
+      lastName: attributes.family_name || '',
+      email: attributes.email || '',
+      phone: attributes.phone_number || '',
+      gender: attributes.gender || '',
+      birthdate: attributes.birthdate || '',
+      picture: attributes.picture || '',
       isSignedIn: signInResult.isSignedIn
     };
     dispatch(setUser(userObject));

@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
-import { TextInput, Button, Text, TouchableRipple, HelperText } from 'react-native-paper';
-import { useAppDispatch } from '../../redux/hooks';
-import { signUp } from '../../redux/slices/authSlice';
-import { theme } from '../../constants/theme';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import React, {useState, useEffect} from 'react';
+import {View, StyleSheet, Alert, ScrollView} from 'react-native';
+import {
+  TextInput,
+  Button,
+  Text,
+  TouchableRipple,
+  HelperText,
+} from 'react-native-paper';
+import {useAppDispatch} from '../../redux/hooks';
+import {signUp} from '../../redux/slices/authSlice';
+import {theme} from '../../constants/theme';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import {RootState} from '../../redux/store';
+import {RootStackParamList} from '../../navigation/AppNavigator';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SignupScreen = () => {
   const [username, setUsername] = useState('');
@@ -20,31 +27,40 @@ const SignupScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { error, loading } = useSelector((state: RootState) => state.auth);
+  const {error, loading} = useSelector((state: RootState) => state.auth);
 
   const handleSignup = async () => {
-    if (!username.trim() || !password.trim() || !email.trim() || 
-        !givenName.trim() || !familyName.trim() || !gender.trim() || 
-        !birthdate.trim() || !phoneNumber.trim()) {
+    if (
+      !username.trim() ||
+      !password.trim() ||
+      !email.trim() ||
+      !givenName.trim() ||
+      !familyName.trim() ||
+      !gender.trim() ||
+      !birthdate.trim() ||
+      !phoneNumber.trim()
+    ) {
       Alert.alert('Error', 'All fields are required');
       return;
     }
-    
+
     try {
-      const result = await dispatch(signUp({ 
-        username, 
-        password, 
-        email,
-        givenName,
-        familyName,
-        gender,
-        birthdate,
-        phoneNumber
-      })).unwrap();
+      const result = await dispatch(
+        signUp({
+          username,
+          password,
+          email,
+          givenName,
+          familyName,
+          gender,
+          birthdate,
+          phoneNumber,
+        }),
+      ).unwrap();
 
       console.log('Signup result:', result);
       Alert.alert('Success', 'Please check your email for confirmation code');
-      navigation.navigate('ConfirmSignup', { username });
+      navigation.navigate('ConfirmSignup', {username});
     } catch (error: any) {
       console.error('Signup error:', error);
       if (error.name === 'UsernameExistsException') {
@@ -54,13 +70,13 @@ const SignupScreen = () => {
           [
             {
               text: 'Cancel',
-              style: 'cancel'
+              style: 'cancel',
             },
             {
               text: 'Confirm Account',
-              onPress: () => navigation.navigate('ConfirmSignup', { username })
-            }
-          ]
+              onPress: () => navigation.navigate('ConfirmSignup', {username}),
+            },
+          ],
         );
       } else {
         Alert.alert('Error', error.message || 'Signup failed');
@@ -84,6 +100,11 @@ const SignupScreen = () => {
           onChangeText={setUsername}
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="account" />}
         />
         <TextInput
           label="Email"
@@ -92,6 +113,11 @@ const SignupScreen = () => {
           keyboardType="email-address"
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="email" />}
         />
         <TextInput
           label="Password"
@@ -100,6 +126,11 @@ const SignupScreen = () => {
           secureTextEntry
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="lock" />}
         />
         <TextInput
           label="First Name"
@@ -107,6 +138,11 @@ const SignupScreen = () => {
           onChangeText={setGivenName}
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="account-details" />}
         />
         <TextInput
           label="Last Name"
@@ -114,6 +150,11 @@ const SignupScreen = () => {
           onChangeText={setFamilyName}
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="account-details" />}
         />
         <TextInput
           label="Gender"
@@ -121,6 +162,11 @@ const SignupScreen = () => {
           onChangeText={setGender}
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="gender-male-female" />}
         />
         <TextInput
           label="Birthdate (YYYY-MM-DD)"
@@ -128,6 +174,11 @@ const SignupScreen = () => {
           onChangeText={setBirthdate}
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="calendar" />}
         />
         <TextInput
           label="Phone Number"
@@ -136,15 +187,19 @@ const SignupScreen = () => {
           keyboardType="phone-pad"
           style={styles.input}
           disabled={loading}
+          mode="outlined"
+          outlineColor="#E0E0E0"
+          activeOutlineColor={theme.colors.primary}
+          theme={{colors: {background: 'white'}}}
+          left={<TextInput.Icon icon="phone" />}
         />
         {error && <HelperText type="error">{error}</HelperText>}
-        <Button 
-          mode="contained" 
-          onPress={handleSignup} 
+        <Button
+          mode="contained"
+          onPress={handleSignup}
           style={styles.button}
           loading={loading}
-          disabled={loading}
-        >
+          disabled={loading}>
           Sign Up
         </Button>
         <TouchableRipple onPress={() => navigation.navigate('Login' as never)}>
@@ -160,6 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
+    backgroundColor: 'white',
   },
   title: {
     fontSize: 24,
@@ -168,6 +224,7 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 10,
+    backgroundColor: 'white',
   },
   button: {
     marginTop: 10,
@@ -181,4 +238,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignupScreen; 
+export default SignupScreen;

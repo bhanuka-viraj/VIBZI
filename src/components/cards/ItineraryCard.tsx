@@ -95,7 +95,6 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
-    // Reset animation value when component mounts or item changes
     animatedValue.setValue(0);
 
     Animated.sequence([
@@ -109,7 +108,6 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
     ]).start();
 
     return () => {
-      // Cleanup animation when component unmounts
       animatedValue.setValue(0);
     };
   }, [item.position]);
