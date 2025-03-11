@@ -139,15 +139,15 @@ const ProfileScreen = () => {
       </Surface>
 
       <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          onPress={handleLogout}
-          style={styles.logoutButton}
+      <Button 
+        mode="contained" 
+        onPress={handleLogout}
+        style={styles.logoutButton}
           contentStyle={styles.buttonContent}
           icon="logout">
-          Logout
-        </Button>
-      </View>
+        Logout
+      </Button>
+    </View>
     </ScrollView>
   );
 };

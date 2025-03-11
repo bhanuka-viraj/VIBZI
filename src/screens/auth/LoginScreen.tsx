@@ -87,6 +87,11 @@ export default function LoginScreen({route, navigation}: any) {
           disabled={loading}>
           Login
         </Button>
+        <TouchableRipple
+          onPress={() => navigation.navigate('ForgotPassword' as never)}
+          style={styles.forgotPasswordLink}>
+          <Text style={styles.link}>Forgot Password?</Text>
+        </TouchableRipple>
         <TouchableRipple onPress={() => navigation.navigate('Signup' as never)}>
           <Text style={styles.link}>Don't have an account? Sign up</Text>
         </TouchableRipple>
@@ -143,9 +148,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: theme.colors.primary,
   },
+  forgotPasswordLink: {
+    marginBottom: 8,
+  },
   link: {
-    textAlign: 'center',
     color: theme.colors.primary,
-    marginTop: 10,
+    textAlign: 'center',
+    marginTop: 16,
   },
 });

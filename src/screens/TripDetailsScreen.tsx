@@ -118,11 +118,13 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({route}) => {
               pointerEvents="none"
             />
             <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <Ionicons
-                name="chevron-back-outline"
-                size={25}
-                color={theme.colors.surface}
-              />
+              <View style={styles.backButtonCircle}>
+                <Ionicons
+                  name="chevron-back-outline"
+                  size={20}
+                  color={theme.colors.surface}
+                />
+              </View>
             </TouchableOpacity>
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.8)']}
@@ -192,6 +194,14 @@ const styles = StyleSheet.create({
     top: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 40,
     left: 16,
     zIndex: 10,
+  },
+  backButtonCircle: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tripTitle: {
     color: '#fff',

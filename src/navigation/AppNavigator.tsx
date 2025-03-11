@@ -13,6 +13,7 @@ import ConfirmSignupScreen from '../screens/auth/ConfirmSignupScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import {StatusBar} from 'react-native';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -37,6 +38,7 @@ export type RootStackParamList = {
   };
   Signup: undefined;
   ConfirmSignup: {username: string};
+  ForgotPassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -81,6 +83,10 @@ export default function AppNavigator() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="ConfirmSignup" component={ConfirmSignupScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
