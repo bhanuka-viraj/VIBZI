@@ -23,6 +23,7 @@ import {
 import {setitinerary, setTripDate} from '../../redux/slices/metaSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import {theme} from '../../constants/theme';
+import ItineraryOptionsModal from '@/components/modals/ItineraryOptionsModal';
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -33,6 +34,8 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   const theme = useTheme();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
   const dispatch = useDispatch();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
 
   // Get selected_date from meta state
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
@@ -50,6 +53,23 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
 
   // Create a key that changes when itinerary data changes
   const renderKey = JSON.stringify(selectedDateItineraries);
+
+  const handleLongPress = (item: ItineraryItem) => {
+    setSelectedItem(item);
+    setModalVisible(true);
+  };
+
+  const handleUpdate = () => {
+    // Implement update logic here
+    console.log('Update item:', selectedItem);
+    // You might want to open the appropriate action sheet based on item.type
+  };
+
+  const handleDelete = () => {
+    // Implement delete logic here
+    console.log('Delete item:', selectedItem);
+    // You might want to dispatch a delete action to your redux store
+  };
 
   useEffect(() => {
     if (dates.length > 0 && !selectedDate) {
@@ -125,13 +145,22 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
           {selectedDateItineraries.map((item: ItineraryItem, index: number) => (
-            <ItineraryCard
+            <TouchableOpacity
               key={`${selectedDate}-${item.position}`}
-              item={item}
-            />
+              onLongPress={() => handleLongPress(item)}
+              activeOpacity={0.8}>
+              <ItineraryCard item={item} />
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
+
+      <ItineraryOptionsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
+      />
 
       <AddThingToDoActionSheet actionSheetRef={thingsToDoactionSheetRef} />
       <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
