@@ -24,6 +24,7 @@ import {setitinerary, setTripDate} from '../../redux/slices/metaSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import {theme} from '../../constants/theme';
 import ItineraryOptionsModal from '@/components/modals/ItineraryOptionsModal';
+import {THINGSTODO} from '@/constants/ItineraryTypes';
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -60,9 +61,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   };
 
   const handleUpdate = () => {
-    // Implement update logic here
-    console.log('Update item:', selectedItem);
-    // You might want to open the appropriate action sheet based on item.type
+    if (selectedItem?.type === THINGSTODO) {
+      thingsToDoactionSheetRef.current?.show();
+    }
+    setModalVisible(false);
   };
 
   const handleDelete = () => {
@@ -101,7 +103,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   // console.log('dates : ', dates);
   // console.log('itineraryByDate : ', itineraryByDate);
   // console.log('selectedDate : ', selectedDate);
-  console.log('selectedDateItineraries : ', selectedDateItineraries);
+  // console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
     <View style={[styles.container]} key={renderKey}>
@@ -149,7 +151,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
               key={`${selectedDate}-${item.position}`}
               onLongPress={() => handleLongPress(item)}
               activeOpacity={0.8}>
-              <ItineraryCard item={item} />
+              <ItineraryCard item={item} onPress={() => {}} />
             </TouchableOpacity>
           ))}
         </View>
@@ -162,7 +164,12 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         onDelete={handleDelete}
       />
 
-      <AddThingToDoActionSheet actionSheetRef={thingsToDoactionSheetRef} />
+      <AddThingToDoActionSheet
+        actionSheetRef={thingsToDoactionSheetRef}
+        initialData={
+          selectedItem?.type === THINGSTODO ? selectedItem : undefined
+        }
+      />
       <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
       <AddFoodAndDrinkActionSheet actionSheetRef={foodAndDrinkactionSheetRef} />
       <AddTransportationActionSheet

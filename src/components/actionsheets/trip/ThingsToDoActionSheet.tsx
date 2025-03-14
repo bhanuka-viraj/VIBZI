@@ -17,10 +17,27 @@ import {THINGSTODO} from '../../../constants/ItineraryTypes';
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
+  initialData?: {
+    position: number;
+    date: string;
+    type: string;
+    details: {
+      title: string;
+      customFields: {
+        isBooked?: boolean;
+        startTime?: string;
+        endTime?: string;
+        link?: string;
+        reservationNumber?: string;
+        note?: string;
+      };
+    };
+  };
 }
 
 const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   actionSheetRef,
+  initialData,
 }) => {
   const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
@@ -55,11 +72,31 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
     setNote('');
   };
 
+  React.useEffect(() => {
+    if (initialData) {
+      setName(initialData.details.title);
+      setIsBooked(initialData.details.customFields.isBooked || null);
+      if (initialData.details.customFields.startTime) {
+        setStartTime(new Date(initialData.details.customFields.startTime));
+      }
+      if (initialData.details.customFields.endTime) {
+        setEndTime(new Date(initialData.details.customFields.endTime));
+      }
+      setLink(initialData.details.customFields.link || '');
+      setReservationNumber(
+        initialData.details.customFields.reservationNumber || '',
+      );
+      setNote(initialData.details.customFields.note || '');
+    }
+  }, [initialData]);
+
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
     const obj = {
-      position: itinerary.itinerary[selectedDate].length + 1,
+      position: initialData
+        ? initialData.position
+        : itinerary.itinerary[selectedDate].length + 1,
       date: selectedDate,
       type: THINGSTODO,
       details: {
@@ -79,7 +116,11 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
       ...itinerary,
       itinerary: {
         ...itinerary.itinerary,
-        [selectedDate]: [...itinerary.itinerary[selectedDate], obj],
+        [selectedDate]: initialData
+          ? itinerary.itinerary[selectedDate].map((item: { position: number }) =>
+              item.position === initialData.position ? obj : item,
+            )
+          : [...itinerary.itinerary[selectedDate], obj],
       },
     };
 

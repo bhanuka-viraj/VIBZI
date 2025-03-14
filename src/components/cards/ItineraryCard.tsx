@@ -35,6 +35,7 @@ interface ItineraryCardProps {
       };
     };
   };
+  onPress?: (item: any) => void;
 }
 
 const getIconByType = (item: any) => {
@@ -91,7 +92,7 @@ const getIconByType = (item: any) => {
   }
 };
 
-const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
+const ItineraryCard: React.FC<ItineraryCardProps> = ({item, onPress}) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -114,6 +115,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({item}) => {
 
   return (
     <Animated.View
+      onTouchEnd={() => onPress && item.type === THINGSTODO && onPress(item)}
       style={[
         styles.card,
         {
