@@ -11,6 +11,7 @@ import {Text, TextInput, Button} from 'react-native-paper';
 import {resetPassword, confirmResetPassword} from '@aws-amplify/auth';
 import {theme} from '../../constants/theme';
 import {useNavigation} from '@react-navigation/native';
+import LoadingModal from '../../components/LoadingModal';
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
@@ -18,25 +19,25 @@ const ForgotPasswordScreen = () => {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSendCode = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError('');
       await resetPassword({username: email});
       setIsCodeSent(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send code');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleResetPassword = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError('');
       await confirmResetPassword({
         username: email,
@@ -47,7 +48,7 @@ const ForgotPasswordScreen = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to reset password');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -55,6 +56,10 @@ const ForgotPasswordScreen = () => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
+      <LoadingModal
+        visible={isLoading}
+        message={isCodeSent ? 'Resetting password' : 'Sending code'}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
@@ -78,7 +83,7 @@ const ForgotPasswordScreen = () => {
             autoCapitalize="none"
             keyboardType="email-address"
             style={styles.input}
-            disabled={isCodeSent}
+            disabled={isCodeSent || isLoading}
           />
 
           {isCodeSent ? (
@@ -90,6 +95,7 @@ const ForgotPasswordScreen = () => {
                 onChangeText={setCode}
                 style={styles.input}
                 keyboardType="number-pad"
+                disabled={isLoading}
               />
               <TextInput
                 mode="outlined"
@@ -98,6 +104,7 @@ const ForgotPasswordScreen = () => {
                 onChangeText={setNewPassword}
                 secureTextEntry
                 style={styles.input}
+                disabled={isLoading}
               />
             </>
           ) : null}
@@ -105,8 +112,8 @@ const ForgotPasswordScreen = () => {
           <Button
             mode="contained"
             onPress={isCodeSent ? handleResetPassword : handleSendCode}
-            loading={loading}
-            style={styles.button}>
+            style={styles.button}
+            disabled={isLoading}>
             {isCodeSent ? 'Reset Password' : 'Send Code'}
           </Button>
 

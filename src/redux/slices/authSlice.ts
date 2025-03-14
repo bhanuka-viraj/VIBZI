@@ -20,7 +20,7 @@ interface AuthState {
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
-  loading: true,
+  loading: false,
   error: null,
 };
 
@@ -38,7 +38,7 @@ const authSlice = createSlice({
       state.user = null;
       state.loading = false;
     },
-    setError: (state, action: PayloadAction<string>) => {
+    setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
       state.loading = false;
     },
@@ -92,10 +92,10 @@ export const checkAuthState = () => async (dispatch: any) => {
 export const signIn = (username: string, password: string) => async (dispatch: any) => {
   try {
     dispatch(setLoading(true));
+    dispatch(setError(null));
     const signInResult = await amplifySignIn({ username, password });
     const userInfo = await getCurrentUser();
     const attributes = await fetchUserAttributes();
-    console.log(attributes,'attributes');
     
     const userObject = {
       username: attributes.email || username,
@@ -112,6 +112,9 @@ export const signIn = (username: string, password: string) => async (dispatch: a
     dispatch(setUser(userObject));
   } catch (error: any) {
     dispatch(setError(error.message));
+    dispatch(clearUser());
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 

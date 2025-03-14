@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {
   Avatar,
@@ -16,8 +16,10 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../redux/store';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {RootStackParamList} from '../navigation/AppNavigator';
+import LoadingModal from '../components/LoadingModal';
 
 const ProfileScreen = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const theme = useTheme();
@@ -36,15 +38,19 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       await dispatch(signOut()).unwrap();
       navigation.navigate('MainTabs');
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <ScrollView style={styles.container}>
+      <LoadingModal visible={isLoading} message="Logging out" />
       <View style={styles.header}>
         {user?.picture ? (
           <Avatar.Image
@@ -139,15 +145,15 @@ const ProfileScreen = () => {
       </Surface>
 
       <View style={styles.buttonContainer}>
-      <Button 
-        mode="contained" 
-        onPress={handleLogout}
-        style={styles.logoutButton}
+        <Button
+          mode="contained"
+          onPress={handleLogout}
+          style={styles.logoutButton}
           contentStyle={styles.buttonContent}
           icon="logout">
-        Logout
-      </Button>
-    </View>
+          Logout
+        </Button>
+      </View>
     </ScrollView>
   );
 };

@@ -15,8 +15,10 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../../redux/store';
 import {RootStackParamList} from '../../navigation/AppNavigator';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LoadingModal from '../../components/LoadingModal';
 
 const SignupScreen = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -27,7 +29,7 @@ const SignupScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const {error, loading} = useSelector((state: RootState) => state.auth);
+  const {error} = useSelector((state: RootState) => state.auth);
 
   const handleSignup = async () => {
     if (
@@ -45,6 +47,7 @@ const SignupScreen = () => {
     }
 
     try {
+      setIsLoading(true);
       const result = await dispatch(
         signUp({
           username,
@@ -59,9 +62,11 @@ const SignupScreen = () => {
       ).unwrap();
 
       console.log('Signup result:', result);
+      setIsLoading(false);
       Alert.alert('Success', 'Please check your email for confirmation code');
       navigation.navigate('ConfirmSignup', {username});
     } catch (error: any) {
+      setIsLoading(false);
       console.error('Signup error:', error);
       if (error.name === 'UsernameExistsException') {
         Alert.alert(
@@ -92,6 +97,7 @@ const SignupScreen = () => {
 
   return (
     <View style={styles.container}>
+      <LoadingModal visible={isLoading} message="Signing up" />
       <ScrollView>
         <Text style={styles.title}>Create Account</Text>
         <TextInput
@@ -99,7 +105,7 @@ const SignupScreen = () => {
           value={username}
           onChangeText={setUsername}
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -112,7 +118,7 @@ const SignupScreen = () => {
           onChangeText={setEmail}
           keyboardType="email-address"
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -125,7 +131,7 @@ const SignupScreen = () => {
           onChangeText={setPassword}
           secureTextEntry
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -137,7 +143,7 @@ const SignupScreen = () => {
           value={givenName}
           onChangeText={setGivenName}
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -149,7 +155,7 @@ const SignupScreen = () => {
           value={familyName}
           onChangeText={setFamilyName}
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -161,7 +167,7 @@ const SignupScreen = () => {
           value={gender}
           onChangeText={setGender}
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -173,7 +179,7 @@ const SignupScreen = () => {
           value={birthdate}
           onChangeText={setBirthdate}
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -186,7 +192,7 @@ const SignupScreen = () => {
           onChangeText={setPhoneNumber}
           keyboardType="phone-pad"
           style={styles.input}
-          disabled={loading}
+          disabled={isLoading}
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
@@ -198,8 +204,7 @@ const SignupScreen = () => {
           mode="contained"
           onPress={handleSignup}
           style={styles.button}
-          loading={loading}
-          disabled={loading}>
+          disabled={isLoading}>
           Sign Up
         </Button>
         <TouchableRipple onPress={() => navigation.navigate('Login' as never)}>

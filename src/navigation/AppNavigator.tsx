@@ -20,7 +20,7 @@ const navigationTheme = {
   colors: {
     ...DefaultTheme.colors,
     background: 'transparent',
-    card: 'transparent',
+    card: 'white',
     text: '#000000',
     border: 'transparent',
     primary: '#004D40',
@@ -67,27 +67,55 @@ export default function AppNavigator() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          animation: 'none',
-          navigationBarColor: 'transparent',
+          animation: 'slide_from_right',
           contentStyle: {backgroundColor: '#FFFFFF'},
         }}>
         <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
         <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-        <Stack.Group
-          screenOptions={{
-            presentation: 'transparentModal',
-            animation: 'fade',
-            headerShown: false,
-            contentStyle: {backgroundColor: 'transparent'},
-          }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="ConfirmSignup" component={ConfirmSignupScreen} />
-          <Stack.Screen
-            name="ForgotPassword"
-            component={ForgotPasswordScreen}
-          />
-        </Stack.Group>
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerShadowVisible: false,
+            headerTransparent: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="Signup"
+          component={SignupScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerShadowVisible: false,
+            headerTransparent: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ConfirmSignup"
+          component={ConfirmSignupScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerShadowVisible: false,
+            headerTransparent: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerShadowVisible: false,
+            headerTransparent: true,
+            animation: 'slide_from_right',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
