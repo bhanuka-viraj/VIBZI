@@ -282,7 +282,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => handleAdd()}>
-            <Text style={styles.addText}>Add to trip</Text>
+            <Text style={styles.addText}>{ initialData? 'update' : 'Add to trip'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

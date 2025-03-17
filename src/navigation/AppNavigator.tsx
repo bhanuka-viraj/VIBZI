@@ -1,18 +1,18 @@
 import * as React from 'react';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {useSelector} from 'react-redux';
-import {useEffect} from 'react';
-import {checkAuthState} from '../redux/slices/authSlice';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { checkAuthState } from '../redux/slices/authSlice';
 import TripDetailsScreen from '../screens/TripDetailsScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
-import {RootState} from '../redux/store';
+import { RootState } from '../redux/store';
 import SignupScreen from '../screens/auth/SignupScreen';
-import {useAppDispatch} from '../redux/hooks';
+import { useAppDispatch } from '../redux/hooks';
 import ConfirmSignupScreen from '../screens/auth/ConfirmSignupScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import BottomTabNavigator from './BottomTabNavigator';
-import {StatusBar} from 'react-native';
+import { StatusBar } from 'react-native';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 
 const navigationTheme = {
@@ -37,7 +37,7 @@ export type RootStackParamList = {
     redirectTo?: string;
   };
   Signup: undefined;
-  ConfirmSignup: {username: string};
+  ConfirmSignup: { username: string };
   ForgotPassword: undefined;
 };
 
@@ -45,7 +45,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const dispatch = useAppDispatch();
-  const {isAuthenticated, loading, user} = useSelector(
+  const { isAuthenticated, loading, user } = useSelector(
     (state: RootState) => state.auth,
   );
 
@@ -68,7 +68,7 @@ export default function AppNavigator() {
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
-          contentStyle: {backgroundColor: '#FFFFFF'},
+          contentStyle: { backgroundColor: '#FFFFFF' },
         }}>
         <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
         <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
