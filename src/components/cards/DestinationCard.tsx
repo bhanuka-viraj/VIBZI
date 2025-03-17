@@ -12,6 +12,7 @@ interface DestinationCardProps {
 }
 
 const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 
 const DestinationCard: React.FC<DestinationCardProps> = ({
   title,
@@ -27,14 +28,19 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
         style={styles.image}
       />
       <Card.Content style={styles.cardContent}>
-        <Text style={[theme.fonts.bodyMedium, { fontWeight: 'bold', color: 'black' }]}>
-          <Icon source="star" theme={theme} size={17} color={theme.colors.primary} />
+        <Text style={[theme.fonts.bodySmall, { fontWeight: 'bold', color: 'black' }]}>
+          <Icon
+            source="star"
+            theme={theme}
+            size={deviceWidth * 0.035}
+            color={'#16a34a'}
+          />
           {rating}
-          <Text style={[theme.fonts.bodyMedium]}> ({reviewCount}) </Text>
+          <Text style={[theme.fonts.bodySmall]}> ({reviewCount}) </Text>
         </Text>
 
-        <Text style={[theme.fonts.titleMedium, { color: 'black' }]}>{title}</Text>
-        <Text style={[theme.fonts.bodyMedium]}>
+        <Text style={[theme.fonts.titleSmall, { color: 'black' }]}>{title}</Text>
+        <Text style={[theme.fonts.bodySmall]}>
           From {fromPricePerPerson}/Person
         </Text>
       </Card.Content>
@@ -44,20 +50,20 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    margin: 16,
+    margin: deviceWidth * 0.03,
     borderRadius: 0,
     overflow: 'hidden',
     shadowColor: 'transparent',
-    width: deviceWidth * 0.55,
+    width: deviceWidth * 0.45,
   },
   image: {
     width: '100%',
-    height: Platform.OS === 'ios' ? 270 : 300,
-    borderRadius: 10,
+    aspectRatio: 4 / 3,
+    borderRadius: deviceWidth * 0.025,
   },
   cardContent: {
-    marginTop: 13,
-    paddingHorizontal: 3,
+    marginTop: deviceHeight * 0.015,
+    paddingHorizontal: deviceWidth * 0.01,
   },
 });
 
