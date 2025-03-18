@@ -5,40 +5,40 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import {Text, useTheme, FAB, ActivityIndicator} from 'react-native-paper';
-import {ActionSheetRef} from 'react-native-actions-sheet';
+import React, { useEffect, useRef, useState } from 'react';
+import { Text, useTheme, FAB, ActivityIndicator } from 'react-native-paper';
+import { ActionSheetRef } from 'react-native-actions-sheet';
 import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
 import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
 import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
 import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
 import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
 import ItineraryCard from '../../components/cards/ItineraryCard';
-import {useGetTripPlanItineraryByIdQuery} from '../../redux/slices/tripplan/itinerary/itinerarySlice';
+import { useGetTripPlanItineraryByIdQuery } from '../../redux/slices/tripplan/itinerary/itinerarySlice';
 import {
   parseTripDate,
   parseItineraryData,
   ItineraryItem,
 } from '../../utils/tripUtils/tripDataUtil';
-import {setitinerary, setTripDate} from '../../redux/slices/metaSlice';
-import {useDispatch, useSelector} from 'react-redux';
-import {theme} from '../../constants/theme';
+import { setitinerary, setTripDate } from '../../redux/slices/metaSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { theme } from '../../constants/theme';
 import ItineraryOptionsModal from '@/components/modals/ItineraryOptionsModal';
-import {THINGSTODO} from '@/constants/ItineraryTypes';
+import { THINGSTODO } from '@/constants/ItineraryTypes';
 
 interface ItineraryScreenProps {
   tripId: string;
   trip_id: string;
 }
 
-const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
+const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) => {
   const theme = useTheme();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
   const dispatch = useDispatch();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Get selected_date from meta state
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
   const tripData = useSelector((state: any) => state.meta.trip);
 
@@ -48,15 +48,15 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   const transportationactionSheetRef = useRef<ActionSheetRef>(null);
   const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
-  const {data, isLoading} = useGetTripPlanItineraryByIdQuery(trip_id as any);
-  const {dates, itineraryByDate} = parseItineraryData(data);
+  const { data, isLoading } = useGetTripPlanItineraryByIdQuery(trip_id as any);
+  const { dates, itineraryByDate } = parseItineraryData(data);
   const selectedDateItineraries = itineraryByDate[selectedDate] || [];
 
-  // Create a key that changes when itinerary data changes
   const renderKey = JSON.stringify(selectedDateItineraries);
 
   const handleLongPress = (item: ItineraryItem) => {
     setSelectedItem(item);
+    setIsUpdating(true);
     setModalVisible(true);
   };
 
@@ -68,9 +68,16 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   };
 
   const handleDelete = () => {
-    // Implement delete logic here
     console.log('Delete item:', selectedItem);
-    // You might want to dispatch a delete action to your redux store
+    setModalVisible(false);
+    setIsUpdating(false);
+    setSelectedItem(null);
+  };
+
+  const handleAddNewItem = (actionSheetRef: React.RefObject<ActionSheetRef>) => {
+    setIsUpdating(false);
+    setSelectedItem(null);
+    actionSheetRef.current?.show();
   };
 
   useEffect(() => {
@@ -103,7 +110,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
   // console.log('dates : ', dates);
   // console.log('itineraryByDate : ', itineraryByDate);
   // console.log('selectedDate : ', selectedDate);
-  // console.log('selectedDateItineraries : ', selectedDateItineraries);
+  console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
     <View style={[styles.container]} key={renderKey}>
@@ -113,7 +120,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           data={dates}
           keyExtractor={item => item}
           showsHorizontalScrollIndicator={false}
-          renderItem={({item}) => (
+          renderItem={({ item }) => (
             <TouchableOpacity
               style={[
                 styles.datePill,
@@ -125,7 +132,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
               <Text
                 style={[
                   styles.dateText,
-                  item === selectedDate && {color: theme.colors.onPrimary},
+                  item === selectedDate && { color: theme.colors.onPrimary },
                 ]}>
                 {parseTripDate(item)}
               </Text>
@@ -135,7 +142,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         />
       </View>
 
-      <View style={{paddingHorizontal: 10}}>
+      <View style={{ paddingHorizontal: 10 }}>
         <Text variant="titleMedium" style={styles.dayHeader}>
           {parseTripDate(selectedDate)}
         </Text>
@@ -143,7 +150,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
 
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={{paddingBottom: 80, paddingHorizontal: 10}}
+        contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
         showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
           {selectedDateItineraries.map((item: ItineraryItem, index: number) => (
@@ -151,7 +158,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
               key={`${selectedDate}-${item.position}`}
               onLongPress={() => handleLongPress(item)}
               activeOpacity={0.8}>
-              <ItineraryCard item={item} onPress={() => {}} />
+              <ItineraryCard item={item} onPress={() => { }} />
             </TouchableOpacity>
           ))}
         </View>
@@ -169,6 +176,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
         initialData={
           selectedItem?.type === THINGSTODO ? selectedItem : undefined
         }
+        isUpdating={isUpdating}
       />
       <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
       <AddFoodAndDrinkActionSheet actionSheetRef={foodAndDrinkactionSheetRef} />
@@ -192,7 +200,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           {
             icon: 'format-list-bulleted',
             label: 'Add Things To Do',
-            onPress: () => thingsToDoactionSheetRef.current?.show(),
+            onPress: () => handleAddNewItem(thingsToDoactionSheetRef),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -202,7 +210,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           {
             icon: 'home',
             label: 'Add a Place to Stay',
-            onPress: () => placeToStayactionSheetRef.current?.show(),
+            onPress: () => handleAddNewItem(placeToStayactionSheetRef),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -212,7 +220,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           {
             icon: 'silverware-fork-knife',
             label: 'Add Food & Drink',
-            onPress: () => foodAndDrinkactionSheetRef.current?.show(),
+            onPress: () => handleAddNewItem(foodAndDrinkactionSheetRef),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -222,7 +230,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           {
             icon: 'car',
             label: 'Add Transportation',
-            onPress: () => transportationactionSheetRef.current?.show(),
+            onPress: () => handleAddNewItem(transportationactionSheetRef),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -232,7 +240,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
           {
             icon: 'note-plus',
             label: 'Add a Note',
-            onPress: () => noteactionSheetRef.current?.show(),
+            onPress: () => handleAddNewItem(noteactionSheetRef),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -240,7 +248,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({tripId, trip_id}) => {
             },
           },
         ]}
-        onStateChange={({open}) => setIsFabOpen(open)}
+        onStateChange={({ open }) => setIsFabOpen(open)}
       />
     </View>
   );

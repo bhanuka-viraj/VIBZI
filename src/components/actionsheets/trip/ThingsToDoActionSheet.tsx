@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import DatePicker from 'react-native-date-picker';
-import {theme} from '../../../constants/theme';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../../redux/store';
-import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {THINGSTODO} from '../../../constants/ItineraryTypes';
+import { theme } from '../../../constants/theme';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
+import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
+import { THINGSTODO } from '../../../constants/ItineraryTypes';
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -33,11 +33,13 @@ interface AddThingToDoActionSheetProps {
       };
     };
   };
+  isUpdating: boolean;
 }
 
 const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   actionSheetRef,
   initialData,
+  isUpdating
 }) => {
   const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
@@ -55,11 +57,11 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   const selectedDate = tripData?.select_date || '';
   const it_id = itinerary?.id || '';
 
-  const [updateItinerary, {isLoading}] = useUpdateTripPlanItineraryMutation();
+  const [updateItinerary, { isLoading }] = useUpdateTripPlanItineraryMutation();
 
   const formatTime = (date: Date | null) => {
     if (!date) return '';
-    return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleClear = () => {
@@ -75,7 +77,11 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   React.useEffect(() => {
     if (initialData) {
       setName(initialData.details.title);
-      setIsBooked(initialData.details.customFields.isBooked || null);
+      const isBookedValue = typeof initialData.details.customFields.isBooked === 'string'
+        ? initialData.details.customFields.isBooked === "true"
+        : initialData.details.customFields.isBooked ?? null;
+      setIsBooked(isBookedValue);
+
       if (initialData.details.customFields.startTime) {
         setStartTime(new Date(initialData.details.customFields.startTime));
       }
@@ -89,6 +95,12 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
       setNote(initialData.details.customFields.note || '');
     }
   }, [initialData]);
+
+  React.useEffect(() => {
+    if (!isUpdating) {
+      handleClear();
+    }
+  }, [isUpdating]);
 
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
@@ -118,16 +130,15 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         ...itinerary.itinerary,
         [selectedDate]: initialData
           ? itinerary.itinerary[selectedDate].map((item: { position: number }) =>
-              item.position === initialData.position ? obj : item,
-            )
+            item.position === initialData.position ? obj : item,
+          )
           : [...itinerary.itinerary[selectedDate], obj],
       },
     };
 
     try {
-      await updateItinerary({id: it_id, data: updatedItinerary}).unwrap();
+      await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       handleClear();
-      // Hide action sheet after a small delay to ensure smooth transition
       setTimeout(() => {
         actionSheetRef.current?.hide();
       }, 100);
@@ -166,13 +177,13 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === true && {backgroundColor: theme.colors.primary},
+              isBooked === true && { backgroundColor: theme.colors.primary },
             ]}
             onPress={() => setIsBooked(true)}>
             <Text
               style={[
                 styles.toggleText,
-                isBooked === true && {color: theme.colors.onPrimary},
+                isBooked === true && { color: theme.colors.onPrimary },
               ]}>
               Yes
             </Text>
@@ -180,13 +191,13 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === false && {backgroundColor: theme.colors.primary},
+              isBooked === false && { backgroundColor: theme.colors.primary },
             ]}
             onPress={() => setIsBooked(false)}>
             <Text
               style={[
                 styles.toggleText,
-                isBooked === false && {color: theme.colors.onPrimary},
+                isBooked === false && { color: theme.colors.onPrimary },
               ]}>
               No
             </Text>
@@ -276,13 +287,15 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         />
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-            <Text style={styles.clearText}>Clear</Text>
-          </TouchableOpacity>
+          {!isUpdating && (
+            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+              <Text style={styles.clearText}>Clear</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, isUpdating && { flex: 1 }]}
             onPress={() => handleAdd()}>
-            <Text style={styles.addText}>{ initialData? 'update' : 'Add to trip'}</Text>
+            <Text style={styles.addText}>{isUpdating ? 'update' : 'Add to trip'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

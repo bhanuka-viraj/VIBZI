@@ -4,7 +4,7 @@ import { fetchAuthSession } from '@aws-amplify/auth';
 const baseQuery1 = fetchBaseQuery({ baseUrl: "http://34.162.233.155:8081/api/v1" });
 
 const baseQuery2 = fetchBaseQuery({
-  baseUrl: "http://34.162.203.155:8082/api/v1",
+  baseUrl: "https://vibzi.duckdns.org/api/v1",
   prepareHeaders: async (headers) => {
     try {
       const session = await fetchAuthSession();

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -6,26 +6,26 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import {theme} from '../constants/theme';
-import {Icon} from 'react-native-paper';
+import { theme } from '../constants/theme';
+import { Icon } from 'react-native-paper';
 import TripCard from '../components/cards/TripCard';
 import LinearGradient from 'react-native-linear-gradient';
 import Search from '../components/Search';
-import {ActionSheetRef} from 'react-native-actions-sheet';
+import { ActionSheetRef } from 'react-native-actions-sheet';
 import CreateTripActionSheet from '../components/actionsheets/trip/CreateTripActionSheet';
-import {useSearchTripPlansQuery} from '../redux/slices/tripplan/tripPlanSlice';
-import {Text} from 'react-native-paper';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../redux/store';
-import {parseTrips} from '../utils/tripUtils/tripDataUtil';
-import {setTrip_Id, setTripId} from '../redux/slices/metaSlice';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/AppNavigator';
+import { useSearchTripPlansQuery } from '../redux/slices/tripplan/tripPlanSlice';
+import { Text } from 'react-native-paper';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { parseTrips } from '../utils/tripUtils/tripDataUtil';
+import { setTrip_Id, setTripId } from '../redux/slices/metaSlice';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 const MyTripsScreen: React.FC = () => {
   const actionSheetRef = useRef<ActionSheetRef>(null);
-  const {user} = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
@@ -38,15 +38,15 @@ const MyTripsScreen: React.FC = () => {
   } = useSearchTripPlansQuery(
     user?.userId
       ? {
-          userId: user?.userId,
-          title: '',
-          destinationName: '',
-          page: 0,
-          size: 10,
-        }
+        userId: user?.userId,
+        title: '',
+        destinationName: '',
+        page: 0,
+        size: 10,
+      }
       : {},
   );
-  
+
   console.log('Trips:', JSON.stringify(trips, null, 2));
 
   const tripData = parseTrips(trips);
@@ -107,10 +107,10 @@ const MyTripsScreen: React.FC = () => {
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View style={styles.container}>
         <Search
-          style={{marginHorizontal: 12}}
+          style={styles.searchContainer}
           placeholder={'Search your trip'}
         />
         <View style={styles.btnContainer}>
@@ -133,11 +133,11 @@ const MyTripsScreen: React.FC = () => {
           style={styles.gradientOverlay}
         />
 
-        <View style={{flex: 1, marginTop: 100}}>
+        <View style={{ flex: 1, marginTop: 100 }}>
           <FlatList
             data={tripData}
             showsVerticalScrollIndicator={false}
-            renderItem={({item, index}) => (
+            renderItem={({ item, index }) => (
               <View
                 style={[styles.cardContainer, index === 0 && styles.firstCard]}>
                 <TripCard
@@ -170,6 +170,10 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     alignItems: 'center',
   },
+  searchContainer: {
+    width: '100%',
+    paddingHorizontal: 8,
+  },
   btnContainer: {
     alignItems: 'center',
     position: 'absolute',
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
   },
   gradientOverlay: {
     position: 'absolute',
-    top: 200,
+    top: 180,
     left: 0,
     right: 0,
     height: 10,
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
