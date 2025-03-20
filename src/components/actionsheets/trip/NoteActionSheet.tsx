@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,35 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
-import {theme} from '../../../constants/theme';
-import {useSelector} from 'react-redux';
-import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {NOTE} from '../../../constants/ItineraryTypes';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
+import { theme } from '../../../constants/theme';
+import { useSelector } from 'react-redux';
+import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
+import { NOTE } from '../../../constants/ItineraryTypes';
 
 interface NoteActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
+  initialData?: {
+    position: number;
+    date: string;
+    type: string;
+    details: {
+      title: string;
+      customFields: {
+        note?: string;
+      };
+    };
+  };
+  isUpdating: boolean;
+  isViewOnly: boolean;
 }
 
-const NoteActionSheet: React.FC<NoteActionSheetProps> = ({actionSheetRef}) => {
+const NoteActionSheet: React.FC<NoteActionSheetProps> = ({
+  actionSheetRef,
+  initialData,
+  isUpdating,
+  isViewOnly
+}) => {
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
 
@@ -27,24 +45,38 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({actionSheetRef}) => {
   const selectedDate = tripData?.select_date || '';
   const it_id = itinerary?.id || '';
 
-  const [updateItinerary, {isLoading}] = useUpdateTripPlanItineraryMutation();
+  const [updateItinerary, { isLoading }] = useUpdateTripPlanItineraryMutation();
 
   const handleClear = () => {
     setTitle('');
     setNote('');
   };
 
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.details.title);
+      setNote(initialData.details.customFields.note || '');
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    if (!isUpdating) {
+      handleClear();
+    }
+  }, [isUpdating]);
+
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
     const obj = {
-      position: itinerary.itinerary[selectedDate].length + 1,
+      position: initialData
+        ? initialData.position
+        : itinerary.itinerary[selectedDate].length + 1,
       date: selectedDate,
       type: NOTE,
       details: {
-        title: title || 'Note',
+        title,
         customFields: {
-          title,
           note,
         },
       },
@@ -54,17 +86,20 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({actionSheetRef}) => {
       ...itinerary,
       itinerary: {
         ...itinerary.itinerary,
-        [selectedDate]: [...itinerary.itinerary[selectedDate], obj],
+        [selectedDate]: initialData
+          ? itinerary.itinerary[selectedDate].map((item: { position: number }) =>
+            item.position === initialData.position ? obj : item,
+          )
+          : [...itinerary.itinerary[selectedDate], obj],
       },
     };
 
     try {
-      const res = await updateItinerary({id: it_id, data: updatedItinerary});
-
-      if (res) {
-        handleClear();
+      await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
+      handleClear();
+      setTimeout(() => {
         actionSheetRef.current?.hide();
-      }
+      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
@@ -75,36 +110,44 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({actionSheetRef}) => {
       <ScrollView
         contentContainerStyle={styles.modalContainer}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Add Note</Text>
+        <Text style={styles.title}>
+          {isViewOnly ? 'View Details' : isUpdating ? 'Update Note' : 'Add Note'}
+        </Text>
 
         <Text style={styles.label}>Title (optional)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Enter title"
           value={title}
           onChangeText={setTitle}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Note</Text>
         <TextInput
-          style={[styles.input, styles.noteInput]}
+          style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
           placeholder="Add any extra details"
           value={note}
           onChangeText={setNote}
           multiline
           numberOfLines={3}
+          editable={!isViewOnly}
         />
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-            <Text style={styles.clearText}>Clear</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => handleAdd()}>
-            <Text style={styles.addText}>Add to trip</Text>
-          </TouchableOpacity>
-        </View>
+        {!isViewOnly && (
+          <View style={styles.buttonContainer}>
+            {!isUpdating && (
+              <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+                <Text style={styles.clearText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.addButton, isUpdating && { flex: 1 }]}
+              onPress={() => handleAdd()}>
+              <Text style={styles.addText}>{isUpdating ? 'Update' : 'Add to trip'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </ActionSheet>
   );
@@ -116,20 +159,18 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    paddingBottom: 40,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   description: {
     color: '#666',
-    marginBottom: 20,
-    fontSize: 14,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 12,
     marginBottom: 6,
@@ -140,10 +181,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: 'white',
   },
   noteInput: {
-    height: 100,
+    height: 80,
     textAlignVertical: 'top',
   },
   buttonContainer: {
@@ -156,6 +196,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 25,
   },
   clearText: {
     color: '#757575',
@@ -171,6 +214,10 @@ const styles = StyleSheet.create({
   addText: {
     color: 'white',
     fontWeight: '500',
+  },
+  disabledInput: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
   },
 });
 

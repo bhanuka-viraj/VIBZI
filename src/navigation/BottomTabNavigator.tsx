@@ -73,7 +73,7 @@ const BottomTabNavigator = () => {
         tabBar={props =>
           isTabBarVisible ? <CustomTabBar {...props} /> : null
         }>
-        <Tab.Screen
+        {/* <Tab.Screen
           name="Home"
           component={withMainLayout(HomeScreen)}
           options={{
@@ -84,7 +84,7 @@ const BottomTabNavigator = () => {
               />
             ),
           }}
-        />
+        /> */}
         <Tab.Screen
           name="MyTrips"
           component={withMainLayout(withAuth(MyTripsScreen, 'MyTrips'))}
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    width: '50%',
+    width: '35%',
     justifyContent: 'space-between',
     borderWidth: 0.2,
     borderColor: '#E0E0E0',

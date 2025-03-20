@@ -14,7 +14,7 @@ import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsTo
 import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
 import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
 import ItineraryCard from '../../components/cards/ItineraryCard';
-import { useGetTripPlanItineraryByIdQuery } from '../../redux/slices/tripplan/itinerary/itinerarySlice';
+import { useGetTripPlanItineraryByIdQuery, useUpdateTripPlanItineraryMutation } from '../../redux/slices/tripplan/itinerary/itinerarySlice';
 import {
   parseTripDate,
   parseItineraryData,
@@ -23,8 +23,8 @@ import {
 import { setitinerary, setTripDate } from '../../redux/slices/metaSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { theme } from '../../constants/theme';
-import ItineraryOptionsModal from '@/components/modals/ItineraryOptionsModal';
-import { THINGSTODO } from '@/constants/ItineraryTypes';
+import { THINGSTODO, PLACESTOSTAY, FOODANDDRINK, TRANSPORTATION, NOTE } from '@/constants/ItineraryTypes';
+import ConfirmationDialog from '../../components/ConfirmationDialog';
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -35,12 +35,17 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   const theme = useTheme();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
   const dispatch = useDispatch();
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isViewOnly, setIsViewOnly] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ItineraryItem | null>(null);
 
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
   const tripData = useSelector((state: any) => state.meta.trip);
+  const itinerary = tripData?.itinerary || null;
+  const it_id = itinerary?.id || '';
+
+  const [updateItinerary] = useUpdateTripPlanItineraryMutation();
 
   const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
   const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
@@ -54,30 +59,95 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
   const renderKey = JSON.stringify(selectedDateItineraries);
 
-  const handleLongPress = (item: ItineraryItem) => {
+  const handleCardPress = (item: ItineraryItem) => {
+    setSelectedItem(item);
+    setIsViewOnly(true);
+    setIsUpdating(false);
+
+    switch (item.type) {
+      case THINGSTODO:
+        thingsToDoactionSheetRef.current?.show();
+        break;
+      case PLACESTOSTAY:
+        placeToStayactionSheetRef.current?.show();
+        break;
+      case FOODANDDRINK:
+        foodAndDrinkactionSheetRef.current?.show();
+        break;
+      case TRANSPORTATION:
+        transportationactionSheetRef.current?.show();
+        break;
+      case NOTE:
+        noteactionSheetRef.current?.show();
+        break;
+    }
+  };
+
+  const handleUpdate = (item: ItineraryItem) => {
     setSelectedItem(item);
     setIsUpdating(true);
-    setModalVisible(true);
-  };
+    setIsViewOnly(false);
 
-  const handleUpdate = () => {
-    if (selectedItem?.type === THINGSTODO) {
-      thingsToDoactionSheetRef.current?.show();
+    switch (item.type) {
+      case THINGSTODO:
+        thingsToDoactionSheetRef.current?.show();
+        break;
+      case PLACESTOSTAY:
+        placeToStayactionSheetRef.current?.show();
+        break;
+      case FOODANDDRINK:
+        foodAndDrinkactionSheetRef.current?.show();
+        break;
+      case TRANSPORTATION:
+        transportationactionSheetRef.current?.show();
+        break;
+      case NOTE:
+        noteactionSheetRef.current?.show();
+        break;
     }
-    setModalVisible(false);
   };
 
-  const handleDelete = () => {
-    console.log('Delete item:', selectedItem);
-    setModalVisible(false);
-    setIsUpdating(false);
-    setSelectedItem(null);
+  const handleDelete = async (item: ItineraryItem) => {
+    if (!selectedDate || !itinerary) return;
+
+    try {
+      // Create updated itinerary by filtering out the deleted item
+      const updatedItinerary = {
+        ...itinerary,
+        itinerary: {
+          ...itinerary.itinerary,
+          [selectedDate]: itinerary.itinerary[selectedDate].filter(
+            (i: ItineraryItem) => i.position !== item.position
+          ),
+        },
+      };
+
+      // Update the itinerary using the existing endpoint
+      await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
+
+      // Reset states
+      setIsUpdating(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.log('Error deleting item:', error);
+    }
   };
 
   const handleAddNewItem = (actionSheetRef: React.RefObject<ActionSheetRef>) => {
     setIsUpdating(false);
+    setIsViewOnly(false);
     setSelectedItem(null);
     actionSheetRef.current?.show();
+  };
+
+  const handleDeletePress = (item: ItineraryItem) => {
+    setItemToDelete(item);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    await handleDelete(itemToDelete);
+    setItemToDelete(null);
   };
 
   useEffect(() => {
@@ -102,15 +172,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       </View>
     );
   }
-
-  // do not uncomment these
-  // console.log('data  : ', data);
-  // console.log('trip_id : ', trip_id);
-
-  // console.log('dates : ', dates);
-  // console.log('itineraryByDate : ', itineraryByDate);
-  // console.log('selectedDate : ', selectedDate);
-  console.log('selectedDateItineraries : ', selectedDateItineraries);
 
   return (
     <View style={[styles.container]} key={renderKey}>
@@ -153,23 +214,17 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
         showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
-          {selectedDateItineraries.map((item: ItineraryItem, index: number) => (
-            <TouchableOpacity
+          {selectedDateItineraries.map((item: ItineraryItem) => (
+            <ItineraryCard
               key={`${selectedDate}-${item.position}`}
-              onLongPress={() => handleLongPress(item)}
-              activeOpacity={0.8}>
-              <ItineraryCard item={item} onPress={() => { }} />
-            </TouchableOpacity>
+              item={item}
+              onUpdate={handleUpdate}
+              onDelete={() => handleDeletePress(item)}
+              onPress={handleCardPress}
+            />
           ))}
         </View>
       </ScrollView>
-
-      <ItineraryOptionsModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-      />
 
       <AddThingToDoActionSheet
         actionSheetRef={thingsToDoactionSheetRef}
@@ -177,13 +232,40 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           selectedItem?.type === THINGSTODO ? selectedItem : undefined
         }
         isUpdating={isUpdating}
+        isViewOnly={isViewOnly}
       />
-      <AddPlaceToStayActionSheet actionSheetRef={placeToStayactionSheetRef} />
-      <AddFoodAndDrinkActionSheet actionSheetRef={foodAndDrinkactionSheetRef} />
+      <AddPlaceToStayActionSheet
+        actionSheetRef={placeToStayactionSheetRef}
+        initialData={
+          selectedItem?.type === PLACESTOSTAY ? selectedItem : undefined
+        }
+        isUpdating={isUpdating}
+        isViewOnly={isViewOnly}
+      />
+      <AddFoodAndDrinkActionSheet
+        actionSheetRef={foodAndDrinkactionSheetRef}
+        initialData={
+          selectedItem?.type === FOODANDDRINK ? selectedItem : undefined
+        }
+        isUpdating={isUpdating}
+        isViewOnly={isViewOnly}
+      />
       <AddTransportationActionSheet
         actionSheetRef={transportationactionSheetRef}
+        initialData={
+          selectedItem?.type === TRANSPORTATION ? selectedItem : undefined
+        }
+        isUpdating={isUpdating}
+        isViewOnly={isViewOnly}
       />
-      <NoteActionSheet actionSheetRef={noteactionSheetRef} />
+      <NoteActionSheet
+        actionSheetRef={noteactionSheetRef}
+        initialData={
+          selectedItem?.type === NOTE ? selectedItem : undefined
+        }
+        isUpdating={isUpdating}
+        isViewOnly={isViewOnly}
+      />
 
       <FAB.Group
         visible={true}
@@ -250,6 +332,17 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         ]}
         onStateChange={({ open }) => setIsFabOpen(open)}
       />
+
+      <ConfirmationDialog
+        visible={!!itemToDelete}
+        onDismiss={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Item"
+        message="Are you sure you want to delete this item?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonStyle="danger"
+      />
     </View>
   );
 };
@@ -284,7 +377,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-
   dayHeader: {
     marginBottom: 12,
     fontWeight: 'bold',

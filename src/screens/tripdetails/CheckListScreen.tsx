@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,13 +8,14 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import {Checkbox, Dialog, Portal} from 'react-native-paper';
-import {theme} from '../../constants/theme';
+import { Checkbox } from 'react-native-paper';
+import { theme } from '../../constants/theme';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   useGetTripPlanChecklistByTripIdQuery,
   useUpdateTripPlanChecklistMutation,
 } from '../../redux/slices/tripplan/checklistSlice';
+import ConfirmationDialog from '../../components/ConfirmationDialog';
 
 interface ChecklistItem {
   id: string;
@@ -27,7 +28,7 @@ interface CheckListScreenProps {
   trip_id: string;
 }
 
-const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
+const CheckListScreen: React.FC<CheckListScreenProps> = ({ tripId, trip_id }) => {
   if (!trip_id) {
     return (
       <View style={styles.loadingContainer}>
@@ -36,7 +37,7 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
     );
   }
 
-  const {data, isLoading, refetch} =
+  const { data, isLoading, refetch } =
     useGetTripPlanChecklistByTripIdQuery(trip_id);
   const [updateTripPlanChecklist] = useUpdateTripPlanChecklistMutation();
 
@@ -90,7 +91,7 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
 
   const handleToggleItem = async (id: string) => {
     const updatedItems = items.map(item =>
-      item.id === id ? {...item, isChecked: !item.isChecked} : item,
+      item.id === id ? { ...item, isChecked: !item.isChecked } : item,
     );
 
     try {
@@ -202,38 +203,17 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({tripId, trip_id}) => {
         )}
       </ScrollView>
 
-      <Portal>
-        <Dialog
-          visible={!!itemToDelete}
-          onDismiss={() => setItemToDelete(null)}
-          style={styles.dialog}
-          key={itemToDelete}>
-          <Dialog.Title style={styles.dialogTitle}>Delete Item</Dialog.Title>
-          <Dialog.Content>
-            <Text style={styles.dialogContentText}>
-              Are you sure you want to delete this item?
-            </Text>
-          </Dialog.Content>
-          <Dialog.Actions style={styles.dialogActions}>
-            <TouchableOpacity
-              onPress={() => setItemToDelete(null)}
-              style={styles.dialogButton}>
-              <Text style={styles.dialogButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleConfirmDelete}
-              style={[styles.dialogButton, styles.deleteDialogButton]}>
-              <Text
-                style={[
-                  styles.dialogButtonText,
-                  styles.deleteDialogButtonText,
-                ]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <ConfirmationDialog
+        key={itemToDelete}
+        visible={!!itemToDelete}
+        onDismiss={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Item"
+        message="Are you sure you want to delete this item?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonStyle="danger"
+      />
     </View>
   );
 };
@@ -320,42 +300,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
-  },
-  dialog: {
-    backgroundColor: 'white',
-    elevation: 24,
-    borderRadius: 8,
-  },
-  dialogTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  dialogContentText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  dialogActions: {
-    padding: 16,
-    justifyContent: 'flex-end',
-  },
-  dialogButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginLeft: 8,
-    borderRadius: 4,
-  },
-  dialogButtonText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  deleteDialogButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 4,
-  },
-  deleteDialogButtonText: {
-    color: 'white',
   },
 });
 

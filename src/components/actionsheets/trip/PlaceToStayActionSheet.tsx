@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,40 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
-import {theme} from '../../../constants/theme';
-import {useSelector} from 'react-redux';
-import {useUpdateTripPlanItineraryMutation} from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import {PLACESTOSTAY} from '../../../constants/ItineraryTypes';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
+import { theme } from '../../../constants/theme';
+import { useSelector } from 'react-redux';
+import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
+import { PLACESTOSTAY } from '../../../constants/ItineraryTypes';
 import DatePicker from 'react-native-date-picker';
 
 interface AddPlaceToStayActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
+  initialData?: {
+    position: number;
+    date: string;
+    type: string;
+    details: {
+      title: string;
+      customFields: {
+        isBooked?: boolean;
+        startTime?: string;
+        endTime?: string;
+        link?: string;
+        reservationNumber?: string;
+        note?: string;
+      };
+    };
+  };
+  isUpdating: boolean;
+  isViewOnly: boolean;
 }
 
 const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
   actionSheetRef,
+  initialData,
+  isUpdating,
+  isViewOnly
 }) => {
   const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
@@ -37,11 +58,11 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
   const selectedDate = tripData?.select_date || '';
   const it_id = itinerary?.id || '';
 
-  const [updateItinerary, {isLoading}] = useUpdateTripPlanItineraryMutation();
+  const [updateItinerary, { isLoading }] = useUpdateTripPlanItineraryMutation();
 
   const formatTime = (date: Date | null) => {
     if (!date) return '';
-    return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleClear = () => {
@@ -54,11 +75,41 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
     setNote('');
   };
 
+  React.useEffect(() => {
+    if (initialData) {
+      setName(initialData.details.title);
+      const isBookedValue = typeof initialData.details.customFields.isBooked === 'string'
+        ? initialData.details.customFields.isBooked === "true"
+        : initialData.details.customFields.isBooked ?? null;
+      setIsBooked(isBookedValue);
+
+      if (initialData.details.customFields.startTime) {
+        setStartTime(new Date(initialData.details.customFields.startTime));
+      }
+      if (initialData.details.customFields.endTime) {
+        setEndTime(new Date(initialData.details.customFields.endTime));
+      }
+      setLink(initialData.details.customFields.link || '');
+      setReservationNumber(
+        initialData.details.customFields.reservationNumber || '',
+      );
+      setNote(initialData.details.customFields.note || '');
+    }
+  }, [initialData]);
+
+  React.useEffect(() => {
+    if (!isUpdating) {
+      handleClear();
+    }
+  }, [isUpdating]);
+
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
     const obj = {
-      position: itinerary.itinerary[selectedDate].length + 1,
+      position: initialData
+        ? initialData.position
+        : itinerary.itinerary[selectedDate].length + 1,
       date: selectedDate,
       type: PLACESTOSTAY,
       details: {
@@ -78,19 +129,20 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
       ...itinerary,
       itinerary: {
         ...itinerary.itinerary,
-        [selectedDate]: [...itinerary.itinerary[selectedDate], obj],
+        [selectedDate]: initialData
+          ? itinerary.itinerary[selectedDate].map((item: { position: number }) =>
+            item.position === initialData.position ? obj : item,
+          )
+          : [...itinerary.itinerary[selectedDate], obj],
       },
     };
 
     try {
-      const res = await updateItinerary({id: it_id, data: updatedItinerary});
-
-      if (res) {
-        console.log('res - ', res);
-
-        handleClear();
+      await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
+      handleClear();
+      setTimeout(() => {
         actionSheetRef.current?.hide();
-      }
+      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
@@ -110,29 +162,33 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
       <ScrollView
         contentContainerStyle={styles.modalContainer}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Add a place to stay</Text>
+        <Text style={styles.title}>
+          {isViewOnly ? 'View Details' : isUpdating ? 'Update Place to Stay' : 'Add a place to stay'}
+        </Text>
         <Text style={styles.description}>Add a description here</Text>
 
         <Text style={styles.label}>Name Of Place *</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Enter place name"
           value={name}
           onChangeText={setName}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Booked?</Text>
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === true && {backgroundColor: theme.colors.primary},
+              isBooked === true && { backgroundColor: theme.colors.primary },
             ]}
-            onPress={() => setIsBooked(true)}>
+            onPress={() => !isViewOnly && setIsBooked(true)}
+            disabled={isViewOnly}>
             <Text
               style={[
                 styles.toggleText,
-                isBooked === true && {color: theme.colors.onPrimary},
+                isBooked === true && { color: theme.colors.onPrimary },
               ]}>
               Yes
             </Text>
@@ -140,13 +196,14 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isBooked === false && {backgroundColor: theme.colors.primary},
+              isBooked === false && { backgroundColor: theme.colors.primary },
             ]}
-            onPress={() => setIsBooked(false)}>
+            onPress={() => !isViewOnly && setIsBooked(false)}
+            disabled={isViewOnly}>
             <Text
               style={[
                 styles.toggleText,
-                isBooked === false && {color: theme.colors.onPrimary},
+                isBooked === false && { color: theme.colors.onPrimary },
               ]}>
               No
             </Text>
@@ -157,8 +214,9 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !startTime && styles.timeInputEmpty]}
-              onPress={() => setShowStartPicker(true)}>
+              style={[styles.timeInput, !startTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              onPress={() => !isViewOnly && setShowStartPicker(true)}
+              disabled={isViewOnly}>
               <Text
                 style={[
                   styles.timeText,
@@ -172,8 +230,9 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !endTime && styles.timeInputEmpty]}
-              onPress={() => setShowEndPicker(true)}>
+              style={[styles.timeInput, !endTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              onPress={() => !isViewOnly && setShowEndPicker(true)}
+              disabled={isViewOnly}>
               <Text
                 style={[
                   styles.timeText,
@@ -211,38 +270,47 @@ const AddPlaceToStayActionSheet: React.FC<AddPlaceToStayActionSheetProps> = ({
 
         <Text style={styles.label}>Link</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Add booking or information link"
           value={link}
           onChangeText={setLink}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Reservation Number</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Enter reservation number"
           value={reservationNumber}
           onChangeText={setReservationNumber}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Note</Text>
         <TextInput
-          style={[styles.input, styles.noteInput]}
+          style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
           placeholder="Add any extra details"
           value={note}
           onChangeText={setNote}
           multiline
           numberOfLines={3}
+          editable={!isViewOnly}
         />
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-            <Text style={styles.clearText}>Clear</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-            <Text style={styles.addText}>Add to trip</Text>
-          </TouchableOpacity>
-        </View>
+        {!isViewOnly && (
+          <View style={styles.buttonContainer}>
+            {!isUpdating && (
+              <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+                <Text style={styles.clearText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.addButton, isUpdating && { flex: 1 }]}
+              onPress={() => handleAdd()}>
+              <Text style={styles.addText}>{isUpdating ? 'Update' : 'Add to trip'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </ActionSheet>
   );
@@ -350,6 +418,13 @@ const styles = StyleSheet.create({
   },
   timeTextPlaceholder: {
     color: '#999',
+  },
+  disabledInput: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+  },
+  disabledToggle: {
+    opacity: 0.7,
   },
 });
 

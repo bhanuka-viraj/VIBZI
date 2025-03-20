@@ -34,12 +34,14 @@ interface AddThingToDoActionSheetProps {
     };
   };
   isUpdating: boolean;
+  isViewOnly: boolean;
 }
 
 const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   actionSheetRef,
   initialData,
-  isUpdating
+  isUpdating,
+  isViewOnly
 }) => {
   const [name, setName] = useState('');
   const [isBooked, setIsBooked] = useState<boolean | null>(null);
@@ -161,25 +163,29 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
       <ScrollView
         contentContainerStyle={styles.modalContainer}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Add a things to do</Text>
+        <Text style={styles.title}>
+          {isViewOnly ? 'View Details' : isUpdating ? 'Update Things To Do' : 'Add Things To Do'}
+        </Text>
         <Text style={styles.description}>Add a description here</Text>
 
         <Text style={styles.label}>Name Of Activity *</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Enter activity name"
           value={name}
           onChangeText={setName}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Booked?</Text>
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
           <TouchableOpacity
             style={[
               styles.toggleButton,
               isBooked === true && { backgroundColor: theme.colors.primary },
             ]}
-            onPress={() => setIsBooked(true)}>
+            onPress={() => !isViewOnly && setIsBooked(true)}
+            disabled={isViewOnly}>
             <Text
               style={[
                 styles.toggleText,
@@ -193,7 +199,8 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
               styles.toggleButton,
               isBooked === false && { backgroundColor: theme.colors.primary },
             ]}
-            onPress={() => setIsBooked(false)}>
+            onPress={() => !isViewOnly && setIsBooked(false)}
+            disabled={isViewOnly}>
             <Text
               style={[
                 styles.toggleText,
@@ -208,8 +215,9 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !startTime && styles.timeInputEmpty]}
-              onPress={() => setShowStartPicker(true)}>
+              style={[styles.timeInput, !startTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              onPress={() => !isViewOnly && setShowStartPicker(true)}
+              disabled={isViewOnly}>
               <Text
                 style={[
                   styles.timeText,
@@ -223,8 +231,9 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !endTime && styles.timeInputEmpty]}
-              onPress={() => setShowEndPicker(true)}>
+              style={[styles.timeInput, !endTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              onPress={() => !isViewOnly && setShowEndPicker(true)}
+              disabled={isViewOnly}>
               <Text
                 style={[
                   styles.timeText,
@@ -262,42 +271,47 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 
         <Text style={styles.label}>Link</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Add booking or information link"
           value={link}
           onChangeText={setLink}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Reservation Number</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isViewOnly && styles.disabledInput]}
           placeholder="Enter reservation number"
           value={reservationNumber}
           onChangeText={setReservationNumber}
+          editable={!isViewOnly}
         />
 
         <Text style={styles.label}>Note</Text>
         <TextInput
-          style={[styles.input, styles.noteInput]}
+          style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
           placeholder="Add any extra details"
           value={note}
           onChangeText={setNote}
           multiline
           numberOfLines={3}
+          editable={!isViewOnly}
         />
 
-        <View style={styles.buttonContainer}>
-          {!isUpdating && (
-            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-              <Text style={styles.clearText}>Clear</Text>
+        {!isViewOnly && (
+          <View style={styles.buttonContainer}>
+            {!isUpdating && (
+              <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+                <Text style={styles.clearText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.addButton, isUpdating && { flex: 1 }]}
+              onPress={() => handleAdd()}>
+              <Text style={styles.addText}>{isUpdating ? 'Update' : 'Add to trip'}</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.addButton, isUpdating && { flex: 1 }]}
-            onPress={() => handleAdd()}>
-            <Text style={styles.addText}>{isUpdating ? 'update' : 'Add to trip'}</Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        )}
       </ScrollView>
     </ActionSheet>
   );
@@ -403,6 +417,13 @@ const styles = StyleSheet.create({
   },
   timeTextPlaceholder: {
     color: '#999',
+  },
+  disabledInput: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+  },
+  disabledToggle: {
+    opacity: 0.7,
   },
 });
 
