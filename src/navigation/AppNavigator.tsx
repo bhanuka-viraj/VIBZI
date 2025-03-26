@@ -69,7 +69,9 @@ export default function AppNavigator() {
           headerShown: false,
           animation: 'slide_from_right',
           contentStyle: { backgroundColor: '#FFFFFF' },
-        }}>
+        }}
+        initialRouteName={isAuthenticated ? 'MainTabs' : 'Login'}>
+        {/* 
         <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
         <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
         <Stack.Screen
@@ -116,6 +118,62 @@ export default function AppNavigator() {
             animation: 'slide_from_right',
           }}
         />
+        */}
+
+
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+            <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                headerShadowVisible: false,
+                headerTransparent: true,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                headerShadowVisible: false,
+                headerTransparent: true,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="ConfirmSignup"
+              component={ConfirmSignupScreen}
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                headerShadowVisible: false,
+                headerTransparent: true,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                headerShadowVisible: false,
+                headerTransparent: true,
+                animation: 'slide_from_right',
+              }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

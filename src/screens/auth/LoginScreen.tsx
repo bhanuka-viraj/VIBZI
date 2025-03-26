@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import {View, StyleSheet} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Image } from 'react-native';
 import {
   TextInput,
   Button,
@@ -7,25 +7,25 @@ import {
   TouchableRipple,
   HelperText,
 } from 'react-native-paper';
-import {useAppDispatch} from '../../redux/hooks';
-import {signIn, setError} from '../../redux/slices/authSlice';
-import {theme} from '../../constants/theme';
-import {useNavigation} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../redux/store';
-import {RootStackParamList} from '../../navigation/AppNavigator';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { useAppDispatch } from '../../redux/hooks';
+import { signIn, setError } from '../../redux/slices/authSlice';
+import { theme } from '../../constants/theme';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LoadingModal from '../../components/LoadingModal';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function LoginScreen({route}: any) {
-  const {redirectTo} = route.params || {};
+export default function LoginScreen({ route }: any) {
+  const { redirectTo } = route.params || {};
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
-  const {isAuthenticated, error} = useSelector(
+  const { isAuthenticated, error } = useSelector(
     (state: RootState) => state.auth,
   );
   const navigation = useNavigation<NavigationProp>();
@@ -64,7 +64,16 @@ export default function LoginScreen({route}: any) {
     <View style={styles.container}>
       <LoadingModal visible={isLoading} />
       <View style={styles.content}>
-        <Text style={styles.title}>Login</Text>
+        <View style={styles.headerContainer}>
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.welcomeText}>Welcome Back!</Text>
+          <Text style={styles.title}>Login</Text>
+        </View>
+
         <TextInput
           label="Username"
           value={username}
@@ -74,7 +83,7 @@ export default function LoginScreen({route}: any) {
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
-          theme={{colors: {background: 'white'}}}
+          theme={{ colors: { background: 'white' } }}
           left={<TextInput.Icon icon="account" />}
         />
         <TextInput
@@ -87,7 +96,7 @@ export default function LoginScreen({route}: any) {
           mode="outlined"
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
-          theme={{colors: {background: 'white'}}}
+          theme={{ colors: { background: 'white' } }}
           left={<TextInput.Icon icon="lock" />}
         />
         {error && <HelperText type="error">{error}</HelperText>}
@@ -124,11 +133,26 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logo: {
+    width: 150,
+    height: 50,
+    marginBottom: 30,
+  },
+  welcomeText: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 8,
+  },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: theme.colors.primary,
+    fontSize: 18,
+    color: '#666',
+    fontWeight: '600',
+    marginTop: 10,
   },
   input: {
     marginBottom: 10,

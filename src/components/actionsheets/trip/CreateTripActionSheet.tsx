@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,28 +6,33 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import {Icon} from 'react-native-paper';
-import ActionSheet, {ActionSheetRef} from 'react-native-actions-sheet';
+import { Icon } from 'react-native-paper';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import DatePicker from 'react-native-date-picker';
-import {theme} from '../../../constants/theme';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../../navigation/AppNavigator';
-import {useCreateTripPlanMutation} from '../../../redux/slices/tripplan/tripPlanSlice';
+import { theme } from '../../../constants/theme';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../navigation/AppNavigator';
+import { useCreateTripPlanMutation, useUpdateTripPlanMutation } from '../../../redux/slices/tripplan/tripPlanSlice';
 import dayjs from 'dayjs';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../../redux/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
 
 interface CreateTripActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
+  isUpdating?: boolean;
+  initialData?: any;
 }
 
 const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   actionSheetRef,
+  isUpdating = false,
+  initialData,
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [createTripPlan] = useCreateTripPlanMutation();
+  const [updateTripPlan] = useUpdateTripPlanMutation();
   const [tripName, setTripName] = useState('');
   const [destination, setDestination] = useState('');
   const [description, setDescription] = useState('');
@@ -37,49 +42,80 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   const [showToDate, setShowToDate] = useState(false);
 
   const { user } = useSelector((state: RootState) => state.auth);
-  
+
+  useEffect(() => {
+    if (isUpdating && initialData) {
+      setTripName(initialData.title || '');
+      setDestination(initialData.destinationName || '');
+      setDescription(initialData.description || '');
+      setFromDate(initialData.startDate ? new Date(initialData.startDate) : null);
+      setToDate(initialData.endDate ? new Date(initialData.endDate) : null);
+    } else {
+      setTripName('');
+      setDestination('');
+      setDescription('');
+      setFromDate(null);
+      setToDate(null);
+    }
+  }, [isUpdating, initialData]);
+
   const imageUrl = () => {
     return `/${Math.floor(Math.random() * 6) + 1}.jpg`;
   };
 
-
-  const handleCreateTrip = async () => {
+  const handleSubmit = async () => {
     try {
-      const tripData = {
+      const baseData = {
         title: tripName,
         destinationName: destination,
         startDate: fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : '',
         endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
         description: description,
-        imageUrl : imageUrl(),
         userId: user?.userId,
         destinationId: 124,
       };
 
-      const response = await createTripPlan(tripData).unwrap();
-
-      console.log('created tripplan : ', response);
+      let response;
+      if (isUpdating) {
+        response = await updateTripPlan({
+          id: initialData.id,
+          data: {
+            ...baseData,
+            id: initialData.id,
+            tripId: initialData.tripId,
+            imageUrl: initialData.imageUrl,
+          },
+        }).unwrap();
+      } else {
+        response = await createTripPlan({
+          ...baseData,
+          imageUrl: imageUrl(),
+        }).unwrap();
+      }
 
       actionSheetRef.current?.hide();
 
-      navigation.push('TripDetails', {
-        tripId: response.id,
-        trip_id: response.tripId,
-      });
+      if (!isUpdating) {
+        navigation.push('TripDetails', {
+          tripId: response.id,
+          trip_id: response.tripId,
+        });
+      }
 
       setTripName('');
       setDestination('');
       setFromDate(null);
       setToDate(null);
+      setDescription('');
     } catch (error) {
-      console.error('Failed to create trip:', error);
+      console.error('Failed to handle trip:', error);
     }
   };
 
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
       <View style={styles.modalContainer}>
-        <Text style={styles.title}>Create a Trip</Text>
+        <Text style={styles.title}>{isUpdating ? 'Update Trip' : 'Create a Trip'}</Text>
 
         <Text style={styles.label}>Trip Name</Text>
         <TextInput
@@ -108,7 +144,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              {color: fromDate || toDate ? 'black' : 'gray'},
+              { color: fromDate || toDate ? 'black' : 'gray' },
             ]}>
             From: {fromDate ? fromDate.toDateString() : 'Select Start Date'}
           </Text>
@@ -119,7 +155,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
           <Text
             style={[
               styles.datePickerButtonText,
-              {color: fromDate || toDate ? 'black' : 'gray'},
+              { color: fromDate || toDate ? 'black' : 'gray' },
             ]}>
             To: {toDate ? toDate.toDateString() : 'Select End Date'}
           </Text>
@@ -172,9 +208,9 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
               styles.createButton,
               !tripName.trim() && styles.createButtonDisabled,
             ]}
-            onPress={handleCreateTrip}
+            onPress={handleSubmit}
             disabled={!tripName.trim()}>
-            <Text style={styles.createText}>Create Trip</Text>
+            <Text style={styles.createText}>{isUpdating ? 'Update Trip' : 'Create Trip'}</Text>
           </TouchableOpacity>
         </View>
       </View>

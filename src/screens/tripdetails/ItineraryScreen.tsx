@@ -111,7 +111,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
     if (!selectedDate || !itinerary) return;
 
     try {
-      // Create updated itinerary by filtering out the deleted item
       const updatedItinerary = {
         ...itinerary,
         itinerary: {
@@ -121,11 +120,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           ),
         },
       };
-
-      // Update the itinerary using the existing endpoint
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
-
-      // Reset states
       setIsUpdating(false);
       setSelectedItem(null);
     } catch (error) {

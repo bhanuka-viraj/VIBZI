@@ -19,7 +19,7 @@ export interface ItineraryItem {
 }
 
 export const getImageSource = (url: string) => {
-  switch(url) {
+  switch (url) {
     case '/1.jpg':
       return require('../../assets/images/trip/1.jpg');
     case '/2.jpg':
@@ -51,6 +51,12 @@ export function parseTrips(response: any) {
       title: item.title,
       description: item.description,
       image: imageSource,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      destinationName: item.destinationName,
+      imageUrl: item.imageUrl,
+      destinationId: item.destinationId,
+      userId: item.userId,
     };
   });
   return parsed;
@@ -68,13 +74,13 @@ export function parseItineraryData(data: any) {
   if (!data || !data.itinerary) {
     return {
       dates: [],
-      itineraryByDate: {} as Record<string, ItineraryItem[]>
+      itineraryByDate: {} as Record<string, ItineraryItem[]>,
     };
   }
 
   const itinerary = data.itinerary as Record<string, ItineraryItem[]>;
   return {
     dates: Object.keys(itinerary),
-    itineraryByDate: itinerary
+    itineraryByDate: itinerary,
   };
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import MyTripsScreen from '../screens/MyTripsScreen';
@@ -42,6 +42,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
           };
 
           const icon = options.tabBarIcon({ focused: isFocused });
+          const label = route.name === 'MyTrips' ? 'My Trips' : route.name;
 
           return (
             <View key={route.key} style={styles.tab}>
@@ -51,6 +52,13 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                 color={isFocused ? theme.colors.primary : '#909090'}
                 onPress={onPress}
               />
+              <Text
+                style={[
+                  styles.tabLabel,
+                  { color: isFocused ? theme.colors.primary : '#909090' },
+                ]}>
+                {label}
+              </Text>
             </View>
           );
         })}
@@ -131,9 +139,9 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: 'white',
-    paddingVertical: 8,
+    paddingVertical: 1,
     paddingHorizontal: 16,
-    width: '35%',
+    width: '40%',
     justifyContent: 'space-between',
     borderWidth: 0.2,
     borderColor: '#E0E0E0',
@@ -154,6 +162,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,
+  },
+  tabLabel: {
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: '500',
   },
 });
 

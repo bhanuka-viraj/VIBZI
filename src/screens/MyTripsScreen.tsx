@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -13,7 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Search from '../components/Search';
 import { ActionSheetRef } from 'react-native-actions-sheet';
 import CreateTripActionSheet from '../components/actionsheets/trip/CreateTripActionSheet';
-import { useSearchTripPlansQuery } from '../redux/slices/tripplan/tripPlanSlice';
+import { useSearchTripPlansQuery, useUpdateTripPlanMutation, useDeleteTripPlanMutation } from '../redux/slices/tripplan/tripPlanSlice';
 import { Text } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -22,16 +22,41 @@ import { setTrip_Id, setTripId } from '../redux/slices/metaSlice';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 const MyTripsScreen: React.FC = () => {
   const actionSheetRef = useRef<ActionSheetRef>(null);
+  const createTripActionSheetRef = useRef<ActionSheetRef>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
+  const [tripToDelete, setTripToDelete] = useState<any>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const [updateTripPlan] = useUpdateTripPlanMutation();
+  const [deleteTripPlan] = useDeleteTripPlanMutation();
+
+  const handleSearch = useCallback((text: string) => {
+    // console.log('Search input text:', text);
+    setSearchQuery(text);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      const trimmedText = text.trim();
+      // console.log('Debounced search query:', trimmedText);
+      setDebouncedSearchQuery(trimmedText);
+    }, 600);
+  }, []);
 
   const {
-
     data: trips,
     isLoading,
     error,
@@ -39,7 +64,7 @@ const MyTripsScreen: React.FC = () => {
     user?.userId
       ? {
         userId: user?.userId,
-        title: '',
+        title: debouncedSearchQuery,
         destinationName: '',
         page: 0,
         size: 10,
@@ -47,22 +72,39 @@ const MyTripsScreen: React.FC = () => {
       : {},
   );
 
-  console.log('Trips:', JSON.stringify(trips, null, 2));
+  // console.log('Current search params:', {
+  //   userId: user?.userId,
+  //   title: debouncedSearchQuery,
+  //   destinationName: '',
+  //   page: 0,
+  //   size: 10,
+  // });
+
+  // console.log('API Response:', trips);
 
   const tripData = parseTrips(trips);
 
-  console.log('trips data : ', tripData);
+  // console.log('trips data : ', tripData);
 
   useEffect(() => {
     if (tripData && tripData.length > 0) {
-      console.log('Setting trip IDs:', tripData[0].id, tripData[0].tripId);
+      // console.log('Setting trip IDs:', tripData[0].id, tripData[0].tripId);
       dispatch(setTripId(tripData[0].id));
       dispatch(setTrip_Id(tripData[0].tripId));
     }
   }, [tripData, dispatch]);
 
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleOnPress = (id: string, trip_id: string) => {
-    console.log('Handling press with IDs:', id, trip_id);
+    // console.log('Handling press with IDs:', id, trip_id);
     dispatch(setTripId(id));
     dispatch(setTrip_Id(trip_id));
 
@@ -70,6 +112,27 @@ const MyTripsScreen: React.FC = () => {
       tripId: id,
       trip_id: trip_id,
     });
+  };
+
+  const handleUpdate = (trip: any) => {
+    setSelectedTrip(trip);
+    setIsUpdating(true);
+    createTripActionSheetRef.current?.show();
+  };
+
+  const handleDelete = async () => {
+    if (!tripToDelete) return;
+
+    try {
+      await deleteTripPlan(tripToDelete.id).unwrap();
+      setTripToDelete(null);
+    } catch (error) {
+      // console.error('Failed to delete trip:', error);
+    }
+  };
+
+  const handleDeletePress = (trip: any) => {
+    setTripToDelete(trip);
   };
 
   if (isLoading) {
@@ -112,11 +175,17 @@ const MyTripsScreen: React.FC = () => {
         <Search
           style={styles.searchContainer}
           placeholder={'Search your trip'}
+          value={searchQuery}
+          onChangeText={handleSearch}
         />
         <View style={styles.btnContainer}>
           <TouchableOpacity
             style={styles.btn}
-            onPress={() => actionSheetRef.current?.show()}>
+            onPress={() => {
+              setIsUpdating(false);
+              setSelectedTrip(null);
+              createTripActionSheetRef.current?.show();
+            }}>
             <Icon
               source={'plus-circle'}
               size={23}
@@ -147,15 +216,39 @@ const MyTripsScreen: React.FC = () => {
                     title: item.title,
                     description: item.description,
                     image: item.image,
+                    startDate: item.startDate,
+                    endDate: item.endDate,
+                    destinationName: item.destinationName,
+                    imageUrl: item.imageUrl,
+                    destinationId: item.destinationId,
+                    userId: item.userId,
                   }}
                   onPress={(id, tripId) => handleOnPress(id, tripId)}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDeletePress}
                 />
               </View>
             )}
             ListEmptyComponent={EmptyTripsView}
           />
         </View>
-        <CreateTripActionSheet actionSheetRef={actionSheetRef} />
+        <CreateTripActionSheet
+          actionSheetRef={createTripActionSheetRef}
+          isUpdating={isUpdating}
+          initialData={selectedTrip}
+        />
+
+        <ConfirmationDialog
+          key={tripToDelete?.id}
+          visible={!!tripToDelete}
+          onDismiss={() => setTripToDelete(null)}
+          onConfirm={handleDelete}
+          title="Delete Trip"
+          message="Are you sure you want to delete this trip? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          confirmButtonStyle="danger"
+        />
       </View>
     </View>
   );
@@ -199,7 +292,7 @@ const styles = StyleSheet.create({
   },
   gradientOverlay: {
     position: 'absolute',
-    top: 180,
+    top: 190,
     left: 0,
     right: 0,
     height: 10,

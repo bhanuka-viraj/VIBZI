@@ -207,8 +207,8 @@ const Search = ({ style, placeholder, value, onChangeText, onBackPress }: Search
                     </TouchableOpacity>
                     <TextInput
                         ref={inputRef}
-                        placeholder={placeholder || 'Enter your destination'}
-                        value={searchQuery}
+            placeholder={placeholder || 'Enter your destination'}
+            value={searchQuery}
                         onChangeText={handleChangeText}
                         style={styles.input}
                         onFocus={handleFocus}
