@@ -1,17 +1,18 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { 
-  signIn as amplifySignIn, 
-  signOut as amplifySignOut, 
-  getCurrentUser, 
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {
+  signIn as amplifySignIn,
+  signOut as amplifySignOut,
+  getCurrentUser,
   signUp as amplifySignUp,
   fetchUserAttributes,
   fetchAuthSession,
-  confirmSignUp as amplifyConfirmSignUp
+  confirmSignUp as amplifyConfirmSignUp,
 } from '@aws-amplify/auth';
-import { createAsyncThunk } from '@reduxjs/toolkit';
+import {createAsyncThunk} from '@reduxjs/toolkit';
 
 interface AuthState {
   isAuthenticated: boolean;
+  isInitialized: boolean;
   user: any | null;
   loading: boolean;
   error: string | null;
@@ -19,6 +20,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   isAuthenticated: false,
+  isInitialized: false,
   user: null,
   loading: false,
   error: null,
@@ -33,7 +35,7 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.loading = false;
     },
-    clearUser: (state) => {
+    clearUser: state => {
       state.isAuthenticated = false;
       state.user = null;
       state.loading = false;
@@ -45,9 +47,12 @@ const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
+    setInitialized: state => {
+      state.isInitialized = true;
+    },
   },
-  extraReducers: (builder) => {
-    builder.addCase(signOut.fulfilled, (state) => {
+  extraReducers: builder => {
+    builder.addCase(signOut.fulfilled, state => {
       state.isAuthenticated = false;
       state.user = null;
       state.loading = false;
@@ -56,9 +61,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearUser, setError, setLoading } = authSlice.actions;
-
-
+export const {setUser, clearUser, setError, setLoading, setInitialized} =
+  authSlice.actions;
 
 ////////////////////////////////////////////////////////////
 export const checkAuthState = () => async (dispatch: any) => {
@@ -68,7 +72,7 @@ export const checkAuthState = () => async (dispatch: any) => {
     const attributes = await fetchUserAttributes();
 
     const session = await fetchAuthSession();
-    console.log(session,'session');
+    console.log(session, 'session');
     const userObject = {
       username: attributes.email || user.username,
       userId: user.userId,
@@ -79,44 +83,47 @@ export const checkAuthState = () => async (dispatch: any) => {
       gender: attributes.gender || '',
       birthdate: attributes.birthdate || '',
       picture: attributes.picture || '',
-      isSignedIn: true
+      isSignedIn: true,
     };
-    console.log(userObject,'userObject');
+    console.log(userObject, 'userObject');
     dispatch(setUser(userObject));
   } catch (error) {
-    console.log(error,'no active session')
+    console.log(error, 'no active session');
     dispatch(clearUser());
+  } finally {
+    dispatch({type: 'auth/setInitialized'});
   }
 };
 
-export const signIn = (username: string, password: string) => async (dispatch: any) => {
-  try {
-    dispatch(setLoading(true));
-    dispatch(setError(null));
-    const signInResult = await amplifySignIn({ username, password });
-    const userInfo = await getCurrentUser();
-    const attributes = await fetchUserAttributes();
-    
-    const userObject = {
-      username: attributes.email || username,
-      userId: userInfo.userId,
-      firstName: attributes.given_name || 'User',
-      lastName: attributes.family_name || '',
-      email: attributes.email || '',
-      phone: attributes.phone_number || '',
-      gender: attributes.gender || '',
-      birthdate: attributes.birthdate || '',
-      picture: attributes.picture || '',
-      isSignedIn: signInResult.isSignedIn
-    };
-    dispatch(setUser(userObject));
-  } catch (error: any) {
-    dispatch(setError(error.message));
-    dispatch(clearUser());
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
+export const signIn =
+  (username: string, password: string) => async (dispatch: any) => {
+    try {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+      const signInResult = await amplifySignIn({username, password});
+      const userInfo = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
+
+      const userObject = {
+        username: attributes.email || username,
+        userId: userInfo.userId,
+        firstName: attributes.given_name || 'User',
+        lastName: attributes.family_name || '',
+        email: attributes.email || '',
+        phone: attributes.phone_number || '',
+        gender: attributes.gender || '',
+        birthdate: attributes.birthdate || '',
+        picture: attributes.picture || '',
+        isSignedIn: signInResult.isSignedIn,
+      };
+      dispatch(setUser(userObject));
+    } catch (error: any) {
+      dispatch(setError(error.message));
+      dispatch(clearUser());
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
 
 export const signOut = createAsyncThunk('auth/signOut', async () => {
   try {
@@ -129,7 +136,16 @@ export const signOut = createAsyncThunk('auth/signOut', async () => {
 
 export const signUp = createAsyncThunk(
   'auth/signUp',
-  async ({ username, password, email, givenName, familyName, gender, birthdate, phoneNumber }: {
+  async ({
+    username,
+    password,
+    email,
+    givenName,
+    familyName,
+    gender,
+    birthdate,
+    phoneNumber,
+  }: {
     username: string;
     password: string;
     email: string;
@@ -149,12 +165,12 @@ export const signUp = createAsyncThunk(
           family_name: familyName,
           gender,
           birthdate,
-          phone_number: phoneNumber
-        }
-      }
+          phone_number: phoneNumber,
+        },
+      },
     });
     return result;
-  }
+  },
 );
 
-export default authSlice.reducer; 
+export default authSlice.reducer;

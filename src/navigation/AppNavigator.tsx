@@ -14,6 +14,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import { StatusBar } from 'react-native';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import SplashScreen from '../screens/SplashScreen';
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -28,34 +29,28 @@ const navigationTheme = {
 };
 
 export type RootStackParamList = {
+  Splash: undefined;
+  Login: undefined;
+  Signup: undefined;
+  ConfirmSignup: { username: string };
+  Main: undefined;
   MainTabs: undefined;
   TripDetails: {
     tripId: string;
     trip_id: string;
   };
-  Login: {
-    redirectTo?: string;
-  };
-  Signup: undefined;
-  ConfirmSignup: { username: string };
   ForgotPassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function AppNavigator() {
+const AppNavigator = () => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, loading, user } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     dispatch(checkAuthState());
   }, [dispatch]);
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
 
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -65,48 +60,19 @@ export default function AppNavigator() {
         translucent
       />
       <Stack.Navigator
+        initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
-          animation: 'slide_from_right',
+          animation: 'fade_from_bottom',
           contentStyle: { backgroundColor: '#FFFFFF' },
-        }}
-        initialRouteName={isAuthenticated ? 'MainTabs' : 'Login'}>
-        {/* 
+        }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="ConfirmSignup" component={ConfirmSignupScreen} />
+        <Stack.Screen name="Main" component={BottomTabNavigator} />
         <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
         <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerShadowVisible: false,
-            headerTransparent: true,
-            animation: 'slide_from_right',
-          }}
-        />
-        <Stack.Screen
-          name="Signup"
-          component={SignupScreen}
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerShadowVisible: false,
-            headerTransparent: true,
-            animation: 'slide_from_right',
-          }}
-        />
-        <Stack.Screen
-          name="ConfirmSignup"
-          component={ConfirmSignupScreen}
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerShadowVisible: false,
-            headerTransparent: true,
-            animation: 'slide_from_right',
-          }}
-        />
         <Stack.Screen
           name="ForgotPassword"
           component={ForgotPasswordScreen}
@@ -118,63 +84,9 @@ export default function AppNavigator() {
             animation: 'slide_from_right',
           }}
         />
-        */}
-
-
-        {isAuthenticated ? (
-          <>
-            <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-            <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                headerShown: true,
-                headerTitle: '',
-                headerShadowVisible: false,
-                headerTransparent: true,
-                animation: 'slide_from_right',
-              }}
-            />
-            <Stack.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{
-                headerShown: true,
-                headerTitle: '',
-                headerShadowVisible: false,
-                headerTransparent: true,
-                animation: 'slide_from_right',
-              }}
-            />
-            <Stack.Screen
-              name="ConfirmSignup"
-              component={ConfirmSignupScreen}
-              options={{
-                headerShown: true,
-                headerTitle: '',
-                headerShadowVisible: false,
-                headerTransparent: true,
-                animation: 'slide_from_right',
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-              options={{
-                headerShown: true,
-                headerTitle: '',
-                headerShadowVisible: false,
-                headerTransparent: true,
-                animation: 'slide_from_right',
-              }}
-            />
-          </>
-        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default AppNavigator;

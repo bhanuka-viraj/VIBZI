@@ -127,9 +127,6 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
     }
   };
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   return (
     <>
