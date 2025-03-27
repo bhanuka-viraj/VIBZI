@@ -1,15 +1,15 @@
 // components/MainLayout.tsx
 import React from 'react';
-import {View, StyleSheet, StatusBar} from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import Header from '../Header';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   showHeader?: boolean;
 }
 
-const MainLayout = ({children, showHeader = true}: MainLayoutProps) => {
+const MainLayout = ({ children, showHeader = true }: MainLayoutProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={'dark-content'} backgroundColor={'white'} />
