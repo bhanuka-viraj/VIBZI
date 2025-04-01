@@ -1,12 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { apiSlice, apiSlice1 } from './slices/apiSlice';
+import {configureStore} from '@reduxjs/toolkit';
+import {apiSlice, apiSlice1} from './slices/apiSlice';
 import authReducer from './slices/authSlice';
 import metaReducer from './slices/metaSlice';
+import appReducer from './slices/appSlice';
 
 // Custom middleware to log API calls
 const rtkQueryErrorLogger = () => (next: any) => (action: any) => {
   // RTK Query uses `api` in action types
-  if (action?.type?.startsWith('apiOne') || action?.type?.startsWith('apiTwo')) {
+  if (
+    action?.type?.startsWith('apiOne') ||
+    action?.type?.startsWith('apiTwo')
+  ) {
     console.log('RTK Query Action:', action);
   }
   if (action?.error) {
@@ -21,8 +25,9 @@ export const store = configureStore({
     [apiSlice1.reducerPath]: apiSlice1.reducer,
     auth: authReducer,
     meta: metaReducer,
+    app: appReducer,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware()
       .concat(apiSlice.middleware, apiSlice1.middleware)
       .concat(rtkQueryErrorLogger),

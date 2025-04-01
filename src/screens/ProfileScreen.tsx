@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Avatar,
   Text,
@@ -9,13 +9,13 @@ import {
   useTheme,
   Divider,
 } from 'react-native-paper';
-import {useAppDispatch} from '../redux/hooks';
-import {signOut} from '../redux/slices/authSlice';
-import {useNavigation, NavigationProp} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
-import {RootState} from '../redux/store';
+import { useAppDispatch } from '../redux/hooks';
+import { signOut } from '../redux/slices/authSlice';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {RootStackParamList} from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import LoadingModal from '../components/LoadingModal';
 
 const ProfileScreen = () => {
@@ -23,7 +23,7 @@ const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const theme = useTheme();
-  const {user} = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   console.log('user from profile screen', user);
 
@@ -38,9 +38,15 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     try {
+      console.log('====================================');
+      console.log('signing out');
+      console.log('====================================');
       setIsLoading(true);
       await dispatch(signOut()).unwrap();
-      navigation.navigate('MainTabs');
+      console.log('====================================');
+      console.log('signed out and navigating to login');
+      console.log('====================================');
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -55,14 +61,14 @@ const ProfileScreen = () => {
         {user?.picture ? (
           <Avatar.Image
             size={120}
-            source={{uri: user.picture}}
+            source={{ uri: user.picture }}
             style={styles.avatar}
           />
         ) : (
           <Avatar.Text
             size={120}
             label={getInitials(user?.firstName || 'Guest')}
-            style={[styles.avatar, {backgroundColor: theme.colors.primary}]}
+            style={[styles.avatar, { backgroundColor: theme.colors.primary }]}
             color={theme.colors.onPrimary}
           />
         )}
