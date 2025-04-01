@@ -30,7 +30,6 @@ export default function LoginScreen({ route }: any) {
   );
   const navigation = useNavigation<NavigationProp>();
 
-  // Clear error when component mounts
   useEffect(() => {
     dispatch(setError(null));
   }, [dispatch]);

@@ -111,6 +111,8 @@ const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
+    actionSheetRef.current?.hide();
+
     const obj = {
       position: initialData
         ? initialData.position
@@ -145,9 +147,6 @@ const AddFoodAndDrinkActionSheet: React.FC<FoodAndDrinkActionSheetProps> = ({
     try {
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       handleClear();
-      setTimeout(() => {
-        actionSheetRef.current?.hide();
-      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }

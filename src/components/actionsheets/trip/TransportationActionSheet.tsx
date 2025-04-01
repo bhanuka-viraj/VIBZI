@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux';
 import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
 import { TRANSPORTATION } from '../../../constants/ItineraryTypes';
 import DatePicker from 'react-native-date-picker';
+import { validateTimeRange, validateRequiredFields } from '../../../utils/validation/formValidation';
 
 interface AddTransportationActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -56,6 +57,8 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
   const [link, setLink] = useState('');
   const [reservationNumber, setReservationNumber] = useState('');
   const [note, setNote] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [timeError, setTimeError] = useState<string | undefined>();
 
   const tripData = useSelector((state: any) => state.meta.trip);
   const itinerary = tripData?.itinerary || null;
@@ -70,47 +73,92 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleClear = () => {
+  const setDefaultValues = () => {
+    const now = new Date();
     setName('');
-    setType('');
+    setType('Car'); // Default to Car
     setDepartureLocation('');
-    setDepartureTime(null);
+    setDepartureTime(now);
     setArrivalLocation('');
-    setArrivalTime(null);
+    setArrivalTime(now);
     setLink('');
     setReservationNumber('');
     setNote('');
   };
 
+  const handleClear = () => {
+    setDefaultValues();
+  };
+
   useEffect(() => {
     if (initialData) {
-      setName(initialData.details.title);
-      setType(initialData.details.customFields.type || '');
-      setDepartureLocation(initialData.details.customFields.departureLocation || '');
-      setArrivalLocation(initialData.details.customFields.arrivalLocation || '');
+      setName(initialData.details.title || '');
+      setType(initialData.details.customFields?.type || '');
+      setDepartureLocation(initialData.details.customFields?.departureLocation || '');
+      setArrivalLocation(initialData.details.customFields?.arrivalLocation || '');
 
-      if (initialData.details.customFields.departureTime) {
-        setDepartureTime(new Date(initialData.details.customFields.departureTime));
+      if (initialData.details.customFields?.departureTime) {
+        const departureTimeDate = new Date(initialData.details.customFields.departureTime);
+        setDepartureTime(isNaN(departureTimeDate.getTime()) ? null : departureTimeDate);
+      } else {
+        setDepartureTime(null);
       }
-      if (initialData.details.customFields.arrivalTime) {
-        setArrivalTime(new Date(initialData.details.customFields.arrivalTime));
+      if (initialData.details.customFields?.arrivalTime) {
+        const arrivalTimeDate = new Date(initialData.details.customFields.arrivalTime);
+        setArrivalTime(isNaN(arrivalTimeDate.getTime()) ? null : arrivalTimeDate);
+      } else {
+        setArrivalTime(null);
       }
 
-      setLink(initialData.details.customFields.link || '');
-      setReservationNumber(initialData.details.customFields.reservationNumber || '');
-      setNote(initialData.details.customFields.note || '');
+      setLink(initialData.details.customFields?.link || '');
+      setReservationNumber(initialData.details.customFields?.reservationNumber || '');
+      setNote(initialData.details.customFields?.note || '');
+    } else {
+      setDefaultValues();
     }
   }, [initialData]);
 
   useEffect(() => {
-    if (!isUpdating) {
-      handleClear();
+    if (!isUpdating && !isViewOnly && !initialData) {
+      setDefaultValues();
     }
-  }, [isUpdating]);
+  }, [isUpdating, isViewOnly, initialData]);
+
+  const validateForm = (): boolean => {
+    setErrors({});
+    setTimeError(undefined);
+
+    const fieldValidation = validateRequiredFields(
+      {
+        name,
+        type,
+        departureLocation,
+        arrivalLocation
+      },
+      ['name', 'type', 'departureLocation', 'arrivalLocation']
+    );
+
+    const timeValidation = validateTimeRange(departureTime, arrivalTime);
+
+    if (!fieldValidation.isValid) {
+      setErrors(fieldValidation.errors);
+    }
+
+    if (!timeValidation.isValid) {
+      setTimeError(timeValidation.error);
+    }
+
+    return fieldValidation.isValid && timeValidation.isValid;
+  };
 
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
+    if (!validateForm()) {
+      return;
+    }
+
+    actionSheetRef.current?.hide();
     const obj = {
       position: initialData
         ? initialData.position
@@ -147,9 +195,6 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
     try {
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       handleClear();
-      setTimeout(() => {
-        actionSheetRef.current?.hide();
-      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
@@ -174,7 +219,7 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
         </Text>
         <Text style={styles.description}>Add a description here</Text>
 
-        <Text style={styles.label}>Type of transportation</Text>
+        <Text style={styles.label}>Type of transportation *</Text>
         <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
           {['Flight', 'Train', 'Car', 'Bus'].map(option => (
             <TouchableOpacity
@@ -182,8 +227,14 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
               style={[
                 styles.toggleButton,
                 type === option && { backgroundColor: theme.colors.primary },
+                errors.type && styles.inputError
               ]}
-              onPress={() => !isViewOnly && setType(option)}
+              onPress={() => {
+                setType(option);
+                if (errors.type) {
+                  setErrors({ ...errors, type: '' });
+                }
+              }}
               disabled={isViewOnly}>
               <Text
                 style={[
@@ -195,46 +246,78 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
             </TouchableOpacity>
           ))}
         </View>
+        {errors.type && <Text style={styles.errorText}>{errors.type}</Text>}
 
         <Text style={styles.label}>Name *</Text>
         <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
+          style={[
+            styles.input,
+            isViewOnly && styles.disabledInput,
+            errors.name && styles.inputError
+          ]}
           placeholder="Enter name"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            if (errors.name) {
+              setErrors({ ...errors, name: '' });
+            }
+          }}
           editable={!isViewOnly}
         />
+        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-        <Text style={styles.label}>Departure Location</Text>
+        <Text style={styles.label}>Departure Location *</Text>
         <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
+          style={[
+            styles.input,
+            isViewOnly && styles.disabledInput,
+            errors.departureLocation && styles.inputError
+          ]}
           placeholder="Enter departure location"
           value={departureLocation}
-          onChangeText={setDepartureLocation}
+          onChangeText={(text) => {
+            setDepartureLocation(text);
+            if (errors.departureLocation) {
+              setErrors({ ...errors, departureLocation: '' });
+            }
+          }}
           editable={!isViewOnly}
         />
+        {errors.departureLocation && <Text style={styles.errorText}>{errors.departureLocation}</Text>}
 
-        <Text style={styles.label}>Arrival Location</Text>
+        <Text style={styles.label}>Arrival Location *</Text>
         <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
+          style={[
+            styles.input,
+            isViewOnly && styles.disabledInput,
+            errors.arrivalLocation && styles.inputError
+          ]}
           placeholder="Enter arrival location"
           value={arrivalLocation}
-          onChangeText={setArrivalLocation}
+          onChangeText={(text) => {
+            setArrivalLocation(text);
+            if (errors.arrivalLocation) {
+              setErrors({ ...errors, arrivalLocation: '' });
+            }
+          }}
           editable={!isViewOnly}
         />
+        {errors.arrivalLocation && <Text style={styles.errorText}>{errors.arrivalLocation}</Text>}
 
         <View style={styles.timeRow}>
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Departure Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !departureTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              style={[
+                styles.timeInput,
+                !departureTime && styles.timeInputEmpty,
+                isViewOnly && styles.disabledInput,
+                timeError && styles.inputError
+              ]}
               onPress={() => !isViewOnly && setShowDepartureTimePicker(true)}
               disabled={isViewOnly}>
-              <Text
-                style={[
-                  styles.timeText,
-                  !departureTime && styles.timeTextPlaceholder,
-                ]}>
+              <Text style={[styles.timeText, !departureTime && styles.timeTextPlaceholder]}>
                 {formatTime(departureTime) || 'Select time'}
               </Text>
             </TouchableOpacity>
@@ -243,19 +326,21 @@ const AddTransportationActionSheet: React.FC<AddTransportationActionSheetProps> 
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Arrival Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !arrivalTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              style={[
+                styles.timeInput,
+                !arrivalTime && styles.timeInputEmpty,
+                isViewOnly && styles.disabledInput,
+                timeError && styles.inputError
+              ]}
               onPress={() => !isViewOnly && setShowArrivalTimePicker(true)}
               disabled={isViewOnly}>
-              <Text
-                style={[
-                  styles.timeText,
-                  !arrivalTime && styles.timeTextPlaceholder,
-                ]}>
+              <Text style={[styles.timeText, !arrivalTime && styles.timeTextPlaceholder]}>
                 {formatTime(arrivalTime) || 'Select time'}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
+        {timeError && <Text style={styles.errorText}>{timeError}</Text>}
 
         <DatePicker
           modal
@@ -436,6 +521,16 @@ const styles = StyleSheet.create({
   },
   disabledToggle: {
     opacity: 0.7,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });
 

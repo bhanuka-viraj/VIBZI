@@ -17,14 +17,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useGetTripPlanByIdQuery, useUpdateTripPlanMutation } from '../redux/slices/tripplan/tripPlanSlice';
 import { getImageSource } from '../utils/tripUtils/tripDataUtil';
-import LoadingScreen from '../components/LoadingScreen';
 import { useDispatch } from 'react-redux';
 import { setTripId } from '../redux/slices/metaSlice';
-import { StatusBarStyles, getStatusBarGradient } from '../utils/statusBarUtils';
+import { getStatusBarGradient } from '../utils/statusBarUtils';
 import { theme } from '@/constants/theme';
 
 const HEADER_IMAGE_HEIGHT = 200;
@@ -47,7 +46,7 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState('');
 
-  const [statusBarStyle, setStatusBarStyle] =
+  const [statusBarStyle] =
     useState<StatusBarStyle>('light-content');
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -72,6 +71,7 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       : tripData.description
     : '';
 
+  console.log('tripData : ', tripData);
   useEffect(() => {
     if (tripData) {
       dispatch(setTripId(tripData?.tripId));

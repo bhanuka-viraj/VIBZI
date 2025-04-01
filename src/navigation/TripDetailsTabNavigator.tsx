@@ -1,12 +1,24 @@
 import * as React from 'react';
-import {StyleSheet, View} from 'react-native';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import { StyleSheet, View } from 'react-native';
 import ChecklistsScreen from '../screens/tripdetails/CheckListScreen';
 import ItineraryScreen from '../screens/tripdetails/ItineraryScreen';
 import AttachmentsScreen from '../screens/tripdetails/AttachmentsScreen';
-import {theme} from '../constants/theme';
+import { theme } from '../constants/theme';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
-const Tab = createMaterialTopTabNavigator();
+type TripDetailsTabParams = {
+  Checklists: {
+    tripId: string;
+    trip_id: string;
+  };
+  Itinerary: {
+    tripId: string;
+    trip_id: string;
+  };
+  Attachments: undefined;
+};
+
+const Tab = createMaterialTopTabNavigator<TripDetailsTabParams>();
 
 // export type TripDetailsTabParams = {
 //   Checklists: {
@@ -34,9 +46,24 @@ type TripDetailsTabNavigatorProps = {
 const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
   screenProps,
 }) => {
+  const ChecklistsComponent = React.useCallback(() => (
+    <ChecklistsScreen
+      tripId={screenProps.tripId}
+      trip_id={screenProps.trip_id}
+    />
+  ), [screenProps.tripId, screenProps.trip_id]);
+
+  const ItineraryComponent = React.useCallback(() => (
+    <ItineraryScreen
+      tripId={screenProps.tripId}
+      trip_id={screenProps.trip_id}
+    />
+  ), [screenProps.tripId, screenProps.trip_id]);
+
   return (
     <View style={styles.container}>
       <Tab.Navigator
+        initialRouteName="Itinerary"
         screenOptions={{
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: '#999',
@@ -58,35 +85,23 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
           },
           tabBarPressColor: 'transparent',
           swipeEnabled: false,
-          lazy: true,
         }}>
         <Tab.Screen
           name="Checklists"
-          children={() => (
-            <ChecklistsScreen
-              tripId={screenProps.tripId}
-              trip_id={screenProps.trip_id}
-            />
-          )}
-          options={{tabBarLabel: 'Checklists'}}
+          component={ChecklistsComponent}
+          options={{ tabBarLabel: 'Checklists' }}
         />
         <Tab.Screen
           name="Itinerary"
-          children={() => (
-            <ItineraryScreen
-              tripId={screenProps.tripId}
-              trip_id={screenProps.trip_id}
-            />
-          )}
+          component={ItineraryComponent}
           options={{
             tabBarLabel: 'Itinerary',
-            lazy: true,
           }}
         />
         <Tab.Screen
           name="Attachments"
-          children={() => <AttachmentsScreen />}
-          options={{tabBarLabel: 'Attachments'}}
+          component={AttachmentsScreen}
+          options={{ tabBarLabel: 'Attachments' }}
         />
       </Tab.Navigator>
     </View>

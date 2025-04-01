@@ -12,6 +12,7 @@ import { theme } from '../../../constants/theme';
 import { useSelector } from 'react-redux';
 import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
 import { NOTE } from '../../../constants/ItineraryTypes';
+import { validateRequiredFields } from '../../../utils/validation/formValidation';
 
 interface NoteActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -38,6 +39,7 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const tripData = useSelector((state: any) => state.meta.trip);
   const itinerary = tripData?.itinerary || null;
@@ -47,26 +49,53 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({
 
   const [updateItinerary, { isLoading }] = useUpdateTripPlanItineraryMutation();
 
-  const handleClear = () => {
+  const setDefaultValues = () => {
     setTitle('');
     setNote('');
   };
 
+  const handleClear = () => {
+    setDefaultValues();
+  };
+
   useEffect(() => {
     if (initialData) {
-      setTitle(initialData.details.title);
-      setNote(initialData.details.customFields.note || '');
+      setTitle(initialData.details.title || '');
+      setNote(initialData.details.customFields?.note || '');
+    } else {
+      setDefaultValues();
     }
   }, [initialData]);
 
   useEffect(() => {
-    if (!isUpdating) {
-      handleClear();
+    if (!isUpdating && !isViewOnly && !initialData) {
+      setDefaultValues();
     }
-  }, [isUpdating]);
+  }, [isUpdating, isViewOnly, initialData]);
+
+  const validateForm = (): boolean => {
+    setErrors({});
+
+    const fieldValidation = validateRequiredFields(
+      { note },
+      ['note']
+    );
+
+    if (!fieldValidation.isValid) {
+      setErrors(fieldValidation.errors);
+    }
+
+    return fieldValidation.isValid;
+  };
 
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
+
+    if (!validateForm()) {
+      return;
+    }
+
+    actionSheetRef.current?.hide();
 
     const obj = {
       position: initialData
@@ -97,9 +126,6 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({
     try {
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       handleClear();
-      setTimeout(() => {
-        actionSheetRef.current?.hide();
-      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
@@ -123,16 +149,27 @@ const NoteActionSheet: React.FC<NoteActionSheetProps> = ({
           editable={!isViewOnly}
         />
 
-        <Text style={styles.label}>Note</Text>
+        <Text style={styles.label}>Note *</Text>
         <TextInput
-          style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
-          placeholder="Add any extra details"
+          style={[
+            styles.input,
+            styles.noteInput,
+            isViewOnly && styles.disabledInput,
+            errors.note && styles.inputError
+          ]}
+          placeholder="Add note"
           value={note}
-          onChangeText={setNote}
+          onChangeText={(text) => {
+            setNote(text);
+            if (errors.note) {
+              setErrors({ ...errors, note: '' });
+            }
+          }}
           multiline
           numberOfLines={3}
           editable={!isViewOnly}
         />
+        {errors.note && <Text style={styles.errorText}>{errors.note}</Text>}
 
         {!isViewOnly && (
           <View style={styles.buttonContainer}>
@@ -218,6 +255,16 @@ const styles = StyleSheet.create({
   disabledInput: {
     backgroundColor: '#f5f5f5',
     color: '#666',
+  },
+  inputError: {
+    borderColor: theme.colors.error,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });
 

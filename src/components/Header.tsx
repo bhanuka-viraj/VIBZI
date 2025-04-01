@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <View style={styles.header}>
       <Image
-        source={require('../assets/images/icon.png')}
+        source={require('../assets/images/logo.png')}
         resizeMode="contain"
         style={styles.logo}
       />
@@ -66,8 +66,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   logo: {
-    height: 40,
-    width: 120,
+    height: 30,
+    width: 90,
+
   },
   avatar: {
     borderRadius: 16,

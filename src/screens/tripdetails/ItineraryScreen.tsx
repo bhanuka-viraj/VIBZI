@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { theme } from '../../constants/theme';
 import { THINGSTODO, PLACESTOSTAY, FOODANDDRINK, TRANSPORTATION, NOTE } from '@/constants/ItineraryTypes';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
+import EmptyState from '../../components/EmptyState';
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -39,6 +40,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   const [isUpdating, setIsUpdating] = useState(false);
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItineraryItem | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
   const tripData = useSelector((state: any) => state.meta.trip);
@@ -54,6 +56,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
   const { data, isLoading } = useGetTripPlanItineraryByIdQuery(trip_id as any);
+  console.log('data : ', data);
   const { dates, itineraryByDate } = parseItineraryData(data);
   const selectedDateItineraries = itineraryByDate[selectedDate] || [];
 
@@ -146,19 +149,14 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   };
 
   useEffect(() => {
-    if (dates.length > 0 && !selectedDate) {
+    if (dates.length > 0 && isInitialLoad) {
       dispatch(setTripDate(dates[0]));
+      setIsInitialLoad(false);
     }
     if (data) {
       dispatch(setitinerary(data));
     }
-  }, [data, dates, selectedDate, dispatch]);
-
-  useEffect(() => {
-    if (data) {
-      dispatch(setTripDate(dates[0]));
-    }
-  }, [data]);
+  }, [data, dates, dispatch, isInitialLoad]);
 
   if (isLoading) {
     return (
@@ -209,15 +207,24 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
         showsVerticalScrollIndicator={false}>
         <View style={styles.itineraryContainer}>
-          {selectedDateItineraries.map((item: ItineraryItem) => (
-            <ItineraryCard
-              key={`${selectedDate}-${item.position}`}
-              item={item}
-              onUpdate={handleUpdate}
-              onDelete={() => handleDeletePress(item)}
-              onPress={handleCardPress}
+          {selectedDateItineraries.length === 0 ? (
+            <EmptyState
+              icon="calendar-plus"
+              title="No Plans Yet"
+              date={parseTripDate(selectedDate)}
+              description="Tap the + button below to add your first activity"
             />
-          ))}
+          ) : (
+            selectedDateItineraries.map((item: ItineraryItem) => (
+              <ItineraryCard
+                key={`${selectedDate}-${item.position}`}
+                item={item}
+                onUpdate={handleUpdate}
+                onDelete={() => handleDeletePress(item)}
+                onPress={handleCardPress}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
 

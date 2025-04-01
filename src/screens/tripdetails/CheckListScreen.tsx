@@ -16,6 +16,7 @@ import {
   useUpdateTripPlanChecklistMutation,
 } from '../../redux/slices/tripplan/checklistSlice';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
+import EmptyState from '../../components/EmptyState';
 
 interface ChecklistItem {
   id: string;
@@ -166,10 +167,12 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({ tripId, trip_id }) =>
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
         {items.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No checklist items to show</Text>
-            <Text style={styles.emptySubText}>Add items to your checklist</Text>
-          </View>
+          <EmptyState
+            icon="checkbox-blank-outline"
+            title="No Checklist Items"
+            subtitle="Your checklist is empty"
+            description="Add items to your checklist using the input above"
+          />
         ) : (
           items.map(item => (
             <View key={item.id} style={styles.itemContainer}>

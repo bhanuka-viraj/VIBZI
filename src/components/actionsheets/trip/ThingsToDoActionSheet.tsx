@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
 import { THINGSTODO } from '../../../constants/ItineraryTypes';
+import { validateTimeRange, validateRequiredFields } from '../../../utils/validation/formValidation';
 
 interface AddThingToDoActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -52,6 +53,8 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   const [link, setLink] = useState('');
   const [reservationNumber, setReservationNumber] = useState('');
   const [note, setNote] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [timeError, setTimeError] = useState<string | undefined>();
 
   const tripData = useSelector((state: any) => state.meta.trip);
   const itinerary = tripData?.itinerary || null;
@@ -66,47 +69,88 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleClear = () => {
+  const setDefaultValues = () => {
+    const now = new Date();
     setName('');
-    setIsBooked(null);
-    setStartTime(null);
-    setEndTime(null);
+    setIsBooked(false); 
+    setStartTime(now); 
+    setEndTime(now); 
     setLink('');
     setReservationNumber('');
     setNote('');
   };
 
+  const handleClear = () => {
+    setDefaultValues();
+  };
+
   React.useEffect(() => {
     if (initialData) {
-      setName(initialData.details.title);
-      const isBookedValue = typeof initialData.details.customFields.isBooked === 'string'
+      setName(initialData.details.title || '');
+      const isBookedValue = typeof initialData.details.customFields?.isBooked === 'string'
         ? initialData.details.customFields.isBooked === "true"
-        : initialData.details.customFields.isBooked ?? null;
+        : initialData.details.customFields?.isBooked ?? null;
       setIsBooked(isBookedValue);
 
-      if (initialData.details.customFields.startTime) {
-        setStartTime(new Date(initialData.details.customFields.startTime));
+      if (initialData.details.customFields?.startTime) {
+        const startTimeDate = new Date(initialData.details.customFields.startTime);
+        setStartTime(isNaN(startTimeDate.getTime()) ? null : startTimeDate);
+      } else {
+        setStartTime(null);
       }
-      if (initialData.details.customFields.endTime) {
-        setEndTime(new Date(initialData.details.customFields.endTime));
+      if (initialData.details.customFields?.endTime) {
+        const endTimeDate = new Date(initialData.details.customFields.endTime);
+        setEndTime(isNaN(endTimeDate.getTime()) ? null : endTimeDate);
+      } else {
+        setEndTime(null);
       }
-      setLink(initialData.details.customFields.link || '');
-      setReservationNumber(
-        initialData.details.customFields.reservationNumber || '',
-      );
-      setNote(initialData.details.customFields.note || '');
+      setLink(initialData.details.customFields?.link || '');
+      setReservationNumber(initialData.details.customFields?.reservationNumber || '');
+      setNote(initialData.details.customFields?.note || '');
+    } else {
+      setDefaultValues();
     }
   }, [initialData]);
 
   React.useEffect(() => {
-    if (!isUpdating) {
-      handleClear();
+    if (!isUpdating && !isViewOnly && !initialData) {
+      setDefaultValues();
     }
-  }, [isUpdating]);
+  }, [isUpdating, isViewOnly, initialData]);
+
+  const validateForm = (): boolean => {
+    // Reset previous errors
+    setErrors({});
+    setTimeError(undefined);
+
+    // Validate required fields
+    const fieldValidation = validateRequiredFields(
+      { name },
+      ['name']
+    );
+
+    // Validate time range if both times are set
+    const timeValidation = validateTimeRange(startTime, endTime);
+
+    if (!fieldValidation.isValid) {
+      setErrors(fieldValidation.errors);
+    }
+
+    if (!timeValidation.isValid) {
+      setTimeError(timeValidation.error);
+    }
+
+    return fieldValidation.isValid && timeValidation.isValid;
+  };
 
   const handleAdd = async () => {
     if (!selectedDate || !itinerary) return;
 
+    if (!validateForm()) {
+      return;
+    }
+
+    actionSheetRef.current?.hide();
     const obj = {
       position: initialData
         ? initialData.position
@@ -141,9 +185,6 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
     try {
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       handleClear();
-      setTimeout(() => {
-        actionSheetRef.current?.hide();
-      }, 100);
     } catch (error) {
       console.log('error : ', error);
     }
@@ -170,12 +211,22 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
 
         <Text style={styles.label}>Name Of Activity *</Text>
         <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
+          style={[
+            styles.input,
+            isViewOnly && styles.disabledInput,
+            errors.name && styles.inputError
+          ]}
           placeholder="Enter activity name"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            if (errors.name) {
+              setErrors({ ...errors, name: '' });
+            }
+          }}
           editable={!isViewOnly}
         />
+        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
         <Text style={styles.label}>Booked?</Text>
         <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
@@ -215,7 +266,12 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !startTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              style={[
+                styles.timeInput,
+                !startTime && styles.timeInputEmpty,
+                isViewOnly && styles.disabledInput,
+                timeError && styles.inputError
+              ]}
               onPress={() => !isViewOnly && setShowStartPicker(true)}
               disabled={isViewOnly}>
               <Text
@@ -231,7 +287,12 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
           <View style={styles.timeColumn}>
             <Text style={styles.label}>End Time</Text>
             <TouchableOpacity
-              style={[styles.timeInput, !endTime && styles.timeInputEmpty, isViewOnly && styles.disabledInput]}
+              style={[
+                styles.timeInput,
+                !endTime && styles.timeInputEmpty,
+                isViewOnly && styles.disabledInput,
+                timeError && styles.inputError
+              ]}
               onPress={() => !isViewOnly && setShowEndPicker(true)}
               disabled={isViewOnly}>
               <Text
@@ -244,6 +305,7 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+        {timeError && <Text style={styles.errorText}>{timeError}</Text>}
 
         <DatePicker
           modal
@@ -424,6 +486,16 @@ const styles = StyleSheet.create({
   },
   disabledToggle: {
     opacity: 0.7,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });
 

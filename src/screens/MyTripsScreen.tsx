@@ -80,11 +80,11 @@ const MyTripsScreen: React.FC = () => {
   //   size: 10,
   // });
 
-  // console.log('API Response:', trips);
+  console.log('API Response:', trips);
 
   const tripData = parseTrips(trips);
 
-  // console.log('trips data : ', tripData);
+  console.log('trips data : ', tripData);
 
   useEffect(() => {
     if (tripData && tripData.length > 0) {
@@ -94,7 +94,6 @@ const MyTripsScreen: React.FC = () => {
     }
   }, [tripData, dispatch]);
 
-  // Cleanup timeout on component unmount
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -127,7 +126,7 @@ const MyTripsScreen: React.FC = () => {
       await deleteTripPlan(tripToDelete.id).unwrap();
       setTripToDelete(null);
     } catch (error) {
-      // console.error('Failed to delete trip:', error);
+      console.error('Failed to delete trip:', error);
     }
   };
 

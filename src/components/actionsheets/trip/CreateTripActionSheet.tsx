@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
@@ -14,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../navigation/AppNavigator';
 import { useCreateTripPlanMutation, useUpdateTripPlanMutation } from '../../../redux/slices/tripplan/tripPlanSlice';
+import { useSuggestDestinationQuery } from '../../../redux/slices/product/destinationSlice';
 import dayjs from 'dayjs';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
@@ -40,8 +42,22 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   const [toDate, setToDate] = useState<Date | null>(null);
   const [showFromDate, setShowFromDate] = useState(false);
   const [showToDate, setShowToDate] = useState(false);
+  const [dateError, setDateError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedDestinationId, setSelectedDestinationId] = useState<number | null>(null);
 
   const { user } = useSelector((state: RootState) => state.auth);
+
+  const { data: suggestionsData, isFetching: isFetchingSuggestions } = useSuggestDestinationQuery(searchTerm || undefined, {
+    skip: !searchTerm || searchTerm.length < 2,
+  });
+
+  useEffect(() => {
+    console.log('Search Term:', searchTerm);
+    console.log('Is Fetching Suggestions:', isFetchingSuggestions);
+    console.log('Suggestions Data:', suggestionsData);
+  }, [searchTerm, suggestionsData, isFetchingSuggestions]);
 
   useEffect(() => {
     if (isUpdating && initialData) {
@@ -63,8 +79,30 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
     return `/${Math.floor(Math.random() * 6) + 1}.jpg`;
   };
 
+  const handleDestinationChange = (text: string) => {
+    console.log('Destination text changed:', text);
+    setDestination(text);
+    setSearchTerm(text);
+    setShowSuggestions(true);
+    setSelectedDestinationId(null);
+  };
+
+  const handleSelectDestination = (name: string, id: number) => {
+    setDestination(name);
+    setSelectedDestinationId(id);
+    setShowSuggestions(false);
+    setSearchTerm('');
+  };
+
   const handleSubmit = async () => {
+    if (!selectedDestinationId && !isUpdating) {
+      console.error('Please select a destination from the suggestions');
+      return;
+    }
+
     try {
+      actionSheetRef.current?.hide();
+
       const baseData = {
         title: tripName,
         destinationName: destination,
@@ -72,11 +110,14 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
         endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
         description: description,
         userId: user?.userId,
-        destinationId: 124,
+        destinationId: selectedDestinationId || 124,
       };
+
+      console.log('API Request Data:', baseData);
 
       let response;
       if (isUpdating) {
+        console.log('Updating trip with ID:', initialData.id);
         response = await updateTripPlan({
           id: initialData.id,
           data: {
@@ -86,16 +127,21 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
             imageUrl: initialData.imageUrl,
           },
         }).unwrap();
+        console.log('Update Response:', response);
       } else {
+        console.log('Creating new trip');
         response = await createTripPlan({
           ...baseData,
           imageUrl: imageUrl(),
         }).unwrap();
+        console.log('Create Response:', response);
       }
 
-      actionSheetRef.current?.hide();
-
       if (!isUpdating) {
+        console.log('Navigating to trip details:', {
+          tripId: response.id,
+          trip_id: response.tripId,
+        });
         navigation.push('TripDetails', {
           tripId: response.id,
           trip_id: response.tripId,
@@ -109,110 +155,148 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
       setDescription('');
     } catch (error) {
       console.error('Failed to handle trip:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+    }
+  };
+
+  const handleToDateChange = (date: Date) => {
+    setToDate(date);
+    setShowToDate(false);
+    if (fromDate && date < fromDate) {
+      setDateError('End date must be after start date');
+    } else {
+      setDateError('');
+    }
+  };
+
+  const handleFromDateChange = (date: Date) => {
+    setFromDate(date);
+    setShowFromDate(false);
+    if (toDate && date > toDate) {
+      setDateError('End date must be after start date');
+    } else {
+      setDateError('');
     }
   };
 
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
       <View style={styles.modalContainer}>
-        <Text style={styles.title}>{isUpdating ? 'Update Trip' : 'Create a Trip'}</Text>
+        <ScrollView>
+          <Text style={styles.title}>{isUpdating ? 'Update Trip' : 'Create a Trip'}</Text>
 
-        <Text style={styles.label}>Trip Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Summer vacation in Greece"
-          maxLength={80}
-          value={tripName}
-          onChangeText={setTripName}
-        />
-
-        <Text style={styles.label}>Destination</Text>
-        <View style={styles.searchContainer}>
-          <Icon source="magnify" size={20} color="gray" />
+          <Text style={styles.label}>Trip Name *</Text>
           <TextInput
-            style={styles.searchInput}
-            placeholder="Where to?"
-            value={destination}
-            onChangeText={setDestination}
+            style={styles.input}
+            placeholder="e.g., Summer vacation in Greece"
+            maxLength={80}
+            value={tripName}
+            onChangeText={setTripName}
           />
-        </View>
 
-        <Text style={styles.label}>Select Date Range</Text>
-        <TouchableOpacity
-          style={styles.datePickerButton}
-          onPress={() => setShowFromDate(true)}>
-          <Text
-            style={[
-              styles.datePickerButtonText,
-              { color: fromDate || toDate ? 'black' : 'gray' },
-            ]}>
-            From: {fromDate ? fromDate.toDateString() : 'Select Start Date'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.datePickerButton}
-          onPress={() => setShowToDate(true)}>
-          <Text
-            style={[
-              styles.datePickerButtonText,
-              { color: fromDate || toDate ? 'black' : 'gray' },
-            ]}>
-            To: {toDate ? toDate.toDateString() : 'Select End Date'}
-          </Text>
-        </TouchableOpacity>
+          <Text style={styles.label}>Destination *</Text>
+          <View style={styles.searchContainerWrapper}>
+            <View style={styles.searchContainer}>
+              <Icon source="magnify" size={20} color="gray" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Where to?"
+                value={destination}
+                onChangeText={handleDestinationChange}
+                onFocus={() => setShowSuggestions(true)}
+              />
+            </View>
+            {showSuggestions && suggestionsData?.data && suggestionsData.data.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                {suggestionsData.data.slice(0, 5).map((suggestion: any) => (
+                  <TouchableOpacity
+                    key={suggestion.destinationId}
+                    style={styles.suggestionItem}
+                    onPress={() => handleSelectDestination(suggestion.name, suggestion.destinationId)}
+                    activeOpacity={0.7}>
+                    <Text style={styles.suggestionText}>{suggestion.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
 
-        <DatePicker
-          modal
-          open={showFromDate}
-          date={fromDate || new Date()}
-          mode="date"
-          onConfirm={date => {
-            setFromDate(date);
-            setShowFromDate(false);
-          }}
-          onCancel={() => setShowFromDate(false)}
-        />
-        <DatePicker
-          modal
-          open={showToDate}
-          date={toDate || new Date()}
-          mode="date"
-          onConfirm={date => {
-            setToDate(date);
-            setShowToDate(false);
-          }}
-          onCancel={() => setShowToDate(false)}
-        />
+          {!isUpdating && (
+            <>
+              <Text style={styles.label}>Select Date Range *</Text>
+              <TouchableOpacity
+                style={[styles.datePickerButton, dateError ? styles.inputError : null]}
+                onPress={() => setShowFromDate(true)}>
+                <Text
+                  style={[
+                    styles.datePickerButtonText,
+                    { color: fromDate || toDate ? 'black' : 'gray' },
+                  ]}>
+                  From: {fromDate ? fromDate.toDateString() : 'Select Start Date'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.datePickerButton, dateError ? styles.inputError : null]}
+                onPress={() => setShowToDate(true)}>
+                <Text
+                  style={[
+                    styles.datePickerButtonText,
+                    { color: fromDate || toDate ? 'black' : 'gray' },
+                  ]}>
+                  To: {toDate ? toDate.toDateString() : 'Select End Date'}
+                </Text>
+              </TouchableOpacity>
+              {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
 
-        <Text style={styles.label}>Description</Text>
-        <View style={styles.descriptionContainer}>
-          <TextInput
-            style={[styles.searchInput, styles.descriptionInput]}
-            placeholder="Add a description"
-            value={description}
-            onChangeText={setDescription}
-            multiline={true}
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+              <DatePicker
+                modal
+                open={showFromDate}
+                date={fromDate || new Date()}
+                mode="date"
+                onConfirm={handleFromDateChange}
+                onCancel={() => setShowFromDate(false)}
+              />
+              <DatePicker
+                modal
+                open={showToDate}
+                date={toDate || new Date()}
+                mode="date"
+                onConfirm={handleToDateChange}
+                onCancel={() => setShowToDate(false)}
+              />
+            </>
+          )}
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => actionSheetRef.current?.hide()}
-            style={styles.cancelButton}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.createButton,
-              !tripName.trim() && styles.createButtonDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={!tripName.trim()}>
-            <Text style={styles.createText}>{isUpdating ? 'Update Trip' : 'Create Trip'}</Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.label}>Description</Text>
+          <View style={styles.descriptionContainer}>
+            <TextInput
+              style={[styles.searchInput, styles.descriptionInput]}
+              placeholder="Add a description"
+              value={description}
+              onChangeText={setDescription}
+              multiline={true}
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => actionSheetRef.current?.hide()}
+              style={styles.cancelButton}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                (!tripName.trim() || !destination.trim() || (!isUpdating && (!fromDate || !toDate || !!dateError))) && styles.createButtonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={!tripName.trim() || !destination.trim() || (!isUpdating && (!fromDate || !toDate || !!dateError))}>
+              <Text style={styles.createText}>{isUpdating ? 'Update Trip' : 'Create Trip'}</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     </ActionSheet>
   );
@@ -245,6 +329,10 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 5,
   },
+  searchContainerWrapper: {
+    position: 'relative',
+    zIndex: 1,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -253,6 +341,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginTop: 5,
+    backgroundColor: 'white',
   },
   descriptionContainer: {
     flexDirection: 'row',
@@ -310,5 +399,43 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
     paddingTop: 12,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  suggestionsContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 10,
+    marginTop: 1,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  suggestionItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#333',
   },
 });

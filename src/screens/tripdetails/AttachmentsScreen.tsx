@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,20 +10,20 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import {Text, ActivityIndicator, FAB} from 'react-native-paper';
+import { Text, ActivityIndicator, FAB } from 'react-native-paper';
 import {
   useUploadAttachmentMutation,
   useGetAttachmentsByTripIdQuery,
   useDeleteAttachmentMutation,
 } from '../../redux/slices/tripplan/attachmentSlice';
-import {theme} from '../../constants/theme';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../redux/store';
+import { theme } from '../../constants/theme';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 import * as DocumentPicker from 'react-native-document-picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {formatFileSize, getFileIcon} from '../../utils/fileUtils';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import type {Permission} from 'react-native';
+import { formatFileSize, getFileIcon } from '../../utils/fileUtils';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { Permission } from 'react-native';
 import AttachmentList from '../../components/AttachmentList';
 import PendingAttachmentList from '../../components/PendingAttachmentList';
 import {
@@ -32,6 +32,7 @@ import {
   filterAttachmentsByType,
   filterPendingFilesByType,
 } from '../../utils/tripUtils/attachmentUtils';
+import EmptyState from '../../components/EmptyState';
 
 type PermissionStatus = {
   [key in Permission]?: boolean;
@@ -45,7 +46,7 @@ const AttachmentsScreen = () => {
   const trip = useSelector((state: RootState) => state.meta.trip);
   const tripId = trip?.id;
 
-  const {data: attachmentData, isLoading} =
+  const { data: attachmentData, isLoading } =
     useGetAttachmentsByTripIdQuery(tripId);
   const [uploadAttachment] = useUploadAttachmentMutation();
   const [deleteAttachment] = useDeleteAttachmentMutation();
@@ -129,13 +130,13 @@ const AttachmentsScreen = () => {
       'Delete Attachment',
       'Are you sure you want to delete this attachment?',
       [
-        {text: 'Cancel', style: 'cancel'},
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteAttachment({tripId, fileKey}).unwrap();
+              await deleteAttachment({ tripId, fileKey }).unwrap();
               Alert.alert('Success', 'File deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete attachment');
@@ -193,16 +194,16 @@ const AttachmentsScreen = () => {
               <View style={styles.pendingListsContainer}>
                 {filterPendingFilesByType(pendingFiles, 'document').length >
                   0 && (
-                  <View style={styles.pendingSection}>
-                    <Text variant="titleSmall" style={styles.subsectionTitle}>
-                      Pending Documents
-                    </Text>
-                    <PendingAttachmentList
-                      files={filterPendingFilesByType(pendingFiles, 'document')}
-                      onRemove={removePendingFile}
-                    />
-                  </View>
-                )}
+                    <View style={styles.pendingSection}>
+                      <Text variant="titleSmall" style={styles.subsectionTitle}>
+                        Pending Documents
+                      </Text>
+                      <PendingAttachmentList
+                        files={filterPendingFilesByType(pendingFiles, 'document')}
+                        onRemove={removePendingFile}
+                      />
+                    </View>
+                  )}
 
                 {filterPendingFilesByType(pendingFiles, 'image').length > 0 && (
                   <View style={styles.pendingSection}>
@@ -230,27 +231,36 @@ const AttachmentsScreen = () => {
 
           {filterAttachmentsByType(attachmentData?.attachments || [], 'image')
             .length > 0 && (
-            <AttachmentList
-              title="Images"
-              attachments={filterAttachmentsByType(
-                attachmentData?.attachments || [],
-                'image',
-              )}
-              onDelete={handleDelete}
-            />
-          )}
+              <AttachmentList
+                title="Images"
+                attachments={filterAttachmentsByType(
+                  attachmentData?.attachments || [],
+                  'image',
+                )}
+                onDelete={handleDelete}
+              />
+            )}
 
           {filterAttachmentsByType(
             attachmentData?.attachments || [],
             'document',
           ).length > 0 && (
-            <AttachmentList
-              title="Documents"
-              attachments={filterAttachmentsByType(
-                attachmentData?.attachments || [],
-                'document',
-              )}
-              onDelete={handleDelete}
+              <AttachmentList
+                title="Documents"
+                attachments={filterAttachmentsByType(
+                  attachmentData?.attachments || [],
+                  'document',
+                )}
+                onDelete={handleDelete}
+              />
+            )}
+
+          {(!attachmentData?.attachments || attachmentData.attachments.length === 0) && (
+            <EmptyState
+              icon="file-document-outline"
+              title="No Attachments"
+              subtitle="Your trip has no attachments yet"
+              description="Add documents or images using the buttons above"
             />
           )}
         </View>
