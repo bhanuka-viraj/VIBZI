@@ -15,14 +15,15 @@ const SplashScreen = () => {
 
     useEffect(() => {
         if (isInitialized) {
-            // Start fade out animation
             Animated.timing(fadeAnim, {
                 toValue: 0,
-                duration: 500, // Duration of fade out in milliseconds
+                duration: 500,
                 useNativeDriver: true,
             }).start(() => {
-                // Navigate after fade out completes
-                navigation.replace(isAuthenticated ? 'Main' : 'Login');
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: isAuthenticated ? 'Main' : 'Login' }],
+                });
             });
         }
     }, [navigation, isAuthenticated, isInitialized, fadeAnim]);

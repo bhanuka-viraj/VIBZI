@@ -182,7 +182,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   return (
     <ActionSheet ref={actionSheetRef} gestureEnabled>
       <View style={styles.modalContainer}>
-        <ScrollView>
+        <View>
           <Text style={styles.title}>{isUpdating ? 'Update Trip' : 'Create a Trip'}</Text>
 
           <Text style={styles.label}>Trip Name *</Text>
@@ -296,7 +296,7 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
               <Text style={styles.createText}>{isUpdating ? 'Update Trip' : 'Create Trip'}</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </View>
     </ActionSheet>
   );

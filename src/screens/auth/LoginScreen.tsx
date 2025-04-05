@@ -37,7 +37,7 @@ export default function LoginScreen({ route }: any) {
   useEffect(() => {
     if (isAuthenticated && !error) {
       setIsLoading(false);
-      navigation.navigate('MainTabs');
+      navigation.navigate('Main');
     } else if (error) {
       setIsLoading(false);
     }
@@ -70,7 +70,6 @@ export default function LoginScreen({ route }: any) {
             resizeMode="contain"
           />
           <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.title}>Login</Text>
         </View>
 
         <TextInput
@@ -146,12 +145,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#666',
     marginBottom: 8,
-  },
-  title: {
-    fontSize: 18,
-    color: '#666',
-    fontWeight: '600',
-    marginTop: 10,
   },
   input: {
     marginBottom: 10,

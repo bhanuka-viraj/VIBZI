@@ -37,7 +37,6 @@ export type RootStackParamList = {
   Signup: undefined;
   ConfirmSignup: { username: string };
   Main: undefined;
-  MainTabs: undefined;
   TripDetails: {
     tripId: string;
     trip_id: string;
@@ -101,23 +100,62 @@ const AppNavigator = () => {
                 }}
               />
             )}
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-            <Stack.Screen name="ConfirmSignup" component={ConfirmSignupScreen} />
-            <Stack.Screen name="Main" component={BottomTabNavigator} />
-            <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-            <Stack.Screen name="TripDetails" component={TripDetailsScreen} />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-              options={{
-                headerShown: true,
-                headerTitle: '',
-                headerShadowVisible: false,
-                headerTransparent: true,
-                animation: 'slide_from_right',
-              }}
-            />
+            {!isAuthenticated ? (
+              // Auth Stack
+              <>
+                <Stack.Screen
+                  name="Login"
+                  component={LoginScreen}
+                  options={{
+                    gestureEnabled: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="Signup"
+                  component={SignupScreen}
+                  options={{
+                    gestureEnabled: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="ConfirmSignup"
+                  component={ConfirmSignupScreen}
+                  options={{
+                    gestureEnabled: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="ForgotPassword"
+                  component={ForgotPasswordScreen}
+                  options={{
+                    headerShown: true,
+                    headerTitle: '',
+                    headerShadowVisible: false,
+                    headerTransparent: true,
+                    animation: 'slide_from_right',
+                    gestureEnabled: false,
+                  }}
+                />
+              </>
+            ) : (
+              // Main App Stack
+              <>
+                <Stack.Screen
+                  name="Main"
+                  component={BottomTabNavigator}
+                  options={{
+                    gestureEnabled: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="TripDetails"
+                  component={TripDetailsScreen}
+                  options={{
+                    gestureEnabled: true,
+                  }}
+                />
+              </>
+            )}
           </>
         )}
       </Stack.Navigator>

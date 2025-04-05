@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Animated, TouchableOpacity, Linking } from 'react-native';
+import { View, StyleSheet, Animated, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -115,9 +115,18 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ item, onUpdate, onDelete,
     };
   }, [item.position]);
 
-  const handleLinkPress = (url: string) => {
-    if (url) {
-      Linking.openURL(url);
+  const handleLinkPress = async (url: string) => {
+    try {
+      let formattedUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        formattedUrl = 'https://' + url;
+      }
+
+      await Linking.openURL(formattedUrl);
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open this URL');
+      console.error('Error opening URL:', error);
+      Alert.alert('Error', 'Something went wrong while opening the link');
     }
   };
 

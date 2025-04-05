@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,11 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import {Text, TextInput, Button} from 'react-native-paper';
-import {resetPassword, confirmResetPassword} from '@aws-amplify/auth';
-import {theme} from '../../constants/theme';
-import {useNavigation} from '@react-navigation/native';
+import { Text, TextInput, Button } from 'react-native-paper';
+import { resetPassword, confirmResetPassword } from '@aws-amplify/auth';
+import { theme } from '../../constants/theme';
+import { useNavigation } from '@react-navigation/native';
 import LoadingModal from '../../components/LoadingModal';
 
 const ForgotPasswordScreen = () => {
@@ -21,12 +23,25 @@ const ForgotPasswordScreen = () => {
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSendCode = async () => {
+    setError('');
+    setEmailError('');
+
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      setError('');
-      await resetPassword({username: email});
+      await resetPassword({ username: email });
       setIsCodeSent(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send code');
@@ -36,6 +51,21 @@ const ForgotPasswordScreen = () => {
   };
 
   const handleResetPassword = async () => {
+    if (!code.trim()) {
+      setError('Please enter the verification code');
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      setError('Please enter a new password');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError('');
@@ -52,79 +82,97 @@ const ForgotPasswordScreen = () => {
     }
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <LoadingModal
-        visible={isLoading}
-        message={isCodeSent ? 'Resetting password' : 'Sending code'}
-      />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.content}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {isCodeSent ? 'Reset Password' : 'Forgot Password'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isCodeSent
-              ? 'Enter the verification code sent to your email'
-              : 'Enter your email to receive a verification code'}
-          </Text>
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}>
+        <LoadingModal
+          visible={isLoading}
+          message={isCodeSent ? 'Resetting password' : 'Sending code'}
+        />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}>
+          <View style={styles.content}>
+            <Text variant="headlineMedium" style={styles.title}>
+              {isCodeSent ? 'Reset Password' : 'Forgot Password'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isCodeSent
+                ? 'Enter the verification code sent to your email'
+                : 'Enter your email to receive a verification code'}
+            </Text>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <TextInput
-            mode="outlined"
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-            disabled={isCodeSent || isLoading}
-          />
+            <TextInput
+              mode="outlined"
+              label="Email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setEmailError('');
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={styles.input}
+              disabled={isCodeSent || isLoading}
+              error={!!emailError}
+            />
+            {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
-          {isCodeSent ? (
-            <>
-              <TextInput
-                mode="outlined"
-                label="Verification Code"
-                value={code}
-                onChangeText={setCode}
-                style={styles.input}
-                keyboardType="number-pad"
-                disabled={isLoading}
-              />
-              <TextInput
-                mode="outlined"
-                label="New Password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-                style={styles.input}
-                disabled={isLoading}
-              />
-            </>
-          ) : null}
+            {isCodeSent ? (
+              <>
+                <TextInput
+                  mode="outlined"
+                  label="Verification Code"
+                  value={code}
+                  onChangeText={(text) => {
+                    setCode(text);
+                    setError('');
+                  }}
+                  style={styles.input}
+                  keyboardType="number-pad"
+                  disabled={isLoading}
+                />
+                <TextInput
+                  mode="outlined"
+                  label="New Password"
+                  value={newPassword}
+                  onChangeText={(text) => {
+                    setNewPassword(text);
+                    setError('');
+                  }}
+                  secureTextEntry
+                  style={styles.input}
+                  disabled={isLoading}
+                />
+              </>
+            ) : null}
 
-          <Button
-            mode="contained"
-            onPress={isCodeSent ? handleResetPassword : handleSendCode}
-            style={styles.button}
-            disabled={isLoading}>
-            {isCodeSent ? 'Reset Password' : 'Send Code'}
-          </Button>
+            <Button
+              mode="contained"
+              onPress={isCodeSent ? handleResetPassword : handleSendCode}
+              style={styles.button}
+              disabled={isLoading}>
+              {isCodeSent ? 'Reset Password' : 'Send Code'}
+            </Button>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login' as never)}
-            style={styles.linkContainer}>
-            <Text style={styles.link}>Back to Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login' as never)}
+              style={styles.linkContainer}>
+              <Text style={styles.link}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 

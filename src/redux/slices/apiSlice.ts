@@ -6,7 +6,7 @@ const baseQuery1 = fetchBaseQuery({
 });
 
 const baseQuery2 = fetchBaseQuery({
-  baseUrl: 'http://192.168.192.218:8082/api/v1',
+  baseUrl: 'http://35.244.20.26:8082/api/v1',
   prepareHeaders: async headers => {
     try {
       const session = await fetchAuthSession();

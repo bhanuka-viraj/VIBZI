@@ -125,14 +125,22 @@ export const signIn =
     }
   };
 
-export const signOut = createAsyncThunk('auth/signOut', async () => {
-  try {
-    await amplifySignOut();
-    return null;
-  } catch (error) {
-    throw error;
-  }
-});
+export const signOut = createAsyncThunk(
+  'auth/signOut',
+  async (_, {dispatch}) => {
+    try {
+      dispatch(setLoading(true));
+      await amplifySignOut();
+      dispatch(clearUser());
+      return null;
+    } catch (error: any) {
+      dispatch(setError(error.message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  },
+);
 
 export const signUp = createAsyncThunk(
   'auth/signUp',

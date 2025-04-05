@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import DatePicker from 'react-native-date-picker';
@@ -72,9 +73,9 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   const setDefaultValues = () => {
     const now = new Date();
     setName('');
-    setIsBooked(false); 
-    setStartTime(now); 
-    setEndTime(now); 
+    setIsBooked(false);
+    setStartTime(now);
+    setEndTime(now);
     setLink('');
     setReservationNumber('');
     setNote('');
@@ -119,17 +120,12 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
   }, [isUpdating, isViewOnly, initialData]);
 
   const validateForm = (): boolean => {
-    // Reset previous errors
     setErrors({});
     setTimeError(undefined);
-
-    // Validate required fields
     const fieldValidation = validateRequiredFields(
       { name },
       ['name']
     );
-
-    // Validate time range if both times are set
     const timeValidation = validateTimeRange(startTime, endTime);
 
     if (!fieldValidation.isValid) {
@@ -201,179 +197,188 @@ const AddThingToDoActionSheet: React.FC<AddThingToDoActionSheetProps> = ({
         backgroundColor: '#ccc',
       }}
       overlayColor="transparent">
+
       <ScrollView
         contentContainerStyle={styles.modalContainer}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>
-          {isViewOnly ? 'View Details' : isUpdating ? 'Update Things To Do' : 'Add Things To Do'}
-        </Text>
-        <Text style={styles.description}>Add a description here</Text>
 
-        <Text style={styles.label}>Name Of Activity *</Text>
-        <TextInput
-          style={[
-            styles.input,
-            isViewOnly && styles.disabledInput,
-            errors.name && styles.inputError
-          ]}
-          placeholder="Enter activity name"
-          value={name}
-          onChangeText={(text) => {
-            setName(text);
-            if (errors.name) {
-              setErrors({ ...errors, name: '' });
-            }
-          }}
-          editable={!isViewOnly}
-        />
-        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={100}
+          behavior={"padding"}
+        >
+          <Text style={styles.title}>
+            {isViewOnly ? 'View Details' : isUpdating ? 'Update Things To Do' : 'Add Things To Do'}
+          </Text>
+          <Text style={styles.description}>Add a description here</Text>
 
-        <Text style={styles.label}>Booked?</Text>
-        <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
-          <TouchableOpacity
+          <Text style={styles.label}>Name Of Activity *</Text>
+          <TextInput
             style={[
-              styles.toggleButton,
-              isBooked === true && { backgroundColor: theme.colors.primary },
+              styles.input,
+              isViewOnly && styles.disabledInput,
+              errors.name && styles.inputError
             ]}
-            onPress={() => !isViewOnly && setIsBooked(true)}
-            disabled={isViewOnly}>
-            <Text
-              style={[
-                styles.toggleText,
-                isBooked === true && { color: theme.colors.onPrimary },
-              ]}>
-              Yes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              isBooked === false && { backgroundColor: theme.colors.primary },
-            ]}
-            onPress={() => !isViewOnly && setIsBooked(false)}
-            disabled={isViewOnly}>
-            <Text
-              style={[
-                styles.toggleText,
-                isBooked === false && { color: theme.colors.onPrimary },
-              ]}>
-              No
-            </Text>
-          </TouchableOpacity>
-        </View>
+            placeholder="Enter activity name"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              if (errors.name) {
+                setErrors({ ...errors, name: '' });
+              }
+            }}
+            editable={!isViewOnly}
+          />
+          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-        <View style={styles.timeRow}>
-          <View style={styles.timeColumn}>
-            <Text style={styles.label}>Start Time</Text>
+          <Text style={styles.label}>Booked?</Text>
+          <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
             <TouchableOpacity
               style={[
-                styles.timeInput,
-                !startTime && styles.timeInputEmpty,
-                isViewOnly && styles.disabledInput,
-                timeError && styles.inputError
+                styles.toggleButton,
+                isBooked === true && { backgroundColor: theme.colors.primary },
               ]}
-              onPress={() => !isViewOnly && setShowStartPicker(true)}
+              onPress={() => !isViewOnly && setIsBooked(true)}
               disabled={isViewOnly}>
               <Text
                 style={[
-                  styles.timeText,
-                  !startTime && styles.timeTextPlaceholder,
+                  styles.toggleText,
+                  isBooked === true && { color: theme.colors.onPrimary },
                 ]}>
-                {formatTime(startTime) || 'Select time'}
+                Yes
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                isBooked === false && { backgroundColor: theme.colors.primary },
+              ]}
+              onPress={() => !isViewOnly && setIsBooked(false)}
+              disabled={isViewOnly}>
+              <Text
+                style={[
+                  styles.toggleText,
+                  isBooked === false && { color: theme.colors.onPrimary },
+                ]}>
+                No
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.timeColumn}>
-            <Text style={styles.label}>End Time</Text>
-            <TouchableOpacity
-              style={[
-                styles.timeInput,
-                !endTime && styles.timeInputEmpty,
-                isViewOnly && styles.disabledInput,
-                timeError && styles.inputError
-              ]}
-              onPress={() => !isViewOnly && setShowEndPicker(true)}
-              disabled={isViewOnly}>
-              <Text
+          <View style={styles.timeRow}>
+            <View style={styles.timeColumn}>
+              <Text style={styles.label}>Start Time</Text>
+              <TouchableOpacity
                 style={[
-                  styles.timeText,
-                  !endTime && styles.timeTextPlaceholder,
-                ]}>
-                {formatTime(endTime) || 'Select time'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        {timeError && <Text style={styles.errorText}>{timeError}</Text>}
-
-        <DatePicker
-          modal
-          open={showStartPicker}
-          date={new Date()}
-          mode="time"
-          onConfirm={date => {
-            setStartTime(date);
-            setShowStartPicker(false);
-          }}
-          onCancel={() => setShowStartPicker(false)}
-        />
-
-        <DatePicker
-          modal
-          open={showEndPicker}
-          date={new Date()}
-          mode="time"
-          onConfirm={date => {
-            setEndTime(date);
-            setShowEndPicker(false);
-          }}
-          onCancel={() => setShowEndPicker(false)}
-        />
-
-        <Text style={styles.label}>Link</Text>
-        <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
-          placeholder="Add booking or information link"
-          value={link}
-          onChangeText={setLink}
-          editable={!isViewOnly}
-        />
-
-        <Text style={styles.label}>Reservation Number</Text>
-        <TextInput
-          style={[styles.input, isViewOnly && styles.disabledInput]}
-          placeholder="Enter reservation number"
-          value={reservationNumber}
-          onChangeText={setReservationNumber}
-          editable={!isViewOnly}
-        />
-
-        <Text style={styles.label}>Note</Text>
-        <TextInput
-          style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
-          placeholder="Add any extra details"
-          value={note}
-          onChangeText={setNote}
-          multiline
-          numberOfLines={3}
-          editable={!isViewOnly}
-        />
-
-        {!isViewOnly && (
-          <View style={styles.buttonContainer}>
-            {!isUpdating && (
-              <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-                <Text style={styles.clearText}>Clear</Text>
+                  styles.timeInput,
+                  !startTime && styles.timeInputEmpty,
+                  isViewOnly && styles.disabledInput,
+                  timeError && styles.inputError
+                ]}
+                onPress={() => !isViewOnly && setShowStartPicker(true)}
+                disabled={isViewOnly}>
+                <Text
+                  style={[
+                    styles.timeText,
+                    !startTime && styles.timeTextPlaceholder,
+                  ]}>
+                  {formatTime(startTime) || 'Select time'}
+                </Text>
               </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.addButton, isUpdating && { flex: 1 }]}
-              onPress={() => handleAdd()}>
-              <Text style={styles.addText}>{isUpdating ? 'Update' : 'Add to trip'}</Text>
-            </TouchableOpacity>
+            </View>
+
+            <View style={styles.timeColumn}>
+              <Text style={styles.label}>End Time</Text>
+              <TouchableOpacity
+                style={[
+                  styles.timeInput,
+                  !endTime && styles.timeInputEmpty,
+                  isViewOnly && styles.disabledInput,
+                  timeError && styles.inputError
+                ]}
+                onPress={() => !isViewOnly && setShowEndPicker(true)}
+                disabled={isViewOnly}>
+                <Text
+                  style={[
+                    styles.timeText,
+                    !endTime && styles.timeTextPlaceholder,
+                  ]}>
+                  {formatTime(endTime) || 'Select time'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
+          {timeError && <Text style={styles.errorText}>{timeError}</Text>}
+
+          <DatePicker
+            modal
+            open={showStartPicker}
+            date={new Date()}
+            mode="time"
+            onConfirm={date => {
+              setStartTime(date);
+              setShowStartPicker(false);
+            }}
+            onCancel={() => setShowStartPicker(false)}
+          />
+
+          <DatePicker
+            modal
+            open={showEndPicker}
+            date={new Date()}
+            mode="time"
+            onConfirm={date => {
+              setEndTime(date);
+              setShowEndPicker(false);
+            }}
+            onCancel={() => setShowEndPicker(false)}
+          />
+
+          <Text style={styles.label}>Link</Text>
+          <TextInput
+            style={[styles.input, isViewOnly && styles.disabledInput]}
+            placeholder="Add booking or information link"
+            value={link}
+            onChangeText={setLink}
+            editable={!isViewOnly}
+          />
+
+          <Text style={styles.label}>Reservation Number</Text>
+          <TextInput
+            style={[styles.input, isViewOnly && styles.disabledInput]}
+            placeholder="Enter reservation number"
+            value={reservationNumber}
+            onChangeText={setReservationNumber}
+            editable={!isViewOnly}
+          />
+
+          <Text style={styles.label}>Note</Text>
+          <TextInput
+            style={[styles.input, styles.noteInput, isViewOnly && styles.disabledInput]}
+            placeholder="Add any extra details"
+            value={note}
+            onChangeText={setNote}
+            multiline
+            numberOfLines={3}
+            editable={!isViewOnly}
+          />
+
+          {!isViewOnly && (
+            <View style={styles.buttonContainer}>
+              {!isUpdating && (
+                <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+                  <Text style={styles.clearText}>Clear</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.addButton, isUpdating && { flex: 1 }]}
+                onPress={() => handleAdd()}>
+                <Text style={styles.addText}>{isUpdating ? 'Update' : 'Add to trip'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        </KeyboardAvoidingView>
       </ScrollView>
     </ActionSheet>
   );

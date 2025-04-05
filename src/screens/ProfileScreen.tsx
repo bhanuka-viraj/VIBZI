@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Avatar,
@@ -17,15 +17,23 @@ import { RootState } from '../redux/store';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import LoadingModal from '../components/LoadingModal';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 const ProfileScreen = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const theme = useTheme();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
-  console.log('user from profile screen', user);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  }, [isAuthenticated, navigation]);
 
   const getInitials = (name: string) => {
     if (!name) return 'G';
@@ -36,27 +44,18 @@ const ProfileScreen = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const handleLogout = async () => {
-    try {
-      console.log('====================================');
-      console.log('signing out');
-      console.log('====================================');
-      setIsLoading(true);
-      await dispatch(signOut()).unwrap();
-      console.log('====================================');
-      console.log('signed out and navigating to login');
-      console.log('====================================');
-      navigation.navigate('Login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleLogoutPress = () => {
+    setShowLogoutConfirmation(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirmation(false);
+    dispatch(signOut());
   };
 
   return (
     <ScrollView style={styles.container}>
-      <LoadingModal visible={isLoading} message="Logging out" />
+      <LoadingModal visible={loading} message="Logging out" />
       <View style={styles.header}>
         {user?.picture ? (
           <Avatar.Image
@@ -153,13 +152,26 @@ const ProfileScreen = () => {
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
-          onPress={handleLogout}
+          onPress={handleLogoutPress}
           style={styles.logoutButton}
           contentStyle={styles.buttonContent}
-          icon="logout">
+          icon="logout"
+          disabled={loading}>
           Logout
         </Button>
       </View>
+
+      <ConfirmationDialog
+        key={showLogoutConfirmation ? 'show' : 'hide'}
+        visible={showLogoutConfirmation}
+        onDismiss={() => setShowLogoutConfirmation(false)}
+        onConfirm={handleLogoutConfirm}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        confirmButtonStyle="primary"
+      />
     </ScrollView>
   );
 };
