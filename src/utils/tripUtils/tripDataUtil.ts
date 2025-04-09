@@ -66,6 +66,16 @@ export function parseTripDate(dateString: string): string {
   return dayjs(dateString).format('MMM DD');
 }
 
+export function formatDateDisplay(dateString: string): string {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  };
+  return date.toLocaleDateString('en-US', options);
+}
+
 export function parseTime(timeString: string): string {
   return dayjs(timeString).format('h:mm A');
 }

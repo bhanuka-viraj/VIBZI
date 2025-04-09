@@ -19,6 +19,7 @@ import {
   parseTripDate,
   parseItineraryData,
   ItineraryItem,
+  formatDateDisplay,
 } from '../../utils/tripUtils/tripDataUtil';
 import { setitinerary, setTripDate } from '../../redux/slices/metaSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -198,7 +199,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
       <View style={{ paddingHorizontal: 10 }}>
         <Text variant="titleMedium" style={styles.dayHeader}>
-          {parseTripDate(selectedDate)}
+          {formatDateDisplay(selectedDate)}
         </Text>
       </View>
 
@@ -211,7 +212,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
             <EmptyState
               icon="calendar-plus"
               title="No Plans Yet"
-              date={parseTripDate(selectedDate)}
+              date={formatDateDisplay(selectedDate)}
               description="Tap the + button below to add your first activity"
             />
           ) : (

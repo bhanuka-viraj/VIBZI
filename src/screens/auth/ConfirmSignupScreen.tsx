@@ -55,8 +55,8 @@ const ConfirmSignupScreen = ({ route }: { route: any }) => {
         style={styles.input}
         disabled={loading}
       />
-      <Button 
-        mode="contained" 
+      <Button
+        mode="contained"
         onPress={handleConfirm}
         style={styles.button}
         loading={loading}
@@ -64,8 +64,8 @@ const ConfirmSignupScreen = ({ route }: { route: any }) => {
       >
         Confirm
       </Button>
-      <Button 
-        mode="text" 
+      <Button
+        mode="text"
         onPress={handleResendCode}
         style={styles.resendButton}
         disabled={loading}

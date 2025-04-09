@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, BackHandler } from 'react-native';
 import ChecklistsScreen from '../screens/tripdetails/CheckListScreen';
 import ItineraryScreen from '../screens/tripdetails/ItineraryScreen';
 import AttachmentsScreen from '../screens/tripdetails/AttachmentsScreen';
 import { theme } from '../constants/theme';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 type TripDetailsTabParams = {
   Checklists: {
@@ -46,6 +47,24 @@ type TripDetailsTabNavigatorProps = {
 const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
   screenProps,
 }) => {
+  const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.goBack();
+        return true; 
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => backHandler.remove();
+    }, [navigation])
+  );
+
   const ChecklistsComponent = React.useCallback(() => (
     <ChecklistsScreen
       tripId={screenProps.tripId}

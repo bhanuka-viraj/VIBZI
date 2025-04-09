@@ -12,11 +12,13 @@ import SignupScreen from '../screens/auth/SignupScreen';
 import { useAppDispatch } from '../redux/hooks';
 import ConfirmSignupScreen from '../screens/auth/ConfirmSignupScreen';
 import BottomTabNavigator from './BottomTabNavigator';
-import { StatusBar } from 'react-native';
+import { StatusBar, ActivityIndicator, View } from 'react-native';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import SplashScreen from '../screens/SplashScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TermsAndConditionsModal from '../components/modals/TermsAndConditionsModal';
+import { useConsentCheck } from '../hooks/useConsentCheck';
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -51,6 +53,7 @@ const AppNavigator = () => {
   const { isAuthenticated, loading: authLoading } = useSelector((state: RootState) => state.auth);
   const { hasCompletedOnboarding, isLoading: appLoading } = useSelector((state: RootState) => state.app);
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
+  const { showConsentModal, handleAcceptConsent, handleDeclineConsent, isSubmitting } = useConsentCheck();
 
   useEffect(() => {
     dispatch(checkAuthState());
@@ -159,6 +162,28 @@ const AppNavigator = () => {
           </>
         )}
       </Stack.Navigator>
+
+      <TermsAndConditionsModal
+        visible={showConsentModal}
+        onAccept={handleAcceptConsent}
+        onDecline={handleDeclineConsent}
+      />
+
+      {isSubmitting && (
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.3)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+        }}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+        </View>
+      )}
     </NavigationContainer>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView, Image, Platform } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, Image, Platform, Linking } from 'react-native';
 import {
   TextInput,
   Button,
@@ -199,7 +199,12 @@ const SignupScreen = () => {
                     activeOutlineColor={theme.colors.primary}
                     theme={{ colors: { background: 'white' } }}
                     left={<TextInput.Icon icon="gender-male-female" />}
-                    right={<TextInput.Icon icon="chevron-down" />}
+                    right={
+                      <TextInput.Icon
+                        icon="chevron-down"
+                        onPress={() => setShowGenderMenu(true)}
+                      />
+                    }
                   />
                 </View>
               </TouchableRipple>
@@ -220,7 +225,6 @@ const SignupScreen = () => {
                 activeOutlineColor={theme.colors.primary}
                 theme={{ colors: { background: 'white' } }}
                 left={<TextInput.Icon icon="calendar" />}
-                right={<TextInput.Icon icon="chevron-down" />}
               />
             </View>
           </TouchableRipple>
@@ -249,6 +253,23 @@ const SignupScreen = () => {
             disabled={isLoading}>
             Sign Up
           </Button>
+
+          <View style={styles.termsContainer}>
+            <Text style={styles.termsText}>
+              <Text
+                style={styles.termsLink}
+                onPress={() => Linking.openURL('https://vibzi.co/terms')}>
+                Terms and Conditions
+              </Text>
+              {' '}and{' '}
+              <Text
+                style={styles.termsLink}
+                onPress={() => Linking.openURL('https://vibzi.co/privacy')}>
+                Privacy Policy
+              </Text>
+            </Text>
+          </View>
+
           <TouchableRipple onPress={() => navigation.navigate('Login' as never)}>
             <Text style={styles.link}>Already have an account? Login</Text>
           </TouchableRipple>
@@ -302,6 +323,20 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     textAlign: 'center',
     marginTop: 16,
+  },
+  termsContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  termsText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+  },
+  termsLink: {
+    color: theme.colors.primary,
+    textDecorationLine: 'underline',
   },
   title: {
     fontSize: 14,
