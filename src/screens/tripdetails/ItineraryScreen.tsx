@@ -30,6 +30,7 @@ import { theme } from '../../constants/theme';
 import { THINGSTODO, PLACESTOSTAY, FOODANDDRINK, TRANSPORTATION, NOTE } from '@/constants/ItineraryTypes';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import EmptyState from '../../components/EmptyState';
+import Toast from 'react-native-toast-message';
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -157,6 +158,35 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
     setItemToDelete(null);
   };
 
+  const handleDragEnd = async ({ data }: { data: ItineraryItem[] }) => {
+    setShouldAnimate(false);
+    try {
+      const updatedItinerary = {
+        ...itinerary,
+        itinerary: {
+          ...itinerary.itinerary,
+          [selectedDate]: data,
+        },
+      };
+      await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
+      Toast.show({
+        type: 'success',
+        text1: 'Itinerary Updated',
+        text2: 'Items have been reordered successfully',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update itinerary order',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    }
+  };
+
   useEffect(() => {
     if (dates.length > 0 && isInitialLoad) {
       dispatch(setTripDate(dates[0]));
@@ -169,7 +199,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
   const renderItem = ({ item, drag, isActive }: RenderItemParams<ItineraryItem>) => {
     return (
-      <ScaleDecorator>
+      <ScaleDecorator activeScale={1.05}>
         <ItineraryCard
           key={`${selectedDate}-${item.position}`}
           item={item}
@@ -242,17 +272,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         ) : (
           <DraggableFlatList
             data={selectedDateItineraries}
-            onDragEnd={({ data }) => {
-              setShouldAnimate(false);
-              const updatedItinerary = {
-                ...itinerary,
-                itinerary: {
-                  ...itinerary.itinerary,
-                  [selectedDate]: data,
-                },
-              };
-              updateItinerary({ id: it_id, data: updatedItinerary });
-            }}
+            onDragEnd={handleDragEnd}
             keyExtractor={(item) => `${selectedDate}-${item.position}`}
             renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}

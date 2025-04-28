@@ -9,6 +9,8 @@ import { store } from './src/redux/store';
 import { Amplify } from 'aws-amplify';
 import { amplifyConfig } from './src/config/amplify-config';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
+import toastConfig from '@/config/toastConfig';
 
 Amplify.configure(amplifyConfig);
 
@@ -19,6 +21,7 @@ const App = () => {
         <Provider store={store}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <AppNavigator />
+            <Toast config={toastConfig}/>
           </GestureHandlerRootView>
         </Provider>
       </PaperProvider>
