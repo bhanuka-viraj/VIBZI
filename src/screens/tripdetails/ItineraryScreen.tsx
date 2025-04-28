@@ -3,11 +3,14 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, useTheme, FAB, ActivityIndicator } from 'react-native-paper';
 import { ActionSheetRef } from 'react-native-actions-sheet';
+import DraggableFlatList, {
+  ScaleDecorator,
+  RenderItemParams,
+} from 'react-native-draggable-flatlist';
 import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
 import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
 import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
@@ -42,6 +45,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItineraryItem | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [shouldAnimate, setShouldAnimate] = useState(true);
 
   const selectedDate = useSelector((state: any) => state.meta.trip.select_date);
   const tripData = useSelector((state: any) => state.meta.trip);
@@ -163,6 +167,23 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
     }
   }, [data, dates, dispatch, isInitialLoad]);
 
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<ItineraryItem>) => {
+    return (
+      <ScaleDecorator>
+        <ItineraryCard
+          key={`${selectedDate}-${item.position}`}
+          item={item}
+          onUpdate={handleUpdate}
+          onDelete={() => handleDeletePress(item)}
+          onPress={handleCardPress}
+          onLongPress={drag}
+          isActive={isActive}
+          shouldAnimate={shouldAnimate}
+        />
+      </ScaleDecorator>
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -187,7 +208,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
                   backgroundColor: theme.colors.primary,
                 },
               ]}
-              onPress={() => dispatch(setTripDate(item))}>
+              onPress={() => {
+                setShouldAnimate(true);
+                dispatch(setTripDate(item));
+              }}>
               <Text
                 style={[
                   styles.dateText,
@@ -207,31 +231,34 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         </Text>
       </View>
 
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.itineraryContainer}>
-          {selectedDateItineraries.length === 0 ? (
-            <EmptyState
-              icon="calendar-plus"
-              title="No Plans Yet"
-              date={formatDateDisplay(selectedDate)}
-              description="Tap the + button below to add your first activity"
-            />
-          ) : (
-            selectedDateItineraries.map((item: ItineraryItem) => (
-              <ItineraryCard
-                key={`${selectedDate}-${item.position}`}
-                item={item}
-                onUpdate={handleUpdate}
-                onDelete={() => handleDeletePress(item)}
-                onPress={handleCardPress}
-              />
-            ))
-          )}
-        </View>
-      </ScrollView>
+      <View style={styles.itineraryContainer}>
+        {selectedDateItineraries.length === 0 ? (
+          <EmptyState
+            icon="calendar-plus"
+            title="No Plans Yet"
+            date={formatDateDisplay(selectedDate)}
+            description="Tap the + button below to add your first activity"
+          />
+        ) : (
+          <DraggableFlatList
+            data={selectedDateItineraries}
+            onDragEnd={({ data }) => {
+              setShouldAnimate(false);
+              const updatedItinerary = {
+                ...itinerary,
+                itinerary: {
+                  ...itinerary.itinerary,
+                  [selectedDate]: data,
+                },
+              };
+              updateItinerary({ id: it_id, data: updatedItinerary });
+            }}
+            keyExtractor={(item) => `${selectedDate}-${item.position}`}
+            renderItem={renderItem}
+            contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
+          />
+        )}
+      </View>
 
       <AddThingToDoActionSheet
         actionSheetRef={thingsToDoactionSheetRef}
@@ -391,6 +418,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   itineraryContainer: {
+    flex: 1,
     marginBottom: 28,
   },
   loadingContainer: {

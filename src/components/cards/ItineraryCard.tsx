@@ -38,6 +38,9 @@ interface ItineraryCardProps {
   onUpdate: (item: any) => void;
   onDelete: (item: any) => void;
   onPress: (item: any) => void;
+  onLongPress?: () => void;
+  isActive?: boolean;
+  shouldAnimate?: boolean;
 }
 
 const getIconByType = (item: any) => {
@@ -94,26 +97,37 @@ const getIconByType = (item: any) => {
   }
 };
 
-const ItineraryCard: React.FC<ItineraryCardProps> = ({ item, onUpdate, onDelete, onPress }) => {
+const ItineraryCard: React.FC<ItineraryCardProps> = ({
+  item,
+  onUpdate,
+  onDelete,
+  onPress,
+  onLongPress,
+  isActive,
+  shouldAnimate = true
+}) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
-    animatedValue.setValue(0);
-
-    Animated.sequence([
-      Animated.delay(item.position * 100),
-      Animated.spring(animatedValue, {
-        toValue: 1,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    if (shouldAnimate) {
+      animatedValue.setValue(0);
+      Animated.sequence([
+        Animated.delay(item.position * 100),
+        Animated.spring(animatedValue, {
+          toValue: 1,
+          tension: 100,
+          friction: 5,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      animatedValue.setValue(1);
+    }
 
     return () => {
       animatedValue.setValue(0);
     };
-  }, [item.position]);
+  }, [item.position, shouldAnimate]);
 
   const handleLinkPress = async (url: string) => {
     try {
@@ -131,7 +145,12 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ item, onUpdate, onDelete,
   };
 
   return (
-    <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={() => onPress(item)}
+      onLongPress={onLongPress}
+      activeOpacity={0.7}
+      delayLongPress={200}
+    >
       <Animated.View
         style={[
           styles.cardContainer,
@@ -155,6 +174,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ item, onUpdate, onDelete,
               },
             ],
           },
+          isActive && styles.activeCard,
         ]}>
         <View style={styles.card}>
           <View style={styles.headerContainer}>
@@ -297,6 +317,17 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontSize: 14,
     flex: 1,
+  },
+  activeCard: {
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    transform: [{ scale: 1.02 }],
   },
 } as const);
 

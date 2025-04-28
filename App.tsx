@@ -1,13 +1,14 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 import 'react-native-get-random-values';
-import React, {StrictMode} from 'react';
-import {PaperProvider} from 'react-native-paper';
-import {theme} from './src/constants/theme';
+import React, { StrictMode } from 'react';
+import { PaperProvider } from 'react-native-paper';
+import { theme } from './src/constants/theme';
 import AppNavigator from './src/navigation/AppNavigator';
-import {Provider} from 'react-redux';
-import {store} from './src/redux/store';
-import {Amplify} from 'aws-amplify';
-import {amplifyConfig} from './src/config/amplify-config';
+import { Provider } from 'react-redux';
+import { store } from './src/redux/store';
+import { Amplify } from 'aws-amplify';
+import { amplifyConfig } from './src/config/amplify-config';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 Amplify.configure(amplifyConfig);
 
@@ -16,7 +17,9 @@ const App = () => {
     <StrictMode>
       <PaperProvider theme={theme}>
         <Provider store={store}>
-          <AppNavigator />
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AppNavigator />
+          </GestureHandlerRootView>
         </Provider>
       </PaperProvider>
     </StrictMode>
