@@ -7,12 +7,12 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {theme} from '../constants/theme';
-import {getFileIcon} from '../utils/fileUtils';
-import type {DocumentPickerResponse} from 'react-native-document-picker';
-import {isImageFile} from '../utils/tripUtils/attachmentUtils';
+import { theme } from '../constants/theme';
+import { getFileIcon } from '../utils/fileUtils';
+import type { DocumentPickerResponse } from 'react-native-document-picker';
+import { isImageFile } from '../utils/tripUtils/attachmentUtils';
 import DocumentViewer from './DocumentViewer';
 
 interface PendingAttachmentListProps {
@@ -40,17 +40,19 @@ const PendingAttachmentList = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}>
+      contentContainerStyle={styles.container}
+    >
       {files.map((file, index) => {
         const isImage = isImageFile(file.name || '');
         return (
           <TouchableOpacity
             key={index}
             style={[styles.fileItem, isImage && styles.imageItem]}
-            onPress={() => handlePress(file)}>
+            onPress={() => handlePress(file)}
+          >
             {isImage ? (
               <Image
-                source={{uri: file.uri}}
+                source={{ uri: file.uri }}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -70,10 +72,11 @@ const PendingAttachmentList = ({
             )}
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={e => {
+              onPress={(e) => {
                 e.stopPropagation();
                 onRemove(index);
-              }}>
+              }}
+            >
               <MaterialIcons
                 name="close"
                 size={24}

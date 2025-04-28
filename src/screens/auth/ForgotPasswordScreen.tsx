@@ -88,90 +88,90 @@ const ForgotPasswordScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <KeyboardAvoidingView
+    <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}>
-        <LoadingModal
-          visible={isLoading}
-          message={isCodeSent ? 'Resetting password' : 'Sending code'}
-        />
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
+      style={styles.container}>
+      <LoadingModal
+        visible={isLoading}
+        message={isCodeSent ? 'Resetting password' : 'Sending code'}
+      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           bounces={false}>
-          <View style={styles.content}>
-            <Text variant="headlineMedium" style={styles.title}>
-              {isCodeSent ? 'Reset Password' : 'Forgot Password'}
-            </Text>
-            <Text style={styles.subtitle}>
-              {isCodeSent
-                ? 'Enter the verification code sent to your email'
-                : 'Enter your email to receive a verification code'}
-            </Text>
+        <View style={styles.content}>
+          <Text variant="headlineMedium" style={styles.title}>
+            {isCodeSent ? 'Reset Password' : 'Forgot Password'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {isCodeSent
+              ? 'Enter the verification code sent to your email'
+              : 'Enter your email to receive a verification code'}
+          </Text>
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <TextInput
-              mode="outlined"
-              label="Email"
-              value={email}
+          <TextInput
+            mode="outlined"
+            label="Email"
+            value={email}
               onChangeText={(text) => {
                 setEmail(text);
                 setEmailError('');
               }}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-              disabled={isCodeSent || isLoading}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+            disabled={isCodeSent || isLoading}
               error={!!emailError}
-            />
+          />
             {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
-            {isCodeSent ? (
-              <>
-                <TextInput
-                  mode="outlined"
-                  label="Verification Code"
-                  value={code}
+          {isCodeSent ? (
+            <>
+              <TextInput
+                mode="outlined"
+                label="Verification Code"
+                value={code}
                   onChangeText={(text) => {
                     setCode(text);
                     setError('');
                   }}
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  disabled={isLoading}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="New Password"
-                  value={newPassword}
+                style={styles.input}
+                keyboardType="number-pad"
+                disabled={isLoading}
+              />
+              <TextInput
+                mode="outlined"
+                label="New Password"
+                value={newPassword}
                   onChangeText={(text) => {
                     setNewPassword(text);
                     setError('');
                   }}
-                  secureTextEntry
-                  style={styles.input}
-                  disabled={isLoading}
-                />
-              </>
-            ) : null}
+                secureTextEntry
+                style={styles.input}
+                disabled={isLoading}
+              />
+            </>
+          ) : null}
 
-            <Button
-              mode="contained"
-              onPress={isCodeSent ? handleResetPassword : handleSendCode}
-              style={styles.button}
-              disabled={isLoading}>
-              {isCodeSent ? 'Reset Password' : 'Send Code'}
-            </Button>
+          <Button
+            mode="contained"
+            onPress={isCodeSent ? handleResetPassword : handleSendCode}
+            style={styles.button}
+            disabled={isLoading}>
+            {isCodeSent ? 'Reset Password' : 'Send Code'}
+          </Button>
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login' as never)}
-              style={styles.linkContainer}>
-              <Text style={styles.link}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Login' as never)}
+            style={styles.linkContainer}>
+            <Text style={styles.link}>Back to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 };

@@ -128,17 +128,17 @@ export const signIn =
 export const signOut = createAsyncThunk(
   'auth/signOut',
   async (_, {dispatch}) => {
-    try {
+  try {
       dispatch(setLoading(true));
-      await amplifySignOut();
+    await amplifySignOut();
       dispatch(clearUser());
-      return null;
+    return null;
     } catch (error: any) {
       dispatch(setError(error.message));
-      throw error;
+    throw error;
     } finally {
       dispatch(setLoading(false));
-    }
+  }
   },
 );
 

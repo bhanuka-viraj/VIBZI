@@ -3,12 +3,10 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Alert,
+  ScrollView,
   Platform,
   PermissionsAndroid,
-  Linking,
-  ScrollView,
+  Alert,
 } from 'react-native';
 import { Text, ActivityIndicator, FAB } from 'react-native-paper';
 import {
@@ -21,7 +19,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import * as DocumentPicker from 'react-native-document-picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { formatFileSize, getFileIcon } from '../../utils/fileUtils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Permission } from 'react-native';
 import AttachmentList from '../../components/AttachmentList';
@@ -30,7 +27,6 @@ import {
   SUPPORTED_DOCUMENT_TYPES,
   SUPPORTED_IMAGE_TYPES,
   filterAttachmentsByType,
-  filterPendingFilesByType,
 } from '../../utils/tripUtils/attachmentUtils';
 import EmptyState from '../../components/EmptyState';
 
@@ -61,7 +57,7 @@ const AttachmentsScreen = () => {
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
         ]);
         return Object.values(granted).every(
-          res => res === PermissionsAndroid.RESULTS.GRANTED,
+          (res) => res === PermissionsAndroid.RESULTS.GRANTED,
         );
       } else {
         // API 32 and below
@@ -74,21 +70,34 @@ const AttachmentsScreen = () => {
     return true;
   };
 
-  const handleFilePick = async (type: 'image' | 'document') => {
+  const handleFilePick = async (type: 'image' | 'document' | 'all') => {
     try {
       const hasPermission = await requestStoragePermission();
-      if (!hasPermission) return;
+      if (!hasPermission) {
+        Alert.alert('Error', 'Storage permission denied');
+        return;
+      }
+
+      const fileTypes =
+        type === 'image'
+          ? SUPPORTED_IMAGE_TYPES
+          : type === 'document'
+            ? SUPPORTED_DOCUMENT_TYPES
+            : [...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_DOCUMENT_TYPES];
 
       const result = await DocumentPicker.pick({
-        type:
-          type === 'image' ? SUPPORTED_IMAGE_TYPES : SUPPORTED_DOCUMENT_TYPES,
+        type: fileTypes,
         allowMultiSelection: true,
       });
 
-      setPendingFiles(prev => [...prev, ...result]);
+      // Filter out duplicates based on URI
+      setPendingFiles((prev) => [
+        ...prev,
+        ...result.filter((newFile) => !prev.some((f) => f.uri === newFile.uri)),
+      ]);
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
-        console.error(err);
+        console.error('File pick error:', err);
         Alert.alert('Error', 'Failed to pick file');
       }
     }
@@ -98,21 +107,30 @@ const AttachmentsScreen = () => {
     if (pendingFiles.length === 0) return;
 
     setUploading(true);
+    const failedFiles: string[] = [];
     try {
       for (const file of pendingFiles) {
-        const formData = new FormData();
-        formData.append('files', {
-          uri: file.uri,
-          type: file.type || 'application/octet-stream',
-          name: file.name || 'unnamed_file',
-        } as any);
-        formData.append('tripId', tripId as string);
-        formData.append('title', file.name || 'Untitled');
+        try {
+          const formData = new FormData();
+          formData.append('files', {
+            uri: file.uri,
+            type: file.type || 'application/octet-stream',
+            name: file.name || 'unnamed_file',
+          } as any);
+          formData.append('tripId', tripId as string);
+          formData.append('title', file.name || 'Untitled');
 
-        await uploadAttachment(formData).unwrap();
+          await uploadAttachment(formData).unwrap();
+        } catch (error) {
+          failedFiles.push(file.name || 'Unnamed file');
+        }
       }
       setPendingFiles([]);
-      Alert.alert('Success', 'All files uploaded successfully');
+      if (failedFiles.length > 0) {
+        Alert.alert('Error', `Failed to upload: ${failedFiles.join(', ')}`);
+      } else {
+        Alert.alert('Success', 'All files uploaded successfully');
+      }
     } catch (error) {
       console.error('Upload error:', error);
       Alert.alert('Error', 'Failed to upload some files');
@@ -122,7 +140,7 @@ const AttachmentsScreen = () => {
   };
 
   const removePendingFile = (index: number) => {
-    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleDelete = async (fileKey: string) => {
@@ -167,60 +185,33 @@ const AttachmentsScreen = () => {
             </Text>
             <View style={styles.addButtonsContainer}>
               <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => handleFilePick('document')}
-                disabled={uploading}>
+                style={[styles.addButton, { flex: 1 }]}
+                onPress={() => handleFilePick('all')}
+                disabled={uploading}
+              >
                 <MaterialIcons
-                  name="description"
+                  name="attach-file"
                   size={24}
                   color={theme.colors.primary}
                 />
-                <Text style={styles.addButtonText}>Add Document</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => handleFilePick('image')}
-                disabled={uploading}>
-                <MaterialIcons
-                  name="image"
-                  size={24}
-                  color={theme.colors.primary}
-                />
-                <Text style={styles.addButtonText}>Add Image</Text>
+                <Text style={styles.addButtonText}>Add Files</Text>
               </TouchableOpacity>
             </View>
 
             {pendingFiles.length > 0 && (
               <View style={styles.pendingListsContainer}>
-                {filterPendingFilesByType(pendingFiles, 'document').length >
-                  0 && (
-                    <View style={styles.pendingSection}>
-                      <Text variant="titleSmall" style={styles.subsectionTitle}>
-                        Pending Documents
-                      </Text>
-                      <PendingAttachmentList
-                        files={filterPendingFilesByType(pendingFiles, 'document')}
-                        onRemove={removePendingFile}
-                      />
-                    </View>
-                  )}
-
-                {filterPendingFilesByType(pendingFiles, 'image').length > 0 && (
-                  <View style={styles.pendingSection}>
-                    <Text variant="titleSmall" style={styles.subsectionTitle}>
-                      Pending Images
-                    </Text>
-                    <PendingAttachmentList
-                      files={filterPendingFilesByType(pendingFiles, 'image')}
-                      onRemove={removePendingFile}
-                    />
-                  </View>
-                )}
-
+                <Text variant="titleSmall" style={styles.subsectionTitle}>
+                  Pending Files
+                </Text>
+                <PendingAttachmentList
+                  files={pendingFiles}
+                  onRemove={removePendingFile}
+                />
                 <TouchableOpacity
                   style={styles.uploadAllButton}
                   onPress={handleUploadAll}
-                  disabled={uploading}>
+                  disabled={uploading}
+                >
                   <Text style={styles.uploadAllText}>
                     {uploading ? 'Uploading...' : 'Upload All'}
                   </Text>
@@ -231,38 +222,40 @@ const AttachmentsScreen = () => {
 
           {filterAttachmentsByType(attachmentData?.attachments || [], 'image')
             .length > 0 && (
-              <AttachmentList
-                title="Images"
-                attachments={filterAttachmentsByType(
-                  attachmentData?.attachments || [],
-                  'image',
-                )}
-                onDelete={handleDelete}
-              />
-            )}
+            <AttachmentList
+              title="Images"
+              attachments={filterAttachmentsByType(
+                attachmentData?.attachments || [],
+                'image',
+              )}
+              onDelete={handleDelete}
+            />
+          )}
 
           {filterAttachmentsByType(
             attachmentData?.attachments || [],
             'document',
           ).length > 0 && (
-              <AttachmentList
-                title="Documents"
-                attachments={filterAttachmentsByType(
-                  attachmentData?.attachments || [],
-                  'document',
-                )}
-                onDelete={handleDelete}
-              />
-            )}
-
-          {(!attachmentData?.attachments || attachmentData.attachments.length === 0) && (
-            <EmptyState
-              icon="file-document-outline"
-              title="No Attachments"
-              subtitle="Your trip has no attachments yet"
-              description="Add documents or images using the buttons above"
+            <AttachmentList
+              title="Documents"
+              attachments={filterAttachmentsByType(
+                attachmentData?.attachments || [],
+                'document',
+              )}
+              onDelete={handleDelete}
             />
           )}
+
+          {(!attachmentData?.attachments ||
+            attachmentData.attachments.length === 0) &&
+            pendingFiles.length === 0 && (
+              <EmptyState
+                icon="file-document-outline"
+                title="No Attachments"
+                subtitle="Your trip has no attachments yet"
+                description="Add documents or images using the button above"
+              />
+            )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -299,7 +292,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addButton: {
-    flex: 1,
     height: 80,
     borderRadius: 8,
     backgroundColor: '#f5f5f5',

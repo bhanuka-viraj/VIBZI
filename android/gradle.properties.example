@@ -38,8 +38,9 @@ newArchEnabled=true
 # If set to false, you will be using JSC instead.
 hermesEnabled=true
 
-
-MYAPP_STORE_FILE=vibzi-release-key.jks
-MYAPP_STORE_PASSWORD=Vibzi@200201401145
-MYAPP_KEY_ALIAS=vibzi
-MYAPP_KEY_PASSWORD=Vibzi@200201401145
+# Keystore configuration for signing the app
+# Replace these values with your actual keystore information
+MYAPP_STORE_FILE=your-release-key.jks
+MYAPP_STORE_PASSWORD=your-store-password
+MYAPP_KEY_ALIAS=your-key-alias
+MYAPP_KEY_PASSWORD=your-key-password 

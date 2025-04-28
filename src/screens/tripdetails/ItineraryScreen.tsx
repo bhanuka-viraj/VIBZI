@@ -61,6 +61,10 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
   const { dates, itineraryByDate } = parseItineraryData(data);
   const selectedDateItineraries = itineraryByDate[selectedDate] || [];
 
+  console.log('====================================');
+  console.log('selectedDateItineraries : ', selectedDateItineraries);
+  console.log('====================================');
+
   const renderKey = JSON.stringify(selectedDateItineraries);
 
   const handleCardPress = (item: ItineraryItem) => {

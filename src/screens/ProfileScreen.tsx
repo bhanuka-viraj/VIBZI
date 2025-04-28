@@ -96,23 +96,7 @@ const ProfileScreen = () => {
             )}
           />
           <Divider />
-          <List.Item
-            title="Phone"
-            description={user?.phone || 'Not set'}
-            left={props => (
-              <List.Icon
-                {...props}
-                icon={() => (
-                  <MaterialCommunityIcons
-                    name="phone"
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                )}
-              />
-            )}
-          />
-          <Divider />
+      
           <List.Item
             title="Gender"
             description={user?.gender || 'Not set'}
