@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import ConfirmationDialog from '../components/ConfirmationDialog';
+import Toast from 'react-native-toast-message';
 
 const MyTripsScreen: React.FC = () => {
   const actionSheetRef = useRef<ActionSheetRef>(null);
@@ -124,8 +125,22 @@ const MyTripsScreen: React.FC = () => {
 
     try {
       await deleteTripPlan(tripToDelete.id).unwrap();
+      Toast.show({
+        type: 'delete',
+        text1: 'Trip Deleted',
+        text2: 'Your trip has been successfully deleted',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
       setTripToDelete(null);
     } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to delete trip',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
       console.error('Failed to delete trip:', error);
     }
   };
@@ -235,6 +250,28 @@ const MyTripsScreen: React.FC = () => {
           actionSheetRef={createTripActionSheetRef}
           isUpdating={isUpdating}
           initialData={selectedTrip}
+          onSuccess={(isUpdate) => {
+            Toast.show({
+              type: 'success',
+              text1: isUpdate ? 'Trip Updated' : 'Trip Created',
+              text2: isUpdate
+                ? 'Your trip has been successfully updated'
+                : 'Your new trip has been created successfully',
+              position: 'bottom',
+              visibilityTime: 3000,
+            });
+          }}
+          onError={() => {
+            Toast.show({
+              type: 'error',
+              text1: 'Error',
+              text2: isUpdating
+                ? 'Failed to update trip'
+                : 'Failed to create trip',
+              position: 'bottom',
+              visibilityTime: 3000,
+            });
+          }}
         />
 
         <ConfirmationDialog

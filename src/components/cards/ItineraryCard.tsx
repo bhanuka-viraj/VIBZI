@@ -110,16 +110,16 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   React.useEffect(() => {
     if (shouldAnimate) {
-      animatedValue.setValue(0);
-      Animated.sequence([
-        Animated.delay(item.position * 100),
-        Animated.spring(animatedValue, {
-          toValue: 1,
-          tension: 100,
-          friction: 5,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    animatedValue.setValue(0);
+    Animated.sequence([
+      Animated.delay(item.position * 100),
+      Animated.spring(animatedValue, {
+        toValue: 1,
+        tension: 100,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start();
     } else {
       animatedValue.setValue(1);
     }

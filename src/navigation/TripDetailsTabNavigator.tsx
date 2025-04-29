@@ -53,7 +53,7 @@ const TripDetailsTabNavigator: React.FC<TripDetailsTabNavigatorProps> = ({
     React.useCallback(() => {
       const onBackPress = () => {
         navigation.goBack();
-        return true; 
+        return true;
       };
 
       const backHandler = BackHandler.addEventListener(

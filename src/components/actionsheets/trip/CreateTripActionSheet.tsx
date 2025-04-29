@@ -24,12 +24,16 @@ interface CreateTripActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
   isUpdating?: boolean;
   initialData?: any;
+  onSuccess?: (isUpdate: boolean) => void;
+  onError?: () => void;
 }
 
 const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   actionSheetRef,
   isUpdating = false,
   initialData,
+  onSuccess,
+  onError,
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -153,9 +157,10 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
       setFromDate(null);
       setToDate(null);
       setDescription('');
+      onSuccess?.(isUpdating);
     } catch (error) {
-      console.error('Failed to handle trip:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('Error creating/updating trip:', error);
+      onError?.();
     }
   };
 

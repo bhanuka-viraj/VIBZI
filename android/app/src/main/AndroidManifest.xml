@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     
     <!-- For all file access -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
@@ -38,6 +37,7 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
       <activity
         android:name="com.amazonaws.mobileconnectors.cognitoauth.activities.CustomTabsRedirectActivity"
         android:exported="true">
@@ -58,5 +58,7 @@
           android:name="android.support.FILE_PROVIDER_PATHS"
           android:resource="@xml/file_paths" />
       </provider>
+
     </application>
+    
 </manifest>

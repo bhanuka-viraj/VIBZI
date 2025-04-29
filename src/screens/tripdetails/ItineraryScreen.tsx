@@ -13,7 +13,6 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
 import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
-import AddThingToDoActionSheet from '../../components/actionsheets/trip/ThingsToDoActionSheet';
 import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
 import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
 import ItineraryCard from '../../components/cards/ItineraryCard';
@@ -26,11 +25,15 @@ import {
 } from '../../utils/tripUtils/tripDataUtil';
 import { setitinerary, setTripDate } from '../../redux/slices/metaSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { theme } from '../../constants/theme';
 import { THINGSTODO, PLACESTOSTAY, FOODANDDRINK, TRANSPORTATION, NOTE } from '@/constants/ItineraryTypes';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import EmptyState from '../../components/EmptyState';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ItineraryStack'>;
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -39,6 +42,7 @@ interface ItineraryScreenProps {
 
 const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) => {
   const theme = useTheme();
+  const navigation = useNavigation<NavigationProp>();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
   const dispatch = useDispatch();
   const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
@@ -79,7 +83,12 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
     switch (item.type) {
       case THINGSTODO:
-        thingsToDoactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'ThingsToDoDetails',
+          params: {
+            item
+          }
+        });
         break;
       case PLACESTOSTAY:
         placeToStayactionSheetRef.current?.show();
@@ -103,7 +112,14 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
     switch (item.type) {
       case THINGSTODO:
-        thingsToDoactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'ThingsToDo',
+          params: {
+            isViewOnly: false,
+            isUpdating: true,
+            initialData: item
+          }
+        });
         break;
       case PLACESTOSTAY:
         placeToStayactionSheetRef.current?.show();
@@ -141,11 +157,18 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
     }
   };
 
-  const handleAddNewItem = (actionSheetRef: React.RefObject<ActionSheetRef>) => {
+  const handleAddNewItem = () => {
     setIsUpdating(false);
     setIsViewOnly(false);
     setSelectedItem(null);
-    actionSheetRef.current?.show();
+    navigation.navigate('ItineraryStack', {
+      screen: 'ThingsToDo',
+      params: {
+        isViewOnly: false,
+        isUpdating: false
+      }
+    });
+
   };
 
   const handleDeletePress = (item: ItineraryItem) => {
@@ -173,7 +196,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         type: 'success',
         text1: 'Itinerary Updated',
         text2: 'Items have been reordered successfully',
-        position: 'top',
+        position: 'bottom',
         visibilityTime: 3000,
       });
     } catch (error) {
@@ -181,7 +204,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         type: 'error',
         text1: 'Error',
         text2: 'Failed to update itinerary order',
-        position: 'top',
+        position: 'bottom',
         visibilityTime: 3000,
       });
     }
@@ -280,14 +303,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         )}
       </View>
 
-      <AddThingToDoActionSheet
-        actionSheetRef={thingsToDoactionSheetRef}
-        initialData={
-          selectedItem?.type === THINGSTODO ? selectedItem : undefined
-        }
-        isUpdating={isUpdating}
-        isViewOnly={isViewOnly}
-      />
       <AddPlaceToStayActionSheet
         actionSheetRef={placeToStayactionSheetRef}
         initialData={
@@ -336,7 +351,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'format-list-bulleted',
             label: 'Add Things To Do',
-            onPress: () => handleAddNewItem(thingsToDoactionSheetRef),
+            onPress: () => handleAddNewItem(),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -346,7 +361,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'home',
             label: 'Add a Place to Stay',
-            onPress: () => handleAddNewItem(placeToStayactionSheetRef),
+            onPress: () => handleAddNewItem(),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -356,7 +371,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'silverware-fork-knife',
             label: 'Add Food & Drink',
-            onPress: () => handleAddNewItem(foodAndDrinkactionSheetRef),
+            onPress: () => handleAddNewItem(),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -366,7 +381,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'car',
             label: 'Add Transportation',
-            onPress: () => handleAddNewItem(transportationactionSheetRef),
+            onPress: () => handleAddNewItem(),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -376,7 +391,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'note-plus',
             label: 'Add a Note',
-            onPress: () => handleAddNewItem(noteactionSheetRef),
+            onPress: () => handleAddNewItem(),
             style: {
               elevation: 0,
               shadowColor: 'transparent',

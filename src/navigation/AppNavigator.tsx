@@ -19,6 +19,7 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TermsAndConditionsModal from '../components/modals/TermsAndConditionsModal';
 import { useConsentCheck } from '../hooks/useConsentCheck';
+import ItineraryStackNavigator from './ItineraryStackNavigator';
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -44,6 +45,15 @@ export type RootStackParamList = {
     trip_id: string;
   };
   ForgotPassword: undefined;
+  ItineraryStack: {
+    screen: 'ThingsToDo' | 'ThingsToDoDetails';
+    params: {
+      isViewOnly?: boolean;
+      isUpdating?: boolean;
+      initialData?: any;
+      item?: any;
+    };
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -153,6 +163,13 @@ const AppNavigator = () => {
                 <Stack.Screen
                   name="TripDetails"
                   component={TripDetailsScreen}
+                  options={{
+                    gestureEnabled: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="ItineraryStack"
+                  component={ItineraryStackNavigator}
                   options={{
                     gestureEnabled: true,
                   }}
