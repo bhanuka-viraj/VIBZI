@@ -19,6 +19,7 @@ import { useSuggestDestinationQuery } from '../../../redux/slices/product/destin
 import dayjs from 'dayjs';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
+import Toast from 'react-native-toast-message';
 
 interface CreateTripActionSheetProps {
   actionSheetRef: React.RefObject<ActionSheetRef>;
@@ -99,59 +100,56 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!selectedDestinationId && !isUpdating) {
-      console.error('Please select a destination from the suggestions');
+    if (!tripName.trim() || !destination.trim() || (!isUpdating && (!fromDate || !toDate || !!dateError))) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Please fill in all required fields',
+        position: 'bottom',
+        visibilityTime: 3000
+      });
       return;
     }
 
     try {
-      actionSheetRef.current?.hide();
-
-      const baseData = {
-        title: tripName,
-        destinationName: destination,
-        startDate: fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : '',
-        endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
-        description: description,
-        userId: user?.userId,
-        destinationId: selectedDestinationId || 124,
-      };
-
-      console.log('API Request Data:', baseData);
-
-      let response;
       if (isUpdating) {
-        console.log('Updating trip with ID:', initialData.id);
-        response = await updateTripPlan({
+        await updateTripPlan({
           id: initialData.id,
           data: {
-            ...baseData,
-            id: initialData.id,
-            tripId: initialData.tripId,
-            imageUrl: initialData.imageUrl,
+            title: tripName,
+            destinationName: destination,
+            startDate: fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : '',
+            endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
+            description: description,
+            userId: user?.userId,
+            destinationId: selectedDestinationId || 124,
           },
         }).unwrap();
-        console.log('Update Response:', response);
+        Toast.show({
+          type: 'success',
+          text1: 'Trip Updated',
+          position: 'bottom',
+          visibilityTime: 3000
+        });
       } else {
-        console.log('Creating new trip');
-        response = await createTripPlan({
-          ...baseData,
+        await createTripPlan({
+          title: tripName,
+          destinationName: destination,
+          startDate: fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : '',
+          endDate: toDate ? dayjs(toDate).format('YYYY-MM-DD') : '',
+          description: description,
+          userId: user?.userId,
+          destinationId: selectedDestinationId || 124,
           imageUrl: imageUrl(),
         }).unwrap();
-        console.log('Create Response:', response);
-      }
-
-      if (!isUpdating) {
-        console.log('Navigating to trip details:', {
-          tripId: response.id,
-          trip_id: response.tripId,
-        });
-        navigation.push('TripDetails', {
-          tripId: response.id,
-          trip_id: response.tripId,
+        Toast.show({
+          type: 'success',
+          text1: 'Trip Created',
+          position: 'bottom',
+          visibilityTime: 3000
         });
       }
-
+      actionSheetRef.current?.hide();
       setTripName('');
       setDestination('');
       setFromDate(null);
@@ -159,8 +157,13 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
       setDescription('');
       onSuccess?.(isUpdating);
     } catch (error) {
-      console.error('Error creating/updating trip:', error);
-      onError?.();
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: isUpdating ? 'Failed to update trip' : 'Failed to create trip',
+        position: 'bottom',
+        visibilityTime: 3000
+      });
     }
   };
 

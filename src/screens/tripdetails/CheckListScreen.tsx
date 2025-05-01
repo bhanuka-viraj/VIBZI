@@ -17,6 +17,7 @@ import {
 } from '../../redux/slices/tripplan/checklistSlice';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import EmptyState from '../../components/EmptyState';
+import Toast from 'react-native-toast-message';
 
 interface ChecklistItem {
   id: string;
@@ -85,8 +86,20 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({ tripId, trip_id }) =>
       setItems(updatedChecklist);
       setNewItem('');
       refetch();
+      Toast.show({
+        type: 'success',
+        text1: 'Checklist Item Added',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     } catch (error) {
       console.error('Failed to add item:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     }
   };
 
@@ -129,8 +142,20 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({ tripId, trip_id }) =>
       setItems(filteredItems);
       setItemToDelete(null);
       refetch();
+      Toast.show({
+        type: 'delete',
+        text1: 'Checklist Item Deleted',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     } catch (error) {
-      console.error('Failed to delete item:', error);
+      console.error('Failed to delete checklist item:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     }
   };
 

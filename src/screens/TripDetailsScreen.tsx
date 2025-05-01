@@ -24,6 +24,7 @@ import { useDispatch } from 'react-redux';
 import { setTripId } from '../redux/slices/metaSlice';
 import { getStatusBarGradient } from '../utils/statusBarUtils';
 import { theme } from '@/constants/theme';
+import TripDescriptionModal from '../components/modals/TripDescriptionModal';
 
 const HEADER_IMAGE_HEIGHT = 200;
 const MAX_DESCRIPTION_LENGTH = 50;
@@ -107,7 +108,7 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
     navigation.goBack();
   };
 
-  const handleSaveDescription = async () => {
+  const handleSaveDescription = async (newDescription: string) => {
     if (!tripData) return;
 
     try {
@@ -115,10 +116,9 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
         id: tripData.id,
         data: {
           ...tripData,
-          description: editedDescription,
+          description: newDescription,
         },
       }).unwrap();
-      setIsEditing(false);
       setIsModalVisible(false);
     } catch (error) {
       console.error('Failed to update description:', error);
@@ -201,77 +201,14 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
           />
         </Animated.View>
 
-        <Portal>
-          {isModalVisible && (
-            <Modal
-              key={`modal-${tripData?.id || 'default'}`}
-              visible={true}
-              onDismiss={() => {
-                setIsModalVisible(false);
-                setIsEditing(false);
-              }}
-              contentContainerStyle={styles.modalContent}>
-              <View key={`content-${tripData?.id || 'default'}`} style={styles.modalInner}>
-                <View style={styles.modalHeader}>
-                  <View style={styles.titleContainer}>
-                    <MaterialIcons
-                      name="description"
-                      size={24}
-                      color={theme.colors.primary}
-                      style={styles.descriptionIcon}
-                    />
-                    <Text variant="titleLarge" style={styles.modalTitle}>
-                      Trip Description
-                    </Text>
-                  </View>
-                  <View style={styles.modalActions}>
-                    <IconButton
-                      icon={isEditing ? "check" : "pencil"}
-                      iconColor={theme.colors.primary}
-                      size={24}
-                      onPress={() => setIsEditing(!isEditing)}
-                    />
-                    <IconButton
-                      icon="close"
-                      iconColor={theme.colors.error}
-                      size={24}
-                      onPress={() => {
-                        setIsModalVisible(false);
-                        setIsEditing(false);
-                      }}
-                    />
-                  </View>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.modalBody}>
-                  {isEditing ? (
-                    <TextInput
-                      style={styles.descriptionInput}
-                      value={editedDescription}
-                      onChangeText={setEditedDescription}
-                      multiline
-                      numberOfLines={8}
-                      placeholder="Enter trip description"
-                      textAlignVertical="top"
-                      placeholderTextColor="#999"
-                    />
-                  ) : (
-                    <Text style={styles.modalDescription}>
-                      {tripData?.description}
-                    </Text>
-                  )}
-                </View>
-                {isEditing && (
-                  <TouchableOpacity
-                    style={styles.saveButton}
-                    onPress={handleSaveDescription}>
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Modal>
-          )}
-        </Portal>
+        <TripDescriptionModal
+          key={`trip-description-modal-${tripData?.id || 'default'}-${isModalVisible ? 'visible' : 'hidden'}`}
+          visible={isModalVisible}
+          onDismiss={() => setIsModalVisible(false)}
+          description={tripData?.description || ''}
+          onSave={handleSaveDescription}
+          tripId={tripData?.id}
+        />
       </View>
     </>
   );

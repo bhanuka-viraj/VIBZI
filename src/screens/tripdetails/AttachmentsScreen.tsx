@@ -29,6 +29,7 @@ import {
   filterAttachmentsByType,
 } from '../../utils/tripUtils/attachmentUtils';
 import EmptyState from '../../components/EmptyState';
+import Toast from 'react-native-toast-message';
 
 type PermissionStatus = {
   [key in Permission]?: boolean;
@@ -91,14 +92,28 @@ const AttachmentsScreen = () => {
       });
 
       // Filter out duplicates based on URI
-      setPendingFiles((prev) => [
-        ...prev,
-        ...result.filter((newFile) => !prev.some((f) => f.uri === newFile.uri)),
-      ]);
+      const newFiles = result.filter((newFile) => !pendingFiles.some((f) => f.uri === newFile.uri));
+      setPendingFiles((prev) => [...prev, ...newFiles]);
+
+      if (newFiles.length > 0) {
+        Toast.show({
+          type: 'success',
+          text1: 'Files Selected',
+          text2: `${newFiles.length} file${newFiles.length > 1 ? 's' : ''} added to upload queue`,
+          position: 'bottom',
+          visibilityTime: 3000,
+        });
+      }
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
         console.error('File pick error:', err);
-        Alert.alert('Error', 'Failed to pick file');
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to select files',
+          position: 'bottom',
+          visibilityTime: 3000,
+        });
       }
     }
   };
@@ -127,20 +142,46 @@ const AttachmentsScreen = () => {
       }
       setPendingFiles([]);
       if (failedFiles.length > 0) {
-        Alert.alert('Error', `Failed to upload: ${failedFiles.join(', ')}`);
+        Toast.show({
+          type: 'error',
+          text1: 'Upload Error',
+          text2: `Failed to upload: ${failedFiles.join(', ')}`,
+          position: 'bottom',
+          visibilityTime: 4000,
+        });
       } else {
-        Alert.alert('Success', 'All files uploaded successfully');
+        Toast.show({
+          type: 'success',
+          text1: 'Upload Complete',
+          text2: 'All files uploaded successfully',
+          position: 'bottom',
+          visibilityTime: 3000,
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
-      Alert.alert('Error', 'Failed to upload some files');
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Error',
+        text2: 'Failed to upload some files',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     } finally {
       setUploading(false);
     }
   };
 
   const removePendingFile = (index: number) => {
+    const removedFile = pendingFiles[index];
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+    Toast.show({
+      type: 'delete',
+      text1: 'File Removed',
+      text2: `${removedFile.name || 'Unnamed file'} removed from upload queue`,
+      position: 'bottom',
+      visibilityTime: 3000,
+    });
   };
 
   const handleDelete = async (fileKey: string) => {
@@ -155,9 +196,21 @@ const AttachmentsScreen = () => {
           onPress: async () => {
             try {
               await deleteAttachment({ tripId, fileKey }).unwrap();
-              Alert.alert('Success', 'File deleted successfully');
+              Toast.show({
+                type: 'delete',
+                text1: 'Attachment Deleted',
+                text2: 'File has been removed from your trip',
+                position: 'bottom',
+                visibilityTime: 3000,
+              });
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete attachment');
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to delete attachment',
+                position: 'bottom',
+                visibilityTime: 3000,
+              });
             }
           },
         },
@@ -222,29 +275,29 @@ const AttachmentsScreen = () => {
 
           {filterAttachmentsByType(attachmentData?.attachments || [], 'image')
             .length > 0 && (
-            <AttachmentList
-              title="Images"
-              attachments={filterAttachmentsByType(
-                attachmentData?.attachments || [],
-                'image',
-              )}
-              onDelete={handleDelete}
-            />
-          )}
+              <AttachmentList
+                title="Images"
+                attachments={filterAttachmentsByType(
+                  attachmentData?.attachments || [],
+                  'image',
+                )}
+                onDelete={handleDelete}
+              />
+            )}
 
           {filterAttachmentsByType(
             attachmentData?.attachments || [],
             'document',
           ).length > 0 && (
-            <AttachmentList
-              title="Documents"
-              attachments={filterAttachmentsByType(
-                attachmentData?.attachments || [],
-                'document',
-              )}
-              onDelete={handleDelete}
-            />
-          )}
+              <AttachmentList
+                title="Documents"
+                attachments={filterAttachmentsByType(
+                  attachmentData?.attachments || [],
+                  'document',
+                )}
+                onDelete={handleDelete}
+              />
+            )}
 
           {(!attachmentData?.attachments ||
             attachmentData.attachments.length === 0) &&

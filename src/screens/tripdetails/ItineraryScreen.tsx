@@ -4,7 +4,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, useTheme, FAB, ActivityIndicator } from 'react-native-paper';
 import DraggableFlatList, {
   ScaleDecorator,
@@ -189,8 +189,22 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       await updateItinerary({ id: it_id, data: updatedItinerary }).unwrap();
       setIsUpdating(false);
       setSelectedItem(null);
+      Toast.show({
+        type: 'delete',
+        text1: 'Item Deleted',
+        text2: `${item.details.title} has been removed from your itinerary`,
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     } catch (error) {
       console.log('Error deleting item:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to delete item',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
     }
   };
 
