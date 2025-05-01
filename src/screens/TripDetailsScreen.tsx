@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,12 +10,11 @@ import {
   Easing,
   TextInput,
 } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Text, useTheme, Modal, Portal, IconButton, Surface } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import dayjs from 'dayjs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -42,12 +41,11 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
   const [updateTripPlan] = useUpdateTripPlanMutation();
   const theme = useTheme();
   const navigation = useNavigation();
-  const descriptionActionSheetRef = useRef<ActionSheetRef>(null);
+
+  const [statusBarStyle] = useState<StatusBarStyle>('light-content');
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState('');
-
-  const [statusBarStyle] =
-    useState<StatusBarStyle>('light-content');
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
@@ -71,7 +69,6 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       : tripData.description
     : '';
 
-  console.log('tripData : ', tripData);
   useEffect(() => {
     if (tripData) {
       dispatch(setTripId(tripData?.tripId));
@@ -122,11 +119,11 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
         },
       }).unwrap();
       setIsEditing(false);
+      setIsModalVisible(false);
     } catch (error) {
       console.error('Failed to update description:', error);
     }
   };
-
 
   return (
     <>
@@ -171,8 +168,8 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
               </Text>
               {tripData?.description && (
                 <TouchableOpacity
-                  onPress={() => descriptionActionSheetRef.current?.show()}
-                  style={styles.descriptionContainer}>
+                  style={styles.descriptionContainer}
+                  onPress={() => setIsModalVisible(true)}>
                   <MaterialIcons
                     name="unfold-more"
                     size={14}
@@ -204,55 +201,77 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
           />
         </Animated.View>
 
-        <ActionSheet ref={descriptionActionSheetRef} gestureEnabled>
-          <View style={styles.actionSheetContainer}>
-            <View style={styles.actionSheetHeader}>
-              <View style={styles.titleContainer}>
-                <MaterialIcons
-                  name="description"
-                  size={24}
-                  color={theme.colors.primary}
-                  style={styles.descriptionIcon}
-                />
-                <Text style={styles.actionSheetTitle}>Trip Description</Text>
+        <Portal>
+          {isModalVisible && (
+            <Modal
+              key={`modal-${tripData?.id || 'default'}`}
+              visible={true}
+              onDismiss={() => {
+                setIsModalVisible(false);
+                setIsEditing(false);
+              }}
+              contentContainerStyle={styles.modalContent}>
+              <View key={`content-${tripData?.id || 'default'}`} style={styles.modalInner}>
+                <View style={styles.modalHeader}>
+                  <View style={styles.titleContainer}>
+                    <MaterialIcons
+                      name="description"
+                      size={24}
+                      color={theme.colors.primary}
+                      style={styles.descriptionIcon}
+                    />
+                    <Text variant="titleLarge" style={styles.modalTitle}>
+                      Trip Description
+                    </Text>
+                  </View>
+                  <View style={styles.modalActions}>
+                    <IconButton
+                      icon={isEditing ? "check" : "pencil"}
+                      iconColor={theme.colors.primary}
+                      size={24}
+                      onPress={() => setIsEditing(!isEditing)}
+                    />
+                    <IconButton
+                      icon="close"
+                      iconColor={theme.colors.error}
+                      size={24}
+                      onPress={() => {
+                        setIsModalVisible(false);
+                        setIsEditing(false);
+                      }}
+                    />
+                  </View>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.modalBody}>
+                  {isEditing ? (
+                    <TextInput
+                      style={styles.descriptionInput}
+                      value={editedDescription}
+                      onChangeText={setEditedDescription}
+                      multiline
+                      numberOfLines={8}
+                      placeholder="Enter trip description"
+                      textAlignVertical="top"
+                      placeholderTextColor="#999"
+                    />
+                  ) : (
+                    <Text style={styles.modalDescription}>
+                      {tripData?.description}
+                    </Text>
+                  )}
+                </View>
+                {isEditing && (
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={handleSaveDescription}>
+                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-              <TouchableOpacity
-                onPress={() => setIsEditing(!isEditing)}
-                style={styles.editButton}>
-                <MaterialIcons
-                  name={isEditing ? "check" : "edit"}
-                  size={24}
-                  color={theme.colors.primary}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.actionSheetBody}>
-              {isEditing ? (
-                <TextInput
-                  style={styles.descriptionInput}
-                  value={editedDescription}
-                  onChangeText={setEditedDescription}
-                  multiline
-                  numberOfLines={8}
-                  placeholder="Enter trip description"
-                  textAlignVertical="top"
-                />
-              ) : (
-                <Text style={styles.actionSheetDescription}>
-                  {tripData?.description}
-                </Text>
-              )}
-            </View>
-            {isEditing && (
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveDescription}>
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </ActionSheet>
+            </Modal>
+          )}
+        </Portal>
       </View>
     </>
   );
@@ -321,13 +340,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
   },
-  actionSheetContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 40,
+  modalContainer: {
+    paddingHorizontal: 20,
   },
-  actionSheetHeader: {
+  modalContent: {
+    marginHorizontal: 20,
+  },
+  modalInner: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    paddingBottom: 20,
+    maxHeight: '80%',
+    width: '100%',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -336,33 +370,31 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  actionSheetTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  modalTitle: {
     color: '#333',
     marginLeft: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   divider: {
     height: 1,
     backgroundColor: '#eee',
     marginHorizontal: 20,
   },
-  actionSheetBody: {
+  modalBody: {
     padding: 20,
   },
   descriptionIcon: {
     marginTop: 1,
   },
-  actionSheetDescription: {
+  modalDescription: {
     fontSize: 16,
     lineHeight: 24,
     color: '#333',
     letterSpacing: 0.3,
-  },
-  editButton: {
-    padding: 4,
   },
   descriptionInput: {
     fontSize: 16,
@@ -370,18 +402,20 @@ const styles = StyleSheet.create({
     color: '#333',
     letterSpacing: 0.3,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 16,
     minHeight: 200,
-    textAlignVertical: 'top',
+    backgroundColor: '#f8f8f8',
   },
   saveButton: {
     backgroundColor: theme.colors.primary,
-    margin: 20,
+    marginHorizontal: 20,
+    marginTop: 16,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
   },
   saveButtonText: {
     color: 'white',

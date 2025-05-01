@@ -12,28 +12,30 @@ import { Text, useTheme, IconButton } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import { THINGSTODO } from '@/constants/ItineraryTypes';
+import { TRANSPORTATION } from '@/constants/ItineraryTypes';
 import Toast from 'react-native-toast-message';
 import { ItineraryStackParamList } from '../../../navigation/ItineraryStackNavigator';
 import DatePicker from 'react-native-date-picker';
 import { validateTimeRange, validateRequiredFields } from '../../../utils/validation/formValidation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type ThingsToDoScreenRouteProp = RouteProp<ItineraryStackParamList, 'ThingsToDo'>;
+type TransportationScreenRouteProp = RouteProp<ItineraryStackParamList, 'Transportation'>;
 
-const ThingsToDoForm = () => {
+const TransportationForm = () => {
     const theme = useTheme();
     const navigation = useNavigation();
-    const route = useRoute<ThingsToDoScreenRouteProp>();
-    const { isUpdating, isViewOnly, initialData } = route.params;
+    const route = useRoute<TransportationScreenRouteProp>();
+    const { isViewOnly = false, isUpdating = false, initialData } = route.params;
     const dispatch = useDispatch();
 
     const [name, setName] = useState('');
-    const [isBooked, setIsBooked] = useState<boolean | null>(null);
-    const [startTime, setStartTime] = useState<Date | null>(null);
-    const [endTime, setEndTime] = useState<Date | null>(null);
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
+    const [type, setType] = useState('');
+    const [departureLocation, setDepartureLocation] = useState('');
+    const [departureTime, setDepartureTime] = useState<Date | null>(null);
+    const [arrivalLocation, setArrivalLocation] = useState('');
+    const [arrivalTime, setArrivalTime] = useState<Date | null>(null);
+    const [showDepartureTimePicker, setShowDepartureTimePicker] = useState(false);
+    const [showArrivalTimePicker, setShowArrivalTimePicker] = useState(false);
     const [link, setLink] = useState('');
     const [reservationNumber, setReservationNumber] = useState('');
     const [note, setNote] = useState('');
@@ -55,9 +57,11 @@ const ThingsToDoForm = () => {
     const setDefaultValues = () => {
         const now = new Date();
         setName('');
-        setIsBooked(false);
-        setStartTime(now);
-        setEndTime(now);
+        setType('Car'); // Default to Car
+        setDepartureLocation('');
+        setDepartureTime(now);
+        setArrivalLocation('');
+        setArrivalTime(now);
         setLink('');
         setReservationNumber('');
         setNote('');
@@ -70,21 +74,23 @@ const ThingsToDoForm = () => {
     useEffect(() => {
         if (initialData) {
             setName(initialData.details.title || '');
-            setIsBooked(initialData.details.customFields?.isBooked === true ||
-                initialData.details.customFields?.isBooked === "true");
+            setType(initialData.details.customFields?.type || '');
+            setDepartureLocation(initialData.details.customFields?.departureLocation || '');
+            setArrivalLocation(initialData.details.customFields?.arrivalLocation || '');
 
-            if (initialData.details.customFields?.startTime) {
-                const startTimeDate = new Date(initialData.details.customFields.startTime);
-                setStartTime(isNaN(startTimeDate.getTime()) ? null : startTimeDate);
+            if (initialData.details.customFields?.departureTime) {
+                const departureTimeDate = new Date(initialData.details.customFields.departureTime);
+                setDepartureTime(isNaN(departureTimeDate.getTime()) ? null : departureTimeDate);
             } else {
-                setStartTime(null);
+                setDepartureTime(null);
             }
-            if (initialData.details.customFields?.endTime) {
-                const endTimeDate = new Date(initialData.details.customFields.endTime);
-                setEndTime(isNaN(endTimeDate.getTime()) ? null : endTimeDate);
+            if (initialData.details.customFields?.arrivalTime) {
+                const arrivalTimeDate = new Date(initialData.details.customFields.arrivalTime);
+                setArrivalTime(isNaN(arrivalTimeDate.getTime()) ? null : arrivalTimeDate);
             } else {
-                setEndTime(null);
+                setArrivalTime(null);
             }
+
             setLink(initialData.details.customFields?.link || '');
             setReservationNumber(initialData.details.customFields?.reservationNumber || '');
             setNote(initialData.details.customFields?.note || '');
@@ -102,11 +108,18 @@ const ThingsToDoForm = () => {
     const validateForm = (): boolean => {
         setErrors({});
         setTimeError(undefined);
+
         const fieldValidation = validateRequiredFields(
-            { name },
-            ['name']
+            {
+                name,
+                type,
+                departureLocation,
+                arrivalLocation
+            },
+            ['name', 'type', 'departureLocation', 'arrivalLocation']
         );
-        const timeValidation = validateTimeRange(startTime, endTime);
+
+        const timeValidation = validateTimeRange(departureTime, arrivalTime);
 
         if (!fieldValidation.isValid) {
             setErrors(fieldValidation.errors);
@@ -131,13 +144,15 @@ const ThingsToDoForm = () => {
                 ? initialData.position
                 : itinerary.itinerary[selectedDate].length + 1,
             date: selectedDate,
-            type: THINGSTODO,
+            type: TRANSPORTATION,
             details: {
                 title: name,
                 customFields: {
-                    isBooked,
-                    startTime: startTime?.toISOString(),
-                    endTime: endTime?.toISOString(),
+                    type,
+                    departureLocation,
+                    departureTime: departureTime?.toISOString(),
+                    arrivalLocation,
+                    arrivalTime: arrivalTime?.toISOString(),
                     link,
                     reservationNumber,
                     note,
@@ -164,10 +179,10 @@ const ThingsToDoForm = () => {
             setTimeout(() => {
                 Toast.show({
                     type: 'success',
-                    text1: isUpdating ? 'Activity Updated' : 'Activity Added',
+                    text1: isUpdating ? 'Transportation Updated' : 'Transportation Added',
                     text2: isUpdating
-                        ? 'Your activity has been updated successfully'
-                        : 'Your new activity has been added successfully',
+                        ? 'Your transportation has been updated successfully'
+                        : 'Your new transportation has been added successfully',
                     position: 'bottom',
                     visibilityTime: 3000,
                 });
@@ -177,8 +192,8 @@ const ThingsToDoForm = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: isUpdating
-                    ? 'Failed to update activity'
-                    : 'Failed to add activity',
+                    ? 'Failed to update transportation'
+                    : 'Failed to add transportation',
                 position: 'bottom',
                 visibilityTime: 3000,
             });
@@ -209,22 +224,52 @@ const ThingsToDoForm = () => {
                         />
                     </TouchableOpacity>
                 </View>
+
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}>
                     <Text style={styles.title}>
-                        {isViewOnly ? 'View Details' : isUpdating ? 'Update Things To Do' : 'Add Things To Do'}
+                        {isViewOnly ? 'View Details' : isUpdating ? 'Update Transportation' : 'Add Transportation'}
                     </Text>
                     <Text style={styles.description}>Add a description here</Text>
 
-                    <Text style={styles.label}>Name Of Activity *</Text>
+                    <Text style={styles.label}>Type of transportation *</Text>
+                    <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
+                        {['Flight', 'Train', 'Car', 'Bus'].map(option => (
+                            <TouchableOpacity
+                                key={option}
+                                style={[
+                                    styles.toggleButton,
+                                    type === option && { backgroundColor: theme.colors.primary },
+                                    errors.type && styles.inputError
+                                ]}
+                                onPress={() => {
+                                    setType(option);
+                                    if (errors.type) {
+                                        setErrors({ ...errors, type: '' });
+                                    }
+                                }}
+                                disabled={isViewOnly}>
+                                <Text
+                                    style={[
+                                        styles.toggleText,
+                                        type === option && { color: theme.colors.onPrimary },
+                                    ]}>
+                                    {option}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    {errors.type && <Text style={styles.errorText}>{errors.type}</Text>}
+
+                    <Text style={styles.label}>Name *</Text>
                     <TextInput
                         style={[
                             styles.input,
                             isViewOnly && styles.disabledInput,
                             errors.name && styles.inputError
                         ]}
-                        placeholder="Enter activity name"
+                        placeholder="Enter name"
                         value={name}
                         onChangeText={(text) => {
                             setName(text);
@@ -236,87 +281,75 @@ const ThingsToDoForm = () => {
                     />
                     {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-                    <Text style={styles.label}>Booked?</Text>
-                    <View style={[styles.toggleContainer, isViewOnly && styles.disabledToggle]}>
-                        <TouchableOpacity
-                            style={[
-                                styles.toggleButton,
-                                isBooked === true && { backgroundColor: theme.colors.primary },
-                            ]}
-                            onPress={() => {
-                                if (!isViewOnly) {
-                                    setIsBooked(true);
-                                }
-                            }}
-                            disabled={isViewOnly}>
-                            <Text
-                                style={[
-                                    styles.toggleText,
-                                    isBooked === true && { color: theme.colors.onPrimary },
-                                ]}>
-                                Yes
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.toggleButton,
-                                isBooked === false && { backgroundColor: theme.colors.primary },
-                            ]}
-                            onPress={() => {
-                                if (!isViewOnly) {
-                                    setIsBooked(false);
-                                }
-                            }}
-                            disabled={isViewOnly}>
-                            <Text
-                                style={[
-                                    styles.toggleText,
-                                    isBooked === false && { color: theme.colors.onPrimary },
-                                ]}>
-                                No
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.label}>Departure Location *</Text>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            isViewOnly && styles.disabledInput,
+                            errors.departureLocation && styles.inputError
+                        ]}
+                        placeholder="Enter departure location"
+                        value={departureLocation}
+                        onChangeText={(text) => {
+                            setDepartureLocation(text);
+                            if (errors.departureLocation) {
+                                setErrors({ ...errors, departureLocation: '' });
+                            }
+                        }}
+                        editable={!isViewOnly}
+                    />
+                    {errors.departureLocation && <Text style={styles.errorText}>{errors.departureLocation}</Text>}
+
+                    <Text style={styles.label}>Arrival Location *</Text>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            isViewOnly && styles.disabledInput,
+                            errors.arrivalLocation && styles.inputError
+                        ]}
+                        placeholder="Enter arrival location"
+                        value={arrivalLocation}
+                        onChangeText={(text) => {
+                            setArrivalLocation(text);
+                            if (errors.arrivalLocation) {
+                                setErrors({ ...errors, arrivalLocation: '' });
+                            }
+                        }}
+                        editable={!isViewOnly}
+                    />
+                    {errors.arrivalLocation && <Text style={styles.errorText}>{errors.arrivalLocation}</Text>}
 
                     <View style={styles.timeRow}>
                         <View style={styles.timeColumn}>
-                            <Text style={styles.label}>Start Time</Text>
+                            <Text style={styles.label}>Departure Time</Text>
                             <TouchableOpacity
                                 style={[
                                     styles.timeInput,
-                                    !startTime && styles.timeInputEmpty,
+                                    !departureTime && styles.timeInputEmpty,
                                     isViewOnly && styles.disabledInput,
                                     timeError && styles.inputError
                                 ]}
-                                onPress={() => !isViewOnly && setShowStartPicker(true)}
+                                onPress={() => !isViewOnly && setShowDepartureTimePicker(true)}
                                 disabled={isViewOnly}>
-                                <Text
-                                    style={[
-                                        styles.timeText,
-                                        !startTime && styles.timeTextPlaceholder,
-                                    ]}>
-                                    {formatTime(startTime) || 'Select time'}
+                                <Text style={[styles.timeText, !departureTime && styles.timeTextPlaceholder]}>
+                                    {formatTime(departureTime) || 'Select time'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.timeColumn}>
-                            <Text style={styles.label}>End Time</Text>
+                            <Text style={styles.label}>Arrival Time</Text>
                             <TouchableOpacity
                                 style={[
                                     styles.timeInput,
-                                    !endTime && styles.timeInputEmpty,
+                                    !arrivalTime && styles.timeInputEmpty,
                                     isViewOnly && styles.disabledInput,
                                     timeError && styles.inputError
                                 ]}
-                                onPress={() => !isViewOnly && setShowEndPicker(true)}
+                                onPress={() => !isViewOnly && setShowArrivalTimePicker(true)}
                                 disabled={isViewOnly}>
-                                <Text
-                                    style={[
-                                        styles.timeText,
-                                        !endTime && styles.timeTextPlaceholder,
-                                    ]}>
-                                    {formatTime(endTime) || 'Select time'}
+                                <Text style={[styles.timeText, !arrivalTime && styles.timeTextPlaceholder]}>
+                                    {formatTime(arrivalTime) || 'Select time'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -325,26 +358,26 @@ const ThingsToDoForm = () => {
 
                     <DatePicker
                         modal
-                        open={showStartPicker}
+                        open={showDepartureTimePicker}
                         date={new Date()}
                         mode="time"
                         onConfirm={date => {
-                            setStartTime(date);
-                            setShowStartPicker(false);
+                            setDepartureTime(date);
+                            setShowDepartureTimePicker(false);
                         }}
-                        onCancel={() => setShowStartPicker(false)}
+                        onCancel={() => setShowDepartureTimePicker(false)}
                     />
 
                     <DatePicker
                         modal
-                        open={showEndPicker}
+                        open={showArrivalTimePicker}
                         date={new Date()}
                         mode="time"
                         onConfirm={date => {
-                            setEndTime(date);
-                            setShowEndPicker(false);
+                            setArrivalTime(date);
+                            setShowArrivalTimePicker(false);
                         }}
-                        onCancel={() => setShowEndPicker(false)}
+                        onCancel={() => setShowArrivalTimePicker(false)}
                     />
 
                     <Text style={styles.label}>Link</Text>
@@ -542,4 +575,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ThingsToDoForm;
+export default TransportationForm; 

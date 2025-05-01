@@ -32,6 +32,7 @@ interface ItineraryCardProps {
         type?: string;
         departureLocation?: string;
         arrivalLocation?: string;
+        isBooked?: boolean;
       };
     };
   };
@@ -110,16 +111,16 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   React.useEffect(() => {
     if (shouldAnimate) {
-    animatedValue.setValue(0);
-    Animated.sequence([
-      Animated.delay(item.position * 100),
-      Animated.spring(animatedValue, {
-        toValue: 1,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      animatedValue.setValue(0);
+      Animated.sequence([
+        Animated.delay(item.position * 100),
+        Animated.spring(animatedValue, {
+          toValue: 1,
+          tension: 100,
+          friction: 5,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
       animatedValue.setValue(1);
     }
@@ -220,10 +221,18 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
               </Text>
             </>
           ) : item.type !== NOTE ? (
-            <Text style={styles.timeText}>
-              {parseTime(item.details.customFields.startTime || '')} -{' '}
-              {parseTime(item.details.customFields.endTime || '')}
-            </Text>
+            <>
+              <Text style={styles.timeText}>
+                {parseTime(item.details.customFields.startTime || '')} -{' '}
+                {parseTime(item.details.customFields.endTime || '')}
+              </Text>
+              {(item.type === PLACESTOSTAY || item.type === FOODANDDRINK || item.type === THINGSTODO) && (
+                <Text style={styles.statusText}>
+                  Status: {item.details.customFields.isBooked === true ||
+                    item.details.customFields.isBooked === "true" ? 'Booked' : 'Not Booked'}
+                </Text>
+              )}
+            </>
           ) : null}
           {item.details.customFields.activityName && (
             <Text>{item.details.customFields.activityName}</Text>
@@ -328,6 +337,11 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     transform: [{ scale: 1.02 }],
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
   },
 } as const);
 

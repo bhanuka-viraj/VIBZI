@@ -12,20 +12,20 @@ import { Text, useTheme, IconButton } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useUpdateTripPlanItineraryMutation } from '../../../redux/slices/tripplan/itinerary/itinerarySlice';
-import { THINGSTODO } from '@/constants/ItineraryTypes';
+import { PLACESTOSTAY } from '@/constants/ItineraryTypes';
 import Toast from 'react-native-toast-message';
 import { ItineraryStackParamList } from '../../../navigation/ItineraryStackNavigator';
 import DatePicker from 'react-native-date-picker';
 import { validateTimeRange, validateRequiredFields } from '../../../utils/validation/formValidation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type ThingsToDoScreenRouteProp = RouteProp<ItineraryStackParamList, 'ThingsToDo'>;
+type PlaceToStayScreenRouteProp = RouteProp<ItineraryStackParamList, 'PlaceToStay'>;
 
-const ThingsToDoForm = () => {
+const PlaceToStayForm = () => {
     const theme = useTheme();
     const navigation = useNavigation();
-    const route = useRoute<ThingsToDoScreenRouteProp>();
-    const { isUpdating, isViewOnly, initialData } = route.params;
+    const route = useRoute<PlaceToStayScreenRouteProp>();
+    const { isViewOnly = false, isUpdating = false, initialData } = route.params;
     const dispatch = useDispatch();
 
     const [name, setName] = useState('');
@@ -131,7 +131,7 @@ const ThingsToDoForm = () => {
                 ? initialData.position
                 : itinerary.itinerary[selectedDate].length + 1,
             date: selectedDate,
-            type: THINGSTODO,
+            type: PLACESTOSTAY,
             details: {
                 title: name,
                 customFields: {
@@ -164,10 +164,10 @@ const ThingsToDoForm = () => {
             setTimeout(() => {
                 Toast.show({
                     type: 'success',
-                    text1: isUpdating ? 'Activity Updated' : 'Activity Added',
+                    text1: isUpdating ? 'Place to Stay Updated' : 'Place to Stay Added',
                     text2: isUpdating
-                        ? 'Your activity has been updated successfully'
-                        : 'Your new activity has been added successfully',
+                        ? 'Your place to stay has been updated successfully'
+                        : 'Your new place to stay has been added successfully',
                     position: 'bottom',
                     visibilityTime: 3000,
                 });
@@ -177,8 +177,8 @@ const ThingsToDoForm = () => {
                 type: 'error',
                 text1: 'Error',
                 text2: isUpdating
-                    ? 'Failed to update activity'
-                    : 'Failed to add activity',
+                    ? 'Failed to update place to stay'
+                    : 'Failed to add place to stay',
                 position: 'bottom',
                 visibilityTime: 3000,
             });
@@ -209,22 +209,23 @@ const ThingsToDoForm = () => {
                         />
                     </TouchableOpacity>
                 </View>
+
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}>
                     <Text style={styles.title}>
-                        {isViewOnly ? 'View Details' : isUpdating ? 'Update Things To Do' : 'Add Things To Do'}
+                        {isViewOnly ? 'View Details' : isUpdating ? 'Update Place to Stay' : 'Add Place to Stay'}
                     </Text>
                     <Text style={styles.description}>Add a description here</Text>
 
-                    <Text style={styles.label}>Name Of Activity *</Text>
+                    <Text style={styles.label}>Name Of Place *</Text>
                     <TextInput
                         style={[
                             styles.input,
                             isViewOnly && styles.disabledInput,
                             errors.name && styles.inputError
                         ]}
-                        placeholder="Enter activity name"
+                        placeholder="Enter place name"
                         value={name}
                         onChangeText={(text) => {
                             setName(text);
@@ -542,4 +543,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ThingsToDoForm;
+export default PlaceToStayForm; 

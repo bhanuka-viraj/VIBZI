@@ -46,7 +46,7 @@ export type RootStackParamList = {
   };
   ForgotPassword: undefined;
   ItineraryStack: {
-    screen: 'ThingsToDo' | 'ThingsToDoDetails';
+    screen: 'ThingsToDo' | 'FoodAndDrink' | 'PlaceToStay' | 'Transportation' | 'Note' | 'ItineraryDetails';
     params: {
       isViewOnly?: boolean;
       isUpdating?: boolean;
@@ -99,9 +99,8 @@ const AppNavigator = () => {
           animation: 'fade_from_bottom',
           contentStyle: { backgroundColor: '#FFFFFF' },
         }}>
-        {(authLoading || appLoading) ? (
-          <Stack.Screen name="Splash" component={SplashScreen} />
-        ) : (
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        {(authLoading || appLoading) ? null : (
           <>
             {!hasCompletedOnboarding && (
               <Stack.Screen

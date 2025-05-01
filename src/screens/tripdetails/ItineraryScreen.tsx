@@ -4,17 +4,12 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect,useState } from 'react';
 import { Text, useTheme, FAB, ActivityIndicator } from 'react-native-paper';
-import { ActionSheetRef } from 'react-native-actions-sheet';
 import DraggableFlatList, {
   ScaleDecorator,
   RenderItemParams,
 } from 'react-native-draggable-flatlist';
-import AddFoodAndDrinkActionSheet from '../../components/actionsheets/trip/FoodAndDrinkActionSheet';
-import AddPlaceToStayActionSheet from '../../components/actionsheets/trip/PlaceToStayActionSheet';
-import AddTransportationActionSheet from '../../components/actionsheets/trip/TransportationActionSheet';
-import NoteActionSheet from '../../components/actionsheets/trip/NoteActionSheet';
 import ItineraryCard from '../../components/cards/ItineraryCard';
 import { useGetTripPlanItineraryByIdQuery, useUpdateTripPlanItineraryMutation } from '../../redux/slices/tripplan/itinerary/itinerarySlice';
 import {
@@ -32,8 +27,10 @@ import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { ItineraryStackParamList } from '../../navigation/ItineraryStackNavigator';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ItineraryStack'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type ItineraryNavigationProp = NativeStackNavigationProp<ItineraryStackParamList>;
 
 interface ItineraryScreenProps {
   tripId: string;
@@ -43,6 +40,7 @@ interface ItineraryScreenProps {
 const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) => {
   const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
+  const itineraryNavigation = useNavigation<ItineraryNavigationProp>();
   const [isFabOpen, setIsFabOpen] = useState<boolean>(false);
   const dispatch = useDispatch();
   const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
@@ -59,53 +57,64 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
 
   const [updateItinerary] = useUpdateTripPlanItineraryMutation();
 
-  const thingsToDoactionSheetRef = useRef<ActionSheetRef>(null);
-  const placeToStayactionSheetRef = useRef<ActionSheetRef>(null);
-  const foodAndDrinkactionSheetRef = useRef<ActionSheetRef>(null);
-  const transportationactionSheetRef = useRef<ActionSheetRef>(null);
-  const noteactionSheetRef = useRef<ActionSheetRef>(null);
 
   const { data, isLoading } = useGetTripPlanItineraryByIdQuery(trip_id as any);
   console.log('data : ', data);
   const { dates, itineraryByDate } = parseItineraryData(data);
   const selectedDateItineraries = itineraryByDate[selectedDate] || [];
 
-  console.log('====================================');
-  console.log('selectedDateItineraries : ', selectedDateItineraries);
-  console.log('====================================');
+  // console.log('====================================');
+  // console.log('selectedDateItineraries : ', selectedDateItineraries);
+  // console.log('====================================');
 
   const renderKey = JSON.stringify(selectedDateItineraries);
 
-  const handleCardPress = (item: ItineraryItem) => {
-    setSelectedItem(item);
-    setIsViewOnly(true);
-    setIsUpdating(false);
-
-    switch (item.type) {
-      case THINGSTODO:
-        navigation.navigate('ItineraryStack', {
-          screen: 'ThingsToDoDetails',
-          params: {
-            item
-          }
-        });
-        break;
-      case PLACESTOSTAY:
-        placeToStayactionSheetRef.current?.show();
-        break;
-      case FOODANDDRINK:
-        foodAndDrinkactionSheetRef.current?.show();
-        break;
-      case TRANSPORTATION:
-        transportationactionSheetRef.current?.show();
-        break;
-      case NOTE:
-        noteactionSheetRef.current?.show();
-        break;
+  const handleCardPress = (item: any) => {
+    if (item.type === 'FOODANDDRINK') {
+      navigation.navigate('ItineraryStack', {
+        screen: 'FoodAndDrink',
+        params: {
+          isViewOnly: true,
+          isUpdating: false,
+          initialData: item
+        }
+      });
+    } else if (item.type === 'PLACESTOSTAY') {
+      navigation.navigate('ItineraryStack', {
+        screen: 'PlaceToStay',
+        params: {
+          isViewOnly: true,
+          isUpdating: false,
+          initialData: item
+        }
+      });
+    } else if (item.type === 'TRANSPORTATION') {
+      navigation.navigate('ItineraryStack', {
+        screen: 'Transportation',
+        params: {
+          isViewOnly: true,
+          isUpdating: false,
+          initialData: item
+        }
+      });
+    } else if (item.type === 'NOTE') {
+      navigation.navigate('ItineraryStack', {
+        screen: 'Note',
+        params: {
+          isViewOnly: true,
+          isUpdating: false,
+          initialData: item
+        }
+      });
+    } else {
+      navigation.navigate('ItineraryStack', {
+        screen: 'ItineraryDetails',
+        params: { item }
+      });
     }
   };
 
-  const handleUpdate = (item: ItineraryItem) => {
+  const handleUpdate = (item: any) => {
     setSelectedItem(item);
     setIsUpdating(true);
     setIsViewOnly(false);
@@ -122,16 +131,44 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         });
         break;
       case PLACESTOSTAY:
-        placeToStayactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'PlaceToStay',
+          params: {
+            isViewOnly: false,
+            isUpdating: true,
+            initialData: item
+          }
+        });
         break;
       case FOODANDDRINK:
-        foodAndDrinkactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'FoodAndDrink',
+          params: {
+            isViewOnly: false,
+            isUpdating: true,
+            initialData: item
+          }
+        });
         break;
       case TRANSPORTATION:
-        transportationactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'Transportation',
+          params: {
+            isViewOnly: false,
+            isUpdating: true,
+            initialData: item
+          }
+        });
         break;
       case NOTE:
-        noteactionSheetRef.current?.show();
+        navigation.navigate('ItineraryStack', {
+          screen: 'Note',
+          params: {
+            isViewOnly: false,
+            isUpdating: true,
+            initialData: item
+          }
+        });
         break;
     }
   };
@@ -157,18 +194,60 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
     }
   };
 
-  const handleAddNewItem = () => {
-    setIsUpdating(false);
-    setIsViewOnly(false);
-    setSelectedItem(null);
-    navigation.navigate('ItineraryStack', {
-      screen: 'ThingsToDo',
-      params: {
-        isViewOnly: false,
-        isUpdating: false
-      }
-    });
-
+  const handleAddNewItem = (type?: string) => {
+    switch (type) {
+      case THINGSTODO:
+        navigation.navigate('ItineraryStack', {
+          screen: 'ThingsToDo',
+          params: {
+            isViewOnly: false,
+            isUpdating: false,
+            initialData: null
+          }
+        });
+        break;
+      case FOODANDDRINK:
+        navigation.navigate('ItineraryStack', {
+          screen: 'FoodAndDrink',
+          params: {
+            isViewOnly: false,
+            isUpdating: false,
+            initialData: null
+          }
+        });
+        break;
+      case PLACESTOSTAY:
+        navigation.navigate('ItineraryStack', {
+          screen: 'PlaceToStay',
+          params: {
+            isViewOnly: false,
+            isUpdating: false,
+            initialData: null
+          }
+        });
+        break;
+      case TRANSPORTATION:
+        navigation.navigate('ItineraryStack', {
+          screen: 'Transportation',
+          params: {
+            isViewOnly: false,
+            isUpdating: false,
+            initialData: null
+          }
+        });
+        break;
+      case NOTE:
+        navigation.navigate('ItineraryStack', {
+          screen: 'Note',
+          params: {
+            isViewOnly: false,
+            isUpdating: false,
+            initialData: null
+          }
+        });
+        break;
+    }
+    setIsFabOpen(false);
   };
 
   const handleDeletePress = (item: ItineraryItem) => {
@@ -303,39 +382,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
         )}
       </View>
 
-      <AddPlaceToStayActionSheet
-        actionSheetRef={placeToStayactionSheetRef}
-        initialData={
-          selectedItem?.type === PLACESTOSTAY ? selectedItem : undefined
-        }
-        isUpdating={isUpdating}
-        isViewOnly={isViewOnly}
-      />
-      <AddFoodAndDrinkActionSheet
-        actionSheetRef={foodAndDrinkactionSheetRef}
-        initialData={
-          selectedItem?.type === FOODANDDRINK ? selectedItem : undefined
-        }
-        isUpdating={isUpdating}
-        isViewOnly={isViewOnly}
-      />
-      <AddTransportationActionSheet
-        actionSheetRef={transportationactionSheetRef}
-        initialData={
-          selectedItem?.type === TRANSPORTATION ? selectedItem : undefined
-        }
-        isUpdating={isUpdating}
-        isViewOnly={isViewOnly}
-      />
-      <NoteActionSheet
-        actionSheetRef={noteactionSheetRef}
-        initialData={
-          selectedItem?.type === NOTE ? selectedItem : undefined
-        }
-        isUpdating={isUpdating}
-        isViewOnly={isViewOnly}
-      />
-
       <FAB.Group
         visible={true}
         open={isFabOpen}
@@ -351,7 +397,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'format-list-bulleted',
             label: 'Add Things To Do',
-            onPress: () => handleAddNewItem(),
+            onPress: () => handleAddNewItem(THINGSTODO),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -361,7 +407,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'home',
             label: 'Add a Place to Stay',
-            onPress: () => handleAddNewItem(),
+            onPress: () => handleAddNewItem(PLACESTOSTAY),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -371,7 +417,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'silverware-fork-knife',
             label: 'Add Food & Drink',
-            onPress: () => handleAddNewItem(),
+            onPress: () => handleAddNewItem(FOODANDDRINK),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -381,7 +427,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'car',
             label: 'Add Transportation',
-            onPress: () => handleAddNewItem(),
+            onPress: () => handleAddNewItem(TRANSPORTATION),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
@@ -391,7 +437,7 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
           {
             icon: 'note-plus',
             label: 'Add a Note',
-            onPress: () => handleAddNewItem(),
+            onPress: () => handleAddNewItem(NOTE),
             style: {
               elevation: 0,
               shadowColor: 'transparent',
