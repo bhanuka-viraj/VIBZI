@@ -196,7 +196,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
                 onPress={() => onDelete(item)}
                 style={styles.iconButton}
               >
-                <MaterialIcons name="delete-outline" size={20} color="#FF4444" />
+                <MaterialIcons name="delete-outline" size={20} color={theme.colors.error} />
               </TouchableOpacity>
             </View>
           </View>
@@ -228,8 +228,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
               </Text>
               {(item.type === PLACESTOSTAY || item.type === FOODANDDRINK || item.type === THINGSTODO) && (
                 <Text style={styles.statusText}>
-                  Status: {item.details.customFields.isBooked === true ||
-                    item.details.customFields.isBooked === "true" ? 'Booked' : 'Not Booked'}
+                  Status: {item.details.customFields.isBooked ? 'Booked' : 'Not Booked'}
                 </Text>
               )}
             </>

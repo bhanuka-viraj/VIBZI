@@ -59,7 +59,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onPress, onUpdate, onDelete }
                 activeOpacity={0.7}
                 onPress={() => onDelete(trip)}
                 style={styles.iconButton}>
-                <MaterialIcons name="delete-outline" size={20} color="#FF4444" />
+                <MaterialIcons name="delete-outline" size={20} color={theme.colors.error} />
               </TouchableOpacity>
             </View>
           </View>

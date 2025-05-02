@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { theme } from '../constants/theme';
 
 const toastConfig = {
   success: (props: any) => (
@@ -25,7 +26,7 @@ const toastConfig = {
         width: 30,
         height: 30,
         borderRadius: 15,
-        backgroundColor: '#4CAF50',
+        backgroundColor: theme.colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -97,7 +98,7 @@ const toastConfig = {
         width: 30,
         height: 30,
         borderRadius: 15,
-        backgroundColor: '#F44336',
+        backgroundColor: theme.colors.error,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,

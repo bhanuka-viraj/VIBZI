@@ -192,7 +192,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       Toast.show({
         type: 'delete',
         text1: 'Item Deleted',
-        text2: `${item.details.title} has been removed from your itinerary`,
         position: 'bottom',
         visibilityTime: 3000,
       });
@@ -201,7 +200,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Failed to delete item',
         position: 'bottom',
         visibilityTime: 3000,
       });
@@ -288,7 +286,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       Toast.show({
         type: 'success',
         text1: 'Itinerary Updated',
-        text2: 'Items have been reordered successfully',
         position: 'bottom',
         visibilityTime: 3000,
       });
@@ -296,7 +293,6 @@ const ItineraryScreen: React.FC<ItineraryScreenProps> = ({ tripId, trip_id }) =>
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Failed to update itinerary order',
         position: 'bottom',
         visibilityTime: 3000,
       });

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,13 +7,13 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {theme} from '../constants/theme';
-import {getFileIcon} from '../utils/fileUtils';
+import { theme } from '../constants/theme';
+import { getFileIcon } from '../utils/fileUtils';
 import FastImage from 'react-native-fast-image';
 import ImageView from 'react-native-image-viewing';
-import {isImageFile} from '../utils/tripUtils/attachmentUtils';
+import { isImageFile } from '../utils/tripUtils/attachmentUtils';
 import DocumentViewer from './DocumentViewer';
 
 interface AttachmentListProps {
@@ -41,7 +41,7 @@ const AttachmentList = ({
   } | null>(null);
   const imageUrls = attachments
     .filter(item => isImageFile(item.originalFilename))
-    .map(item => ({uri: item.fileUrl}));
+    .map(item => ({ uri: item.fileUrl }));
 
   const handlePress = async (fileUrl: string, fileName: string) => {
     if (isImageFile(fileName)) {
@@ -50,7 +50,7 @@ const AttachmentList = ({
       );
       setSelectedImageIndex(index);
     } else {
-      setSelectedDocument({url: fileUrl, name: fileName});
+      setSelectedDocument({ url: fileUrl, name: fileName });
     }
   };
 
@@ -82,7 +82,7 @@ const AttachmentList = ({
             {isImageFile(item.originalFilename) ? (
               <FastImage
                 style={styles.image}
-                source={{uri: item.fileUrl}}
+                source={{ uri: item.fileUrl }}
                 resizeMode={FastImage.resizeMode.cover}
                 onError={() => console.log('Failed to load image')}
               />
