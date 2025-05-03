@@ -49,25 +49,25 @@ const AttachmentsScreen = () => {
   const [deleteAttachment] = useDeleteAttachmentMutation();
 
   const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      if (Platform.Version >= 33) {
-        // API 33+ (Android 13+)
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
-        ]);
-        return Object.values(granted).every(
-          (res) => res === PermissionsAndroid.RESULTS.GRANTED,
-        );
-      } else {
-        // API 32 and below
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      }
-    }
+    // if (Platform.OS === 'android') {
+    //   if (Platform.Version >= 33) {
+    //     // API 33+ (Android 13+)
+    //     const granted = await PermissionsAndroid.requestMultiple([
+    //       PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+    //       PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+    //       PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+    //     ]);
+    //     return Object.values(granted).every(
+    //       (res) => res === PermissionsAndroid.RESULTS.GRANTED,
+    //     );
+    //   } else {
+    //     // API 32 and below
+    //     const granted = await PermissionsAndroid.request(
+    //       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    //     );
+    //     return granted === PermissionsAndroid.RESULTS.GRANTED;
+    //   }
+    // }
     return true;
   };
 

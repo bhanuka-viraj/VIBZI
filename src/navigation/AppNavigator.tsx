@@ -65,17 +65,12 @@ const AppNavigator = () => {
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
   const { showConsentModal, handleAcceptConsent, handleDeclineConsent, isSubmitting } = useConsentCheck();
 
-  useEffect(() => {
-    dispatch(checkAuthState());
-    dispatch(checkOnboardingStatus());
-    checkIfFirstLaunch();
-  }, [dispatch]);
-
   const checkIfFirstLaunch = async () => {
     try {
       const hasLaunched = await AsyncStorage.getItem('hasLaunched');
       if (hasLaunched === null) {
         await AsyncStorage.setItem('hasLaunched', 'true');
+        await AsyncStorage.setItem('hasCompletedOnboarding', 'false');
         setIsFirstLaunch(true);
       } else {
         setIsFirstLaunch(false);
@@ -84,6 +79,22 @@ const AppNavigator = () => {
       setIsFirstLaunch(false);
     }
   };
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await checkIfFirstLaunch();
+        await dispatch(checkOnboardingStatus()).unwrap();
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    dispatch(checkAuthState());
+    initializeApp();
+  }, [dispatch]);
+
+  const isLoading = authLoading || appLoading;
 
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -100,9 +111,9 @@ const AppNavigator = () => {
           contentStyle: { backgroundColor: '#FFFFFF' },
         }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
-        {(authLoading || appLoading) ? null : (
+        {isLoading ? null : (
           <>
-            {!hasCompletedOnboarding && (
+            {!hasCompletedOnboarding ? (
               <Stack.Screen
                 name="Onboarding"
                 component={OnboardingScreen}
@@ -111,8 +122,7 @@ const AppNavigator = () => {
                   gestureEnabled: false,
                 }}
               />
-            )}
-            {!isAuthenticated ? (
+            ) : !isAuthenticated ? (
               // Auth Stack
               <>
                 <Stack.Screen

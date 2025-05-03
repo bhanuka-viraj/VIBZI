@@ -32,7 +32,11 @@ export const completeOnboarding = createAsyncThunk(
 const appSlice = createSlice({
   name: 'app',
   initialState,
-  reducers: {},
+  reducers: {
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(checkOnboardingStatus.pending, state => {
@@ -42,10 +46,15 @@ const appSlice = createSlice({
         state.hasCompletedOnboarding = action.payload;
         state.isLoading = false;
       })
+      .addCase(checkOnboardingStatus.rejected, state => {
+        state.isLoading = false;
+      })
       .addCase(completeOnboarding.fulfilled, state => {
         state.hasCompletedOnboarding = true;
+        state.isLoading = false;
       });
   },
 });
 
+export const {setLoading} = appSlice.actions;
 export default appSlice.reducer;

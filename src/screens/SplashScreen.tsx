@@ -11,6 +11,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const SplashScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
+    const { hasCompletedOnboarding } = useSelector((state: RootState) => state.app);
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
@@ -20,13 +21,19 @@ const SplashScreen = () => {
                 duration: 500,
                 useNativeDriver: true,
             }).start(() => {
+                const nextScreen: keyof RootStackParamList = !hasCompletedOnboarding
+                    ? 'Onboarding'
+                    : isAuthenticated
+                        ? 'Main'
+                        : 'Login';
+
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: isAuthenticated ? 'Main' : 'Login' }],
+                    routes: [{ name: nextScreen }],
                 });
             });
         }
-    }, [navigation, isAuthenticated, isInitialized, fadeAnim]);
+    }, [navigation, isAuthenticated, isInitialized, fadeAnim, hasCompletedOnboarding]);
 
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
