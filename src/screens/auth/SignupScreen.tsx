@@ -51,7 +51,7 @@ const SignupScreen = () => {
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (password.trim() !== confirmPassword.trim()) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
@@ -60,12 +60,12 @@ const SignupScreen = () => {
       setIsLoading(true);
       const result = await dispatch(
         signUp({
-          username: email, // Using email as username
-          password,
-          email,
-          givenName,
-          familyName,
-          gender,
+          username: email.trim(), // Using email as username
+          password: password.trim(),
+          email: email.trim(),
+          givenName: givenName.trim(),
+          familyName: familyName.trim(),
+          gender: gender.trim(),
           birthdate: birthdate.toISOString().split('T')[0],
           phoneNumber: '', // Empty as it's not required
         }),
@@ -123,7 +123,7 @@ const SignupScreen = () => {
           <TextInput
             label="First Name"
             value={givenName}
-            onChangeText={setGivenName}
+            onChangeText={(text) => setGivenName(text.trim())}
             style={styles.input}
             disabled={isLoading}
             mode="outlined"
@@ -135,7 +135,7 @@ const SignupScreen = () => {
           <TextInput
             label="Last Name"
             value={familyName}
-            onChangeText={setFamilyName}
+            onChangeText={(text) => setFamilyName(text.trim())}
             style={styles.input}
             disabled={isLoading}
             mode="outlined"
@@ -147,7 +147,7 @@ const SignupScreen = () => {
           <TextInput
             label="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text.trim())}
             keyboardType="email-address"
             style={styles.input}
             disabled={isLoading}
@@ -156,11 +156,12 @@ const SignupScreen = () => {
             activeOutlineColor={theme.colors.primary}
             theme={{ colors: { background: 'white' } }}
             left={<TextInput.Icon icon="email" />}
+            autoCapitalize="none"
           />
           <TextInput
             label="Password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => setPassword(text.trim())}
             secureTextEntry
             style={styles.input}
             disabled={isLoading}
@@ -173,7 +174,7 @@ const SignupScreen = () => {
           <TextInput
             label="Confirm Password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => setConfirmPassword(text.trim())}
             secureTextEntry
             style={styles.input}
             disabled={isLoading}

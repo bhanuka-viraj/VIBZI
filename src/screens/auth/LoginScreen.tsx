@@ -50,12 +50,12 @@ export default function LoginScreen({ route }: any) {
   };
 
   const handleUsernameChange = (text: string) => {
-    setUsername(text);
+    setUsername(text.trim());
     if (error) dispatch(setError(null));
   };
 
   const handlePasswordChange = (text: string) => {
-    setPassword(text);
+    setPassword(text.trim());
     if (error) dispatch(setError(null));
   };
 
@@ -83,6 +83,7 @@ export default function LoginScreen({ route }: any) {
           activeOutlineColor={theme.colors.primary}
           theme={{ colors: { background: 'white' } }}
           left={<TextInput.Icon icon="account" />}
+          autoCapitalize="none"
         />
         <TextInput
           label="Password"

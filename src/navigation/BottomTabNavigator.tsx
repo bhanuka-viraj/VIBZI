@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, StyleSheet, Platform, Text } from 'react-native';
+import { View, StyleSheet, Platform, Text, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import MyTripsScreen from '../screens/MyTripsScreen';
@@ -45,12 +45,16 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
           const label = route.name === 'MyTrips' ? 'My Trips' : route.name;
 
           return (
-            <View key={route.key} style={styles.tab}>
+            <TouchableOpacity
+              key={route.key}
+              style={styles.tab}
+              onPress={onPress}
+              activeOpacity={0.7}
+            >
               <Ionicons
                 name={icon.props.name}
                 size={icon.props.size || 20}
                 color={isFocused ? theme.colors.primary : '#909090'}
-                onPress={onPress}
               />
               <Text
                 style={[
@@ -59,7 +63,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                 ]}>
                 {label}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
