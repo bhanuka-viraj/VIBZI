@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.primary,
     },
     dangerDialogButton: {
-        backgroundColor: '#FF4444',
+        backgroundColor: theme.colors.error,
     },
     confirmDialogButtonText: {
         fontSize: 16,

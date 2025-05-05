@@ -165,9 +165,6 @@ const ThingsToDoForm = () => {
                 Toast.show({
                     type: 'success',
                     text1: isUpdating ? 'Activity Updated' : 'Activity Added',
-                    text2: isUpdating
-                        ? 'Your activity has been updated successfully'
-                        : 'Your new activity has been added successfully',
                     position: 'bottom',
                     visibilityTime: 3000,
                 });
@@ -176,9 +173,6 @@ const ThingsToDoForm = () => {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: isUpdating
-                    ? 'Failed to update activity'
-                    : 'Failed to add activity',
                 position: 'bottom',
                 visibilityTime: 3000,
             });

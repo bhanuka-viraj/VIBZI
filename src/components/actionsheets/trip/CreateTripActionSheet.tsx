@@ -123,6 +123,8 @@ const CreateTripActionSheet: React.FC<CreateTripActionSheetProps> = ({
             description: description,
             userId: user?.userId,
             destinationId: selectedDestinationId || 124,
+            tripId: initialData.tripId,
+            imageUrl: initialData.imageUrl,
           },
         }).unwrap();
         Toast.show({

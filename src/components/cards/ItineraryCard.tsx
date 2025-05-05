@@ -228,7 +228,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({
               </Text>
               {(item.type === PLACESTOSTAY || item.type === FOODANDDRINK || item.type === THINGSTODO) && (
                 <Text style={styles.statusText}>
-                  Status: {item.details.customFields.isBooked ? 'Booked' : 'Not Booked'}
+                  Status: {item.details.customFields.isBooked === true || item.details.customFields.isBooked === "true" ? 'Booked' : 'Not Booked'}
                 </Text>
               )}
             </>

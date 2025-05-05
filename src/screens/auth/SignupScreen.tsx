@@ -28,6 +28,8 @@ const SignupScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [givenName, setGivenName] = useState('');
   const [familyName, setFamilyName] = useState('');
   const [gender, setGender] = useState('');
@@ -162,7 +164,7 @@ const SignupScreen = () => {
             label="Password"
             value={password}
             onChangeText={(text) => setPassword(text.trim())}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             style={styles.input}
             disabled={isLoading}
             mode="outlined"
@@ -170,12 +172,18 @@ const SignupScreen = () => {
             activeOutlineColor={theme.colors.primary}
             theme={{ colors: { background: 'white' } }}
             left={<TextInput.Icon icon="lock" />}
+            right={
+              <TextInput.Icon
+                icon={showPassword ? 'eye-off' : 'eye'}
+                onPress={() => setShowPassword(!showPassword)}
+              />
+            }
           />
           <TextInput
             label="Confirm Password"
             value={confirmPassword}
             onChangeText={(text) => setConfirmPassword(text.trim())}
-            secureTextEntry
+            secureTextEntry={!showConfirmPassword}
             style={styles.input}
             disabled={isLoading}
             mode="outlined"
@@ -183,6 +191,12 @@ const SignupScreen = () => {
             activeOutlineColor={theme.colors.primary}
             theme={{ colors: { background: 'white' } }}
             left={<TextInput.Icon icon="lock-check" />}
+            right={
+              <TextInput.Icon
+                icon={showConfirmPassword ? 'eye-off' : 'eye'}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
+            }
           />
           <Menu
             visible={showGenderMenu}

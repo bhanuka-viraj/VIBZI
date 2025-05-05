@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Alert } from 'react-native';
 import {
   TextInput,
   Button,
@@ -24,6 +24,7 @@ export default function LoginScreen({ route }: any) {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useAppDispatch();
   const { isAuthenticated, error } = useSelector(
     (state: RootState) => state.auth,
@@ -46,7 +47,30 @@ export default function LoginScreen({ route }: any) {
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) return;
     setIsLoading(true);
-    dispatch(signIn(username, password));
+    const result = await dispatch(signIn(username, password));
+
+    if (result?.username) {
+      Alert.alert(
+        'Account Not Confirmed',
+        'Your account is not confirmed yet. Would you like to confirm it now?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            },
+          },
+          {
+            text: 'Confirm',
+            onPress: () => navigation.navigate('ConfirmSignup', { username: result.username }),
+          },
+        ],
+      );
+    }
   };
 
   const handleUsernameChange = (text: string) => {
@@ -73,7 +97,7 @@ export default function LoginScreen({ route }: any) {
         </View>
 
         <TextInput
-          label="Username"
+          label="Email"
           value={username}
           onChangeText={handleUsernameChange}
           style={styles.input}
@@ -82,14 +106,14 @@ export default function LoginScreen({ route }: any) {
           outlineColor="#E0E0E0"
           activeOutlineColor={theme.colors.primary}
           theme={{ colors: { background: 'white' } }}
-          left={<TextInput.Icon icon="account" />}
+          left={<TextInput.Icon icon="email" />}
           autoCapitalize="none"
         />
         <TextInput
           label="Password"
           value={password}
           onChangeText={handlePasswordChange}
-          secureTextEntry
+          secureTextEntry={!showPassword}
           style={styles.input}
           disabled={isLoading}
           mode="outlined"
@@ -97,6 +121,12 @@ export default function LoginScreen({ route }: any) {
           activeOutlineColor={theme.colors.primary}
           theme={{ colors: { background: 'white' } }}
           left={<TextInput.Icon icon="lock" />}
+          right={
+            <TextInput.Icon
+              icon={showPassword ? 'eye-off' : 'eye'}
+              onPress={() => setShowPassword(!showPassword)}
+            />
+          }
         />
         {error && <HelperText type="error">{error}</HelperText>}
         <Button

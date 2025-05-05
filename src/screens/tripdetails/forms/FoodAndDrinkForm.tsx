@@ -164,10 +164,7 @@ const FoodAndDrinkForm = () => {
             setTimeout(() => {
                 Toast.show({
                     type: 'success',
-                    text1: isUpdating ? 'Restaurant Updated' : 'Restaurant Added',
-                    text2: isUpdating
-                        ? 'Your restaurant has been updated successfully'
-                        : 'Your new restaurant has been added successfully',
+                    text1: isUpdating ? 'Food & Drink Updated' : 'Food & Drink Added',
                     position: 'bottom',
                     visibilityTime: 3000,
                 });
@@ -176,9 +173,6 @@ const FoodAndDrinkForm = () => {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: isUpdating
-                    ? 'Failed to update restaurant'
-                    : 'Failed to add restaurant',
                 position: 'bottom',
                 visibilityTime: 3000,
             });

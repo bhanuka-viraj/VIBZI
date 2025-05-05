@@ -72,7 +72,8 @@ export const checkAuthState = () => async (dispatch: any) => {
     const attributes = await fetchUserAttributes();
 
     const session = await fetchAuthSession();
-    console.log(session, 'session');
+    console.log('User Attributes:', attributes);
+    console.log('Session:', session);
     const userObject = {
       username: attributes.email || user.username,
       userId: user.userId,
@@ -85,10 +86,10 @@ export const checkAuthState = () => async (dispatch: any) => {
       picture: attributes.picture || '',
       isSignedIn: true,
     };
-    console.log(userObject, 'userObject');
+    console.log('User Object:', userObject);
     dispatch(setUser(userObject));
   } catch (error) {
-    console.log(error, 'no active session');
+    console.log('Error in checkAuthState:', error);
     dispatch(clearUser());
   } finally {
     dispatch({type: 'auth/setInitialized'});
@@ -104,6 +105,9 @@ export const signIn =
       const userInfo = await getCurrentUser();
       const attributes = await fetchUserAttributes();
 
+      console.log('SignIn User Attributes:', attributes);
+      console.log('SignIn User Info:', userInfo);
+
       const userObject = {
         username: attributes.email || username,
         userId: userInfo.userId,
@@ -116,8 +120,17 @@ export const signIn =
         picture: attributes.picture || '',
         isSignedIn: signInResult.isSignedIn,
       };
+      console.log('SignIn User Object:', userObject);
       dispatch(setUser(userObject));
     } catch (error: any) {
+      if (
+        error.message?.includes(
+          'User needs to be authenticated to call this API',
+        )
+      ) {
+        dispatch(setError(null));
+        return {username};
+      }
       dispatch(setError(error.message));
       dispatch(clearUser());
     } finally {
@@ -128,17 +141,17 @@ export const signIn =
 export const signOut = createAsyncThunk(
   'auth/signOut',
   async (_, {dispatch}) => {
-  try {
+    try {
       dispatch(setLoading(true));
-    await amplifySignOut();
+      await amplifySignOut();
       dispatch(clearUser());
-    return null;
+      return null;
     } catch (error: any) {
       dispatch(setError(error.message));
-    throw error;
+      throw error;
     } finally {
       dispatch(setLoading(false));
-  }
+    }
   },
 );
 

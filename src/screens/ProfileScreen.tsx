@@ -81,7 +81,7 @@ const ProfileScreen = () => {
           <List.Subheader>Personal Information</List.Subheader>
           <List.Item
             title="Email"
-            description={user?.email || 'Not set'}
+            description={user?.username || 'Not set'}
             left={props => (
               <List.Icon
                 {...props}
@@ -96,7 +96,7 @@ const ProfileScreen = () => {
             )}
           />
           <Divider />
-      
+
           <List.Item
             title="Gender"
             description={user?.gender || 'Not set'}

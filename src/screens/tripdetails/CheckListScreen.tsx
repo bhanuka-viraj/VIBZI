@@ -223,7 +223,7 @@ const CheckListScreen: React.FC<CheckListScreenProps> = ({ tripId, trip_id }) =>
                 <MaterialIcons
                   name="delete-outline"
                   size={22}
-                  color="#FF4444"
+                  color= {theme.colors.error}
                 />
               </TouchableOpacity>
             </View>

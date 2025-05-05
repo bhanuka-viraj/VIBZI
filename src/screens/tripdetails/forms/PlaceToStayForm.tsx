@@ -165,9 +165,6 @@ const PlaceToStayForm = () => {
                 Toast.show({
                     type: 'success',
                     text1: isUpdating ? 'Place to Stay Updated' : 'Place to Stay Added',
-                    text2: isUpdating
-                        ? 'Your place to stay has been updated successfully'
-                        : 'Your new place to stay has been added successfully',
                     position: 'bottom',
                     visibilityTime: 3000,
                 });
@@ -176,9 +173,6 @@ const PlaceToStayForm = () => {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: isUpdating
-                    ? 'Failed to update place to stay'
-                    : 'Failed to add place to stay',
                 position: 'bottom',
                 visibilityTime: 3000,
             });

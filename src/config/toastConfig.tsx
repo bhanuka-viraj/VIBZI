@@ -8,7 +8,7 @@ const toastConfig = {
       height: 60,
       width: '90%',
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 500,
       padding: 15,
       marginHorizontal: 20,
       flexDirection: 'row',
@@ -16,11 +16,11 @@ const toastConfig = {
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 4,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 8,
     }}>
       <View style={{
         width: 30,
@@ -34,7 +34,7 @@ const toastConfig = {
         <MaterialIcons name="check" size={20} color="white" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: '#333', fontWeight: '600', fontSize: 16 }}>{props.text1}</Text>
+        <Text style={{ color: '#333', fontSize: 16 }}>{props.text1}</Text>
         {props.text2 && <Text style={{ color: '#666', fontSize: 14, marginTop: 2 }}>{props.text2}</Text>}
       </View>
     </View>
@@ -44,7 +44,7 @@ const toastConfig = {
       height: 60,
       width: '90%',
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 30,
       padding: 15,
       marginHorizontal: 20,
       flexDirection: 'row',
@@ -52,11 +52,11 @@ const toastConfig = {
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 4,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 8,
     }}>
       <View style={{
         width: 30,
@@ -70,7 +70,7 @@ const toastConfig = {
         <MaterialIcons name="error-outline" size={20} color="white" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: '#333', fontWeight: '600', fontSize: 16 }}>{props.text1}</Text>
+        <Text style={{ color: '#333', fontSize: 16 }}>{props.text1}</Text>
         {props.text2 && <Text style={{ color: '#666', fontSize: 14, marginTop: 2 }}>{props.text2}</Text>}
       </View>
     </View>
@@ -80,7 +80,7 @@ const toastConfig = {
       height: 60,
       width: '90%',
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 30,
       padding: 15,
       marginHorizontal: 20,
       flexDirection: 'row',
@@ -88,11 +88,11 @@ const toastConfig = {
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 4,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 8,
     }}>
       <View style={{
         width: 30,
@@ -106,7 +106,7 @@ const toastConfig = {
         <MaterialIcons name="delete" size={20} color="white" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: '#333', fontWeight: '600', fontSize: 16 }}>{props.text1}</Text>
+        <Text style={{ color: '#333', fontSize: 16 }}>{props.text1}</Text>
         {props.text2 && <Text style={{ color: '#666', fontSize: 14, marginTop: 2 }}>{props.text2}</Text>}
       </View>
     </View>
