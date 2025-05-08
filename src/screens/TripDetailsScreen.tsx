@@ -8,13 +8,14 @@ import {
   StatusBarStyle,
   Animated,
   Easing,
-  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, useTheme, Modal, Portal, IconButton, Surface } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import dayjs from 'dayjs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import ImagePicker from 'react-native-image-crop-picker';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -38,15 +39,16 @@ interface TripDetailsScreenProps {
 const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
   const { tripId, trip_id } = route.params;
   const dispatch = useDispatch();
-  const { data: tripData, isLoading } = useGetTripPlanByIdQuery(tripId);
+  const { data: tripData } = useGetTripPlanByIdQuery(tripId);
   const [updateTripPlan] = useUpdateTripPlanMutation();
   const theme = useTheme();
   const navigation = useNavigation();
 
   const [statusBarStyle] = useState<StatusBarStyle>('light-content');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
@@ -125,6 +127,36 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
     }
   };
 
+  const handleImageUpload = async () => {
+    try {
+      const image = await ImagePicker.openPicker({
+        width: 1200,
+        height: 500,
+        cropping: true,
+        cropperCircleOverlay: false,
+        freeStyleCropEnabled: true,
+        cropperToolbarTitle: 'Crop Image',
+        mediaType: 'photo',
+      });
+
+      setIsUploading(true);
+
+      // TODO: Implement API call to upload the image
+      // For now, we'll just store the local URI
+      setSelectedImage(image.path);
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error: any) {
+      if (error?.code !== 'E_PICKER_CANCELLED') {
+        console.error('Error picking image:', error);
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <>
       <StatusBar
@@ -135,7 +167,7 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       <View style={{ flex: 1, backgroundColor: 'white' }}>
         <Animated.View style={{ opacity: fadeAnim }}>
           <ImageBackground
-            source={getImageSource(tripData?.imageUrl as any)}
+            source={selectedImage ? { uri: selectedImage } : getImageSource(tripData?.imageUrl as any)}
             style={styles.imageBackground}>
             <LinearGradient
               colors={getStatusBarGradient()}
@@ -151,6 +183,24 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
                 />
               </View>
             </TouchableOpacity>
+
+
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={handleImageUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <ActivityIndicator color={theme.colors.primary} />
+              ) : (
+                <MaterialIcons
+                  name="upload"
+                  size={24}
+                  color={'white'}
+                />
+              )}
+            </TouchableOpacity>
+
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.8)']}
               style={styles.gradientOverlay}>
@@ -358,6 +408,25 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  uploadButton: {
+    position: 'absolute',
+    top: StatusBar.currentHeight ? StatusBar.currentHeight + 2 : 40,
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
 
