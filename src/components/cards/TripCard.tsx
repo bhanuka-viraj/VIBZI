@@ -3,12 +3,13 @@ import React from 'react';
 import { theme } from '../../constants/theme';
 import { Text } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getTripImageSource } from '../../utils/tripUtils/tripDataUtil';
 
 interface TripCardProps {
   trip: {
     title: string;
     description: string;
-    image: number;
+    image?: number;
     id: string;
     tripId: string;
     startDate?: string;
@@ -31,7 +32,11 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onPress, onUpdate, onDelete }
         style={styles.container}
         onPress={() => onPress(trip.id, trip.tripId)}>
         <View style={styles.innerContainer}>
-          <Image source={trip.image} style={styles.image} resizeMode="cover" />
+          <Image
+            source={getTripImageSource(trip.imageUrl)}
+            style={styles.image}
+            resizeMode="cover"
+          />
 
           <View style={styles.textContainer}>
             <View style={styles.contentContainer}>

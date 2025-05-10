@@ -99,6 +99,20 @@ export const tripPlanSlice = apiSlice1.injectEndpoints({
       }),
       invalidatesTags: ['trips'],
     }),
+    uploadTripPlanCoverImage: builder.mutation<
+      void,
+      {id: string; file: FormData}
+    >({
+      query: ({id, file}) => ({
+        url: `/common-service/trip-plan/${id}/cover-image`,
+        method: 'PATCH',
+        body: file,
+        formData: true,
+        validateStatus: response =>
+          response.status >= 200 && response.status < 300,
+      }),
+      invalidatesTags: ['trips', 'trips-id'],
+    }),
   }),
 });
 
@@ -108,4 +122,5 @@ export const {
   useSearchTripPlansQuery,
   useUpdateTripPlanMutation,
   useDeleteTripPlanMutation,
+  useUploadTripPlanCoverImageMutation,
 } = tripPlanSlice;

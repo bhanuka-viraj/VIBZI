@@ -94,3 +94,10 @@ export function parseItineraryData(data: any) {
     itineraryByDate: itinerary,
   };
 }
+
+export function getTripImageSource(imageUrl: string | undefined) {
+  if (imageUrl && imageUrl.startsWith('http')) {
+    return {uri: imageUrl};
+  }
+  return getImageSource(imageUrl || '');
+}

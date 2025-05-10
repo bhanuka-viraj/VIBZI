@@ -9,8 +9,9 @@ import {
   Animated,
   Easing,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Text, useTheme, Portal } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import dayjs from 'dayjs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,13 +20,14 @@ import ImagePicker from 'react-native-image-crop-picker';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { useGetTripPlanByIdQuery, useUpdateTripPlanMutation } from '../redux/slices/tripplan/tripPlanSlice';
-import { getImageSource } from '../utils/tripUtils/tripDataUtil';
+import { useGetTripPlanByIdQuery, useUpdateTripPlanMutation, useUploadTripPlanCoverImageMutation } from '../redux/slices/tripplan/tripPlanSlice';
+import { getTripImageSource } from '../utils/tripUtils/tripDataUtil';
 import { useDispatch } from 'react-redux';
 import { setTripId } from '../redux/slices/metaSlice';
 import { getStatusBarGradient } from '../utils/statusBarUtils';
 import { theme } from '@/constants/theme';
 import TripDescriptionModal from '../components/modals/TripDescriptionModal';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 
 const HEADER_IMAGE_HEIGHT = 200;
 const MAX_DESCRIPTION_LENGTH = 50;
@@ -41,18 +43,23 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
   const dispatch = useDispatch();
   const { data: tripData } = useGetTripPlanByIdQuery(tripId);
   const [updateTripPlan] = useUpdateTripPlanMutation();
+  const [uploadTripPlanCoverImage] = useUploadTripPlanCoverImageMutation();
   const theme = useTheme();
   const navigation = useNavigation();
 
+  console.log('====================================');
+  console.log('tripData', tripData);
+  console.log('====================================');
   const [statusBarStyle] = useState<StatusBarStyle>('light-content');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editedDescription, setEditedDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+
+  const actionSheetRef = React.useRef<ActionSheetRef>(null);
 
   const parsedFromDate = tripData?.startDate
     ? new Date(tripData.startDate)
@@ -77,12 +84,6 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       dispatch(setTripId(tripData?.tripId));
     }
   }, [tripData, dispatch]);
-
-  useEffect(() => {
-    if (tripData?.description) {
-      setEditedDescription(tripData.description);
-    }
-  }, [tripData?.description]);
 
   useEffect(() => {
     Animated.parallel([
@@ -127,33 +128,63 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
     }
   };
 
-  const handleImageUpload = async () => {
+  const pickAndCropImage = async () => {
     try {
       const image = await ImagePicker.openPicker({
-        width: 1200,
-        height: 500,
+        width: 1600,
+        height: 700,
         cropping: true,
         cropperCircleOverlay: false,
         freeStyleCropEnabled: true,
         cropperToolbarTitle: 'Crop Image',
         mediaType: 'photo',
       });
-
       setIsUploading(true);
+      if (tripData?.id) {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: Platform.OS === 'android' ? image.path : image.path.replace('file://', ''),
+          type: 'image/jpeg',
+          name: image.filename || 'cover.jpg',
+        } as any);
 
-      // TODO: Implement API call to upload the image
-      // For now, we'll just store the local URI
-      setSelectedImage(image.path);
+        try {
+          const uploadResponse: any = await uploadTripPlanCoverImage({
+            id: tripData.id,
+            file: formData
+          }).unwrap();
 
-      // Simulate API call delay
+          if (uploadResponse?.imageUrl) {
+            setUploadedImageUrl(uploadResponse.imageUrl);
+          }
+        } catch (uploadError) {
+          throw uploadError;
+        }
+      }
       await new Promise(resolve => setTimeout(resolve, 1000));
-
     } catch (error: any) {
       if (error?.code !== 'E_PICKER_CANCELLED') {
         console.error('Error picking image:', error);
       }
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleUploadButtonPress = () => {
+    pickAndCropImage();
+  };
+
+  const handleImageAreaPress = () => {
+    actionSheetRef.current?.show();
+  };
+
+  const handleActionSheetOption = async (option: 'upload' | 'edit') => {
+    actionSheetRef.current?.hide();
+    if (option === 'upload') {
+      pickAndCropImage();
+    } else if (option === 'edit') {
+      setTimeout(() => setIsModalVisible(true), 500);
     }
   };
 
@@ -166,76 +197,72 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       />
       <View style={{ flex: 1, backgroundColor: 'white' }}>
         <Animated.View style={{ opacity: fadeAnim }}>
-          <ImageBackground
-            source={selectedImage ? { uri: selectedImage } : getImageSource(tripData?.imageUrl as any)}
-            style={styles.imageBackground}>
-            <LinearGradient
-              colors={getStatusBarGradient()}
-              style={styles.statusBarGradient}
-              pointerEvents="none"
-            />
-            <TouchableOpacity style={styles.backButton} onPress={goBack}>
-              <View style={styles.backButtonCircle}>
-                <Ionicons
-                  name="chevron-back-outline"
-                  size={16}
-                  color={theme.colors.surface}
-                />
-              </View>
-            </TouchableOpacity>
-
-
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={handleImageUpload}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <ActivityIndicator color={theme.colors.primary} />
-              ) : (
-                <MaterialIcons
-                  name="upload"
-                  size={24}
-                  color={'white'}
-                />
-              )}
-            </TouchableOpacity>
-
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.8)']}
-              style={styles.gradientOverlay}>
-              <Text variant="headlineMedium" style={styles.tripTitle}>
-                {tripData?.title}
-              </Text>
-              <Text variant="bodyMedium" style={styles.tripDetails}>
-                {formattedFromDate} - {formattedToDate} •{' '}
-                {tripData?.destinationName} {''}
-                <MaterialIcons
-                  name="location-on"
-                  size={13}
-                  color={theme.colors.surface}
-                />
-              </Text>
-              {tripData?.description && (
-                <TouchableOpacity
-                  style={styles.descriptionContainer}
-                  onPress={() => setIsModalVisible(true)}>
-                  <MaterialIcons
-                    name="unfold-more"
-                    size={14}
+          <TouchableOpacity activeOpacity={0.85} onPress={handleImageAreaPress}>
+            <ImageBackground
+              source={getTripImageSource(uploadedImageUrl || tripData?.imageUrl)}
+              style={styles.imageBackground}>
+              <LinearGradient
+                colors={getStatusBarGradient()}
+                style={styles.statusBarGradient}
+                pointerEvents="none"
+              />
+              <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                <View style={styles.backButtonCircle}>
+                  <Ionicons
+                    name="chevron-back-outline"
+                    size={16}
                     color={theme.colors.surface}
                   />
-                  <View style={styles.descriptionWrapper}>
-                    <Text variant="bodySmall" style={styles.description}>
-                      {truncatedDescription}
-                    </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={handleUploadButtonPress}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <ActivityIndicator color={theme.colors.primary} />
+                ) : (
+                  <MaterialIcons
+                    name="camera-alt"
+                    size={18}
+                    color={'white'}
+                  />
+                )}
+              </TouchableOpacity>
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.8)']}
+                style={styles.gradientOverlay}>
+                <Text variant="headlineMedium" style={styles.tripTitle}>
+                  {tripData?.title}
+                </Text>
+                <Text variant="bodyMedium" style={styles.tripDetails}>
+                  {formattedFromDate} - {formattedToDate} •{' '}
+                  {tripData?.destinationName} {''}
+                  <MaterialIcons
+                    name="location-on"
+                    size={13}
+                    color={theme.colors.surface}
+                  />
+                </Text>
+                {tripData?.description && (
+                  <View style={styles.descriptionContainer}>
+                    <MaterialIcons
+                      name="unfold-more"
+                      size={14}
+                      color={theme.colors.surface}
+                    />
+                    <View style={styles.descriptionWrapper}>
+                      <Text variant="bodySmall" style={styles.description}>
+                        {truncatedDescription}
+                      </Text>
+                    </View>
                   </View>
-                </TouchableOpacity>
-              )}
-            </LinearGradient>
-          </ImageBackground>
+                )}
+              </LinearGradient>
+            </ImageBackground>
+          </TouchableOpacity>
         </Animated.View>
-
         <Animated.View
           style={[
             styles.content,
@@ -250,15 +277,34 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
             }}
           />
         </Animated.View>
-
-        <TripDescriptionModal
-          key={`trip-description-modal-${tripData?.id || 'default'}-${isModalVisible ? 'visible' : 'hidden'}`}
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          description={tripData?.description || ''}
-          onSave={handleSaveDescription}
-          tripId={tripData?.id}
-        />
+        <Portal>
+          <TripDescriptionModal
+            key={`trip-description-modal-${tripData?.id || 'default'}-${isModalVisible ? 'visible' : 'hidden'}`}
+            visible={isModalVisible}
+            onDismiss={() => setIsModalVisible(false)}
+            description={tripData?.description || ''}
+            onSave={handleSaveDescription}
+            tripId={tripData?.id}
+          />
+        </Portal>
+        <ActionSheet ref={actionSheetRef} gestureEnabled>
+          <View style={{ paddingVertical: 16 }}>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }}
+              onPress={() => handleActionSheetOption('upload')}
+            >
+              <MaterialIcons name="upload" size={22} color={theme.colors.primary} />
+              <Text style={{ marginLeft: 12, fontSize: 16 }}>Upload Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }}
+              onPress={() => handleActionSheetOption('edit')}
+            >
+              <MaterialIcons name="edit" size={22} color={theme.colors.primary} />
+              <Text style={{ marginLeft: 12, fontSize: 16 }}>Description</Text>
+            </TouchableOpacity>
+          </View>
+        </ActionSheet>
       </View>
     </>
   );
