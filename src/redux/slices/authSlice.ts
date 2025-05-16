@@ -7,6 +7,7 @@ import {
   fetchUserAttributes,
   fetchAuthSession,
   confirmSignUp as amplifyConfirmSignUp,
+  signInWithRedirect,
 } from '@aws-amplify/auth';
 import {createAsyncThunk} from '@reduxjs/toolkit';
 
@@ -191,6 +192,56 @@ export const signUp = createAsyncThunk(
       },
     });
     return result;
+  },
+);
+
+/**
+ * Google Sign-In - Handles the OAuth flow for Google authentication
+ * Uses Cognito's signInWithRedirect to initiate the Google sign-in process
+ * After successful sign-in, fetches user attributes and updates Redux store
+ *
+ * Flow:
+ * 1. Initiates OAuth redirect to Google
+ * 2. Waits for redirect completion
+ * 3. Fetches user info and attributes
+ * 4. Updates Redux store with user data
+ */
+export const signInWithGoogle = createAsyncThunk(
+  'auth/signInWithGoogle',
+  async (_, {dispatch}) => {
+    try {
+      dispatch(setLoading(true));
+      const result = await signInWithRedirect({
+        provider: 'Google',
+        customState: 'google-signin',
+      });
+
+      // Wait for the redirect to complete and get the user info
+      const userInfo = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
+
+      const userObject = {
+        username: attributes.email || userInfo.username,
+        userId: userInfo.userId,
+        firstName: attributes.given_name || 'User',
+        lastName: attributes.family_name || '',
+        email: attributes.email || '',
+        phone: attributes.phone_number || '',
+        gender: attributes.gender || '',
+        birthdate: attributes.birthdate || '',
+        picture: attributes.picture || '',
+        isSignedIn: true,
+      };
+
+      dispatch(setUser(userObject));
+      return userObject;
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      dispatch(setError(error.message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
   },
 );
 

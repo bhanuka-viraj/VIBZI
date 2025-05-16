@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView, Image, Platform, Linking } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Alert, ScrollView, Image, Platform, Linking, TouchableOpacity, Animated } from 'react-native';
 import {
-  TextInput,
   Button,
   Text,
-  TouchableRipple,
-  HelperText,
-  Menu,
-  Portal,
-  Modal,
+  Divider,
 } from 'react-native-paper';
 import { useAppDispatch } from '../../redux/hooks';
-import { signUp } from '../../redux/slices/authSlice';
+import { signInWithGoogle } from '../../redux/slices/authSlice';
 import { theme } from '../../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -19,87 +14,50 @@ import { RootState } from '../../redux/store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LoadingModal from '../../components/LoadingModal';
-import DatePicker from 'react-native-date-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import EmailSignupForm from '../../components/EmailSignupForm';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+// --- SignupScreen main component ---
 const SignupScreen = () => {
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [givenName, setGivenName] = useState('');
-  const [familyName, setFamilyName] = useState('');
-  const [gender, setGender] = useState('');
-  const [birthdate, setBirthdate] = useState(new Date());
-  const [showGenderMenu, setShowGenderMenu] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { error } = useSelector((state: RootState) => state.auth);
 
-  const handleSignup = async () => {
-    if (
-      !email.trim() ||
-      !password.trim() ||
-      !confirmPassword.trim() ||
-      !givenName.trim() ||
-      !familyName.trim() ||
-      !gender.trim()
-    ) {
-      Alert.alert('Error', 'All fields are required');
-      return;
-    }
+  // Animation refs
+  const logoAnim = useRef(new Animated.Value(0)).current;
+  const termsAnim = useRef(new Animated.Value(0)).current;
+  const formAnim = useRef(new Animated.Value(0)).current;
 
-    if (password.trim() !== confirmPassword.trim()) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
+  const handleGoogleSignup = async () => {
     try {
       setIsLoading(true);
-      const result = await dispatch(
-        signUp({
-          username: email.trim(), // Using email as username
-          password: password.trim(),
-          email: email.trim(),
-          givenName: givenName.trim(),
-          familyName: familyName.trim(),
-          gender: gender.trim(),
-          birthdate: birthdate.toISOString().split('T')[0],
-          phoneNumber: '', // Empty as it's not required
-        }),
-      ).unwrap();
-
-      console.log('Signup result:', result);
-      setIsLoading(false);
-      Alert.alert('Success', 'Please check your email for confirmation code');
-      navigation.navigate('ConfirmSignup', { username: email });
+      await dispatch(signInWithGoogle()).unwrap();
     } catch (error: any) {
+      Alert.alert('Error', error.message || 'Google Sign-Up failed');
+    } finally {
       setIsLoading(false);
-      console.error('Signup error:', error);
-      if (error.name === 'UsernameExistsException') {
-        Alert.alert(
-          'Account Exists',
-          'This account already exists. Would you like to confirm it?',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Confirm Account',
-              onPress: () => navigation.navigate('ConfirmSignup', { username: email }),
-            },
-          ],
-        );
-      } else {
-        Alert.alert('Error', error.message || 'Signup failed');
-      }
     }
   };
+
+  useEffect(() => {
+    if (showEmailForm) {
+      Animated.parallel([
+        Animated.timing(logoAnim, { toValue: -6, duration: 400, useNativeDriver: true }),
+        Animated.timing(termsAnim, { toValue: 6, duration: 400, useNativeDriver: true }),
+        Animated.timing(formAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(logoAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(termsAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(formAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [showEmailForm]);
 
   useEffect(() => {
     if (error) {
@@ -109,185 +67,95 @@ const SignupScreen = () => {
 
   return (
     <View style={styles.container}>
+      {showEmailForm && (
+        <TouchableOpacity
+          onPress={() => setShowEmailForm(false)}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: Platform.OS === 'ios' ? 50 : 20,
+            zIndex: 100,
+            padding: 10,
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Icon name="arrow-left" size={22} color={theme.colors.primary} />
+        </TouchableOpacity>
+      )}
       <LoadingModal visible={isLoading} message="Signing up" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <View style={styles.headerContainer}>
-            <Image
-              source={require('../../assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.welcomeText}>Create an account</Text>
-            <Text style={styles.title}>Enter your information to create your account</Text>
-          </View>
-
-          <TextInput
-            label="First Name"
-            value={givenName}
-            onChangeText={(text) => setGivenName(text.trim())}
-            style={styles.input}
-            disabled={isLoading}
-            mode="outlined"
-            outlineColor="#E0E0E0"
-            activeOutlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'white' } }}
-            left={<TextInput.Icon icon="account-details" />}
-          />
-          <TextInput
-            label="Last Name"
-            value={familyName}
-            onChangeText={(text) => setFamilyName(text.trim())}
-            style={styles.input}
-            disabled={isLoading}
-            mode="outlined"
-            outlineColor="#E0E0E0"
-            activeOutlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'white' } }}
-            left={<TextInput.Icon icon="account-details" />}
-          />
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={(text) => setEmail(text.trim())}
-            keyboardType="email-address"
-            style={styles.input}
-            disabled={isLoading}
-            mode="outlined"
-            outlineColor="#E0E0E0"
-            activeOutlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'white' } }}
-            left={<TextInput.Icon icon="email" />}
-            autoCapitalize="none"
-          />
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text.trim())}
-            secureTextEntry={!showPassword}
-            style={styles.input}
-            disabled={isLoading}
-            mode="outlined"
-            outlineColor="#E0E0E0"
-            activeOutlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'white' } }}
-            left={<TextInput.Icon icon="lock" />}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowPassword(!showPassword)}
+          <Animated.View style={{ transform: [{ translateY: logoAnim }] }}>
+            <View style={styles.headerContainer}>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
               />
-            }
-          />
-          <TextInput
-            label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={(text) => setConfirmPassword(text.trim())}
-            secureTextEntry={!showConfirmPassword}
-            style={styles.input}
-            disabled={isLoading}
-            mode="outlined"
-            outlineColor="#E0E0E0"
-            activeOutlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'white' } }}
-            left={<TextInput.Icon icon="lock-check" />}
-            right={
-              <TextInput.Icon
-                icon={showConfirmPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              />
-            }
-          />
-          <Menu
-            visible={showGenderMenu}
-            onDismiss={() => setShowGenderMenu(false)}
-            anchor={
-              <TouchableRipple onPress={() => setShowGenderMenu(true)}>
-                <View style={styles.input}>
-                  <TextInput
-                    label="Gender"
-                    value={gender}
-                    editable={false}
-                    disabled={isLoading}
-                    mode="outlined"
-                    outlineColor="#E0E0E0"
-                    activeOutlineColor={theme.colors.primary}
-                    theme={{ colors: { background: 'white' } }}
-                    left={<TextInput.Icon icon="gender-male-female" />}
-                    right={
-                      <TextInput.Icon
-                        icon="chevron-down"
-                        onPress={() => setShowGenderMenu(true)}
-                      />
-                    }
-                  />
-                </View>
-              </TouchableRipple>
-            }>
-            <Menu.Item onPress={() => { setGender('Male'); setShowGenderMenu(false); }} title="Male" />
-            <Menu.Item onPress={() => { setGender('Female'); setShowGenderMenu(false); }} title="Female" />
-            <Menu.Item onPress={() => { setGender('Other'); setShowGenderMenu(false); }} title="Other" />
-          </Menu>
-          <TouchableRipple onPress={() => setShowDatePicker(true)}>
-            <View style={styles.input}>
-              <TextInput
-                label="Birthday"
-                value={birthdate.toLocaleDateString()}
-                editable={false}
-                disabled={isLoading}
-                mode="outlined"
-                outlineColor="#E0E0E0"
-                activeOutlineColor={theme.colors.primary}
-                theme={{ colors: { background: 'white' } }}
-                left={<TextInput.Icon icon="calendar" />}
-              />
+              <Text style={styles.welcomeText}>Create an account</Text>
+              <Text style={styles.title}>Enter your information to create your account</Text>
             </View>
-          </TouchableRipple>
-          <DatePicker
-            modal
-            open={showDatePicker}
-            date={birthdate}
-            onConfirm={(date) => {
-              setShowDatePicker(false);
-              setBirthdate(date);
-            }}
-            onCancel={() => {
-              setShowDatePicker(false);
-            }}
-            maximumDate={new Date()}
-            mode="date"
-            title="Select Birthday"
-            confirmText="Confirm"
-            cancelText="Cancel"
-          />
-          {error && <HelperText type="error">{error}</HelperText>}
-          <Button
-            mode="contained"
-            onPress={handleSignup}
-            style={styles.button}
-            disabled={isLoading}>
-            Sign Up
-          </Button>
+          </Animated.View>
 
-          <View style={styles.termsContainer}>
-            <Text style={styles.termsText}>
-              <Text
-                style={styles.termsLink}
-                onPress={() => Linking.openURL('https://vibzi.co/terms')}>
-                Terms and Conditions
-              </Text>
-              {' '}and{' '}
-              <Text
-                style={styles.termsLink}
-                onPress={() => Linking.openURL('https://vibzi.co/privacy')}>
-                Privacy Policy
-              </Text>
-            </Text>
-          </View>
+          {!showEmailForm && (
+            <>
+              <Button
+                mode="outlined"
+                onPress={handleGoogleSignup}
+                style={styles.googleButton}
+                disabled={isLoading}
+                icon={() => (
+                  <Image
+                    source={require('../../assets/g_logo.png')}
+                    style={{ width: 20, height: 20 }}
+                    resizeMode="contain"
+                  />
+                )}>
+                Continue with Google
+              </Button>
+              <View style={styles.dividerContainer}>
+                <Divider style={styles.divider} />
+                <Text style={styles.orText}>OR</Text>
+                <Divider style={styles.divider} />
+              </View>
+              <Button
+                mode="contained"
+                onPress={() => setShowEmailForm(true)}
+                style={styles.button}
+              >
+                Sign up with Email
+              </Button>
+            </>
+          )}
 
-          <TouchableRipple onPress={() => navigation.navigate('Login' as never)}>
-            <Text style={styles.link}>Already have an account? Login</Text>
-          </TouchableRipple>
+          <Animated.View
+            style={{
+              opacity: formAnim,
+              transform: [{ translateY: formAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+              width: '100%',
+            }}
+          >
+            {showEmailForm && <EmailSignupForm styles={styles} />}
+          </Animated.View>
+
+          <Animated.View style={{ transform: [{ translateY: termsAnim }] }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10, marginBottom: 10 }}>
+              <TouchableOpacity onPress={() => Linking.openURL('https://vibzi.co/terms')}>
+                <Text style={[styles.termsLink, { textDecorationLine: 'underline' }]}>Terms and Conditions</Text>
+              </TouchableOpacity>
+              <Text style={{ marginHorizontal: 4, color: '#666' }}>and</Text>
+              <TouchableOpacity onPress={() => Linking.openURL('https://vibzi.co/privacy')}>
+                <Text style={[styles.termsLink, { textDecorationLine: 'underline' }]}>Privacy Policy</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login' as never)}
+              style={{ alignSelf: 'center' }}
+            >
+              <Text style={styles.link}>Already have an account? Login</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
@@ -357,6 +225,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  orText: {
+    marginHorizontal: 10,
+    color: '#666',
+  },
+  googleButton: {
+    marginBottom: 20,
+    borderColor: '#E0E0E0',
   },
 });
 

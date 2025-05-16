@@ -2,11 +2,11 @@ import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
 import {fetchAuthSession} from '@aws-amplify/auth';
 
 const baseQuery1 = fetchBaseQuery({
-  baseUrl: 'http://elight.lk:8081/api/v1',
+  baseUrl: 'https://service.vibzi.co/api/v1',
 });
 
 const baseQuery2 = fetchBaseQuery({
-  baseUrl: 'http://elight.lk:8082/api/v1',
+  baseUrl: 'https://service.vibzi.co/api/v1',
   prepareHeaders: async (headers, {endpoint}) => {
     try {
       const session = await fetchAuthSession();

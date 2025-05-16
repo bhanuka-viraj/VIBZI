@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, Alert } from 'react-native';
+import { View, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
 import {
   TextInput,
   Button,
   Text,
   TouchableRipple,
   HelperText,
+  Divider,
 } from 'react-native-paper';
 import { useAppDispatch } from '../../redux/hooks';
-import { signIn, setError } from '../../redux/slices/authSlice';
+import { signIn, setError, signInWithGoogle } from '../../redux/slices/authSlice';
 import { theme } from '../../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -16,6 +17,7 @@ import { RootState } from '../../redux/store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LoadingModal from '../../components/LoadingModal';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -70,6 +72,23 @@ export default function LoginScreen({ route }: any) {
           },
         ],
       );
+    }
+  };
+
+  /**
+   * Google Sign-In Button - UI component for initiating Google authentication
+   * Uses the signInWithGoogle Redux action to handle the OAuth flow
+   * Shows loading state during authentication
+   * Displays error message if authentication fails
+   */
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      await dispatch(signInWithGoogle()).unwrap();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Google Sign-In failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,14 +155,42 @@ export default function LoginScreen({ route }: any) {
           disabled={isLoading}>
           Login
         </Button>
-        <TouchableRipple
+
+        <View style={styles.dividerContainer}>
+          <Divider style={styles.divider} />
+          <Text style={styles.orText}>OR</Text>
+          <Divider style={styles.divider} />
+        </View>
+
+        {/* Google Sign-In Button - UI component that triggers the OAuth flow */}
+        <Button
+          mode="outlined"
+          onPress={handleGoogleLogin}
+          style={styles.googleButton}
+          disabled={isLoading}
+          icon={() => (
+            <Image
+              source={require('../../assets/g_logo.png')}
+              style={{ width: 20, height: 20 }}
+              resizeMode="contain"
+            />
+          )}>
+          Continue with Google
+        </Button>
+
+        <TouchableOpacity
           onPress={() => navigation.navigate('ForgotPassword' as never)}
-          style={styles.forgotPasswordLink}>
+          style={{ alignSelf: 'center' }}
+        >
           <Text style={styles.link}>Forgot Password?</Text>
-        </TouchableRipple>
-        <TouchableRipple onPress={() => navigation.navigate('Signup' as never)}>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Signup' as never)}
+          style={{ alignSelf: 'center' }}
+        >
           <Text style={styles.link}>Don't have an account? Sign up</Text>
-        </TouchableRipple>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -185,6 +232,24 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     backgroundColor: theme.colors.primary,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  orText: {
+    marginHorizontal: 10,
+    color: '#666',
+  },
+  googleButton: {
+    marginBottom: 20,
+    borderColor: '#E0E0E0',
   },
   forgotPasswordLink: {
     marginBottom: 8,

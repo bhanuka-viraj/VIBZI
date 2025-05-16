@@ -1,14 +1,14 @@
 {
-    "aws_project_region": "us-east-1",
-    "aws_cognito_region": "us-east-1",
-    "aws_user_pools_id": "us-east-1_hnNI7XgTH",
-    "aws_user_pools_web_client_id": "72fcbj8ki3qthmt792mv2p73hi",
+    "aws_project_region": "ap-southeast-1",
+    "aws_cognito_region": "ap-southeast-1",
+    "aws_user_pools_id": "ap-southeast-1_AZTq7PLmF",
+    "aws_user_pools_web_client_id": "15sbg8vkbkq0smiqjaeme6naoj",
     "oauth": {
-      "domain": "",
+      "domain": "auth.vibzi.co",
       "scope": [
         "email",
         "openid",
-        "phone",
+        "profile",
         "aws.cognito.signin.user.admin"
       ],
       "redirectSignIn": "myapp://callback",
