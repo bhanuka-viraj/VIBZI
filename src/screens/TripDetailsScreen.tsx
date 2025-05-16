@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
   StatusBar,
   StatusBarStyle,
@@ -17,6 +16,7 @@ import dayjs from 'dayjs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImagePicker from 'react-native-image-crop-picker';
+import FastImage from 'react-native-fast-image';
 import TripDetailsTabNavigator from '../navigation/TripDetailsTabNavigator';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -198,9 +198,18 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
       <View style={{ flex: 1, backgroundColor: 'white' }}>
         <Animated.View style={{ opacity: fadeAnim }}>
           <TouchableOpacity activeOpacity={0.85} onPress={handleImageAreaPress}>
-            <ImageBackground
-              source={getTripImageSource(uploadedImageUrl || tripData?.imageUrl)}
-              style={styles.imageBackground}>
+            <View style={styles.imageBackground}>
+              {!tripData?.imageUrl && !uploadedImageUrl ? (
+                <View style={[StyleSheet.absoluteFill, styles.loadingContainer]}>
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+              ) : (
+                <FastImage
+                  source={getTripImageSource(uploadedImageUrl || tripData?.imageUrl)}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode={FastImage.resizeMode.cover}
+                />
+              )}
               <LinearGradient
                 colors={getStatusBarGradient()}
                 style={styles.statusBarGradient}
@@ -214,21 +223,6 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
                     color={theme.colors.surface}
                   />
                 </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={handleUploadButtonPress}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <ActivityIndicator color={theme.colors.primary} />
-                ) : (
-                  <MaterialIcons
-                    name="camera-alt"
-                    size={18}
-                    color={'white'}
-                  />
-                )}
               </TouchableOpacity>
               <LinearGradient
                 colors={['transparent', 'rgba(0,0,0,0.8)']}
@@ -259,8 +253,23 @@ const TripDetailsScreen: React.FC<TripDetailsScreenProps> = ({ route }) => {
                     </View>
                   </View>
                 )}
+                <TouchableOpacity
+                  style={styles.uploadButton}
+                  onPress={handleUploadButtonPress}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <ActivityIndicator color={theme.colors.primary} />
+                  ) : (
+                    <MaterialIcons
+                      name="camera-alt"
+                      size={18}
+                      color={'white'}
+                    />
+                  )}
+                </TouchableOpacity>
               </LinearGradient>
-            </ImageBackground>
+            </View>
           </TouchableOpacity>
         </Animated.View>
         <Animated.View
@@ -457,7 +466,7 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     position: 'absolute',
-    top: StatusBar.currentHeight ? StatusBar.currentHeight + 2 : 40,
+    bottom: 16,
     right: 16,
     width: 40,
     height: 40,
@@ -473,6 +482,11 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  loadingContainer: {
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
